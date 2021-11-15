@@ -1,4 +1,4 @@
-package Koha::Illbackends::ILLSLNPKoha::Base;
+package Koha::Illbackends::SLNP::Base;
 
 # Copyright 2018-2021 (C) LMSCLoud GmbH
 #
@@ -43,17 +43,18 @@ use Koha::DateUtils qw(dt_from_string output_pref);
 
 =head1 NAME
 
-Koha::Illbackends::ILLSLNPKoha::Base - Koha ILL Backend: ILLSLNPKoha
-
+Koha::Illbackends::SLNP::Base - Koha ILL Backend: SLNP
 
 =head1 SYNOPSIS
-Koha ILL implementation for the "ILLSLNPKoha" backend. 
+
+Koha ILL implementation for the "SLNP" backend.
+
 Some library consortia in Germany run ILL servers that use SLNP (Simple Library Network Protocol) 
 for communication with the integrated library management systems.
 ZFL is the abbreviation for 'Zentrale Fernleihe' (central interlibrary loan).
 
-
 =head1 DESCRIPTION
+
 SLNP (TM) (Simple Library Network Protocol) is a TCP network socket based protocol 
 designed and introduced by the company Sisis Informationssysteme GmbH (later a part of OCLC) 
 for their library management system SISIS-SunRise (TM).
@@ -65,14 +66,12 @@ Sisis Informationssysteme GmbH / OCLC owns all rights to SLNP.
 SLNP is a registered trademark of Sisis Informationssysteme GmbH / OCLC.
 
 This ILL backend provides a simple method to handle Interlibrary Loan requests that are initiated by an regional ILL server using the SLNP protocol.
-The additional service 'ILLZFLServerKoha' manages the communication with the regional ILL server and will insert records in tables illrequests and illrequestattributes by calling the 'create' method of ILLSLNPKoha. 
+The additional service 'ILLZFLServerKoha' manages the communication with the regional ILL server and will insert records in tables illrequests and illrequestattributes by calling the 'create' method of SLNP. 
 The remaining features of this ILL backend are accessible via the standard ILL framework in the Koha staff interface.
 
 =head1 API
 
-=head2 Class Methods
-
-=cut
+=head2 Class methods
 
 =head3 new
 
@@ -241,7 +240,7 @@ sub status_graph {
         next_actions   => [  ],
         ui_method_icon => 'fa-times',
     },
-    # this leads to the frameworks confirm_delete and delete actions, that are too crude for ILLSLNPKoha, so it is not activated.
+    # this leads to the frameworks confirm_delete and delete actions, that are too crude for SLNP, so it is not activated.
     #    KILL => {
     #        prev_actions   => [ 'REQ', 'CNCLDFU' ],
     #        id             => 'KILL',
@@ -255,7 +254,7 @@ sub status_graph {
 }
 
 sub name {
-    return "ILLSLNPKoha";
+    return "SLNP";
 }
 
 =head3 capabilities
@@ -353,7 +352,7 @@ sub create {
         value      => {}
     };
 
-    # Initiate process stage is dummy for ILLSLNPKoha
+    # Initiate process stage is dummy for SLNP
     if ( !$stage || $stage eq 'init' ) {
         ;    # Ill request is created by the external ILLSLNLKoha server calling SLNPFLBestellung, so no manual handling at this stage
     }
@@ -1452,7 +1451,7 @@ sub itemLost {
 
 sub isReserveFeeAcceptable {
     my ($self, $request) = @_;
-    my $ret = 0;    # an additional hold fee is not acceptable for the ILLSLNPKoha backend (maybe configurable in the future)
+    my $ret = 0;    # an additional hold fee is not acceptable for the SLNP backend (maybe configurable in the future)
 
     return $ret
 }
