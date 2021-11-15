@@ -1,6 +1,6 @@
 # Koha Interlibrary Loans ILLSLNPKoha backend
 
-## about SLNP
+## About SLNP
 SLNP (TM) (Simple Library Network Protocol) is a TCP network socket based protocol 
 designed and introduced by the company Sisis Informationssysteme GmbH (later a part of OCLC) 
 for their library management system SISIS-SunRise (TM).
@@ -44,3 +44,6 @@ You have to adapt the default values of the additional ILL preferences loaded in
 The additional ILL preferences are listed with a short description in the load file $PERL5LIB/Koha/Illbackends/ILLSLNPKoha/install/insert_systempreferences.sql.
 You may use the additional ILL letter layouts "as is" or you can adapt them to your needs. 
 The additional ILL letter layouts are contained in the load file $PERL5LIB/Koha/Illbackends/ILLSLNPKoha/install/insert_letter.sql.
+
+## Credits
+This plugin is based on the original work from [LMSCLoud GmbH](https://github.com/LMSCloud/ILLSLNPKoha).
