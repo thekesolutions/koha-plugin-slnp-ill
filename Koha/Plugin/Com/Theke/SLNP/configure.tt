@@ -1,0 +1,93 @@
+[% USE raw %]
+[% USE Asset %]
+
+[% INCLUDE 'doc-head-open.inc' %]
+ <title>Koha &rsaquo; SLNP ILL connector plugin &rsaquo; Configuration</title>
+[% INCLUDE 'doc-head-close.inc' %]
+  <style>
+    .CodeMirror {
+      border: 2px solid #eee;
+      height: auto;
+    }
+  </style>
+  <script type="text/javascript">
+
+      $(document).ready(function(){
+        $("#refresh").on("click",function(e){
+            e.preventDefault;
+            $('#api_key').val(gen_api_key(32));
+        });
+      });
+
+      function gen_api_key(size) {
+        var output = "";
+        var chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
+
+        for (var i = 0; i < size; i++)
+          output += chars.charAt(Math.floor(Math.random() * chars.length));
+
+        return output;
+      }
+  </script>
+
+[% Asset.js( "lib/codemirror/codemirror.min.js" ) | $raw %]
+[% Asset.css("lib/codemirror/codemirror.min.css") | $raw %]
+[% Asset.css("lib/codemirror/lint.min.css") | $raw %]
+
+</head>
+<body>
+[% INCLUDE 'header.inc' %]
+[% INCLUDE 'cat-search.inc' %]
+
+<div id="breadcrumbs">
+    <a href="/cgi-bin/koha/mainpage.pl">Home</a> &rsaquo;
+    <a href="?class=[% CLASS %]&method=configure">SLNP ILL connector plugin</a> &rsaquo;
+    Configuration
+</div>
+
+<div id="doc3" class="yui-t2">
+  <div id="yui-main">
+    <h2>Configuration</h2>
+    <br/>
+      <form method="post">
+        <input type="hidden" name="class"  value="[% CLASS %]"/>
+        <input type="hidden" name="method" value="configure"/>
+        <input type="hidden" name="step"   value="configure"/>
+        <input type="hidden" name="save"   value="1"/>
+        <div class="input-group">
+          <span class="input-group-addon" id="configuration_label">Configuration</span>
+          <textarea rows="200"
+                    columns="200"
+                    class="form-control"
+                    aria-describedby="configuration_label"
+                    name="configuration"
+                    id="configuration">[%- configuration -%]</textarea>
+        </div>
+        <br/>
+        <button type="submit" value="Save" class="btn btn-default" type="button">Save</button>
+      </form>
+  </div>
+  <div class="yui-b">
+    <div id="navmenu">&nbsp;</div>
+  </div>
+
+
+    [% Asset.js( "lib/codemirror/yaml.min.js" ) | $raw %]
+    [% Asset.js( "lib/codemirror/lint.min.js" ) | $raw %]
+    [% Asset.js( "lib/linters/js-yaml.min.js" ) | $raw %]
+    [% Asset.js( "lib/codemirror/yaml-lint.min.js" ) | $raw %]
+
+    <script>
+        $( document ).ready( function () {
+            var editor = CodeMirror.fromTextArea( document.getElementById( "configuration" ), {
+                lineNumbers: true,
+                mode: 'text/x-yaml',
+                lineWrapping: false,
+                gutters: ["CodeMirror-lint-markers"],
+                lint: true
+            });
+        });
+    </script>
+
+[% INCLUDE 'intranet-bottom.inc' %]
+
