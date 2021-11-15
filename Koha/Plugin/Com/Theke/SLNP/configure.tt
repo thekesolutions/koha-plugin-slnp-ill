@@ -41,7 +41,7 @@
 
 <div id="breadcrumbs">
     <a href="/cgi-bin/koha/mainpage.pl">Home</a> &rsaquo;
-    <a href="?class=[% CLASS %]&method=configure">SLNP ILL connector plugin</a> &rsaquo;
+    <a href="?class=[% CLASS | uri %]&method=configure">SLNP ILL connector plugin</a> &rsaquo;
     Configuration
 </div>
 
@@ -50,7 +50,7 @@
     <h2>Configuration</h2>
     <br/>
       <form method="post">
-        <input type="hidden" name="class"  value="[% CLASS %]"/>
+        <input type="hidden" name="class"  value="[% CLASS | html %]"/>
         <input type="hidden" name="method" value="configure"/>
         <input type="hidden" name="step"   value="configure"/>
         <input type="hidden" name="save"   value="1"/>
@@ -61,7 +61,7 @@
                     class="form-control"
                     aria-describedby="configuration_label"
                     name="configuration"
-                    id="configuration">[%- configuration -%]</textarea>
+                    id="configuration">[%- configuration | $raw -%]</textarea>
         </div>
         <br/>
         <button type="submit" value="Save" class="btn btn-default" type="button">Save</button>
