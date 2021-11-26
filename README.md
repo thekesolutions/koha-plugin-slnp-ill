@@ -1,6 +1,7 @@
 # Koha Interlibrary Loans SLNP backend
 
 ## About SLNP
+
 SLNP (TM) (Simple Library Network Protocol) is a TCP network socket based protocol 
 designed and introduced by the company Sisis Informationssysteme GmbH (later a part of OCLC) 
 for their library management system SISIS-SunRise (TM).
@@ -12,20 +13,27 @@ Sisis Informationssysteme GmbH / OCLC owns all rights to SLNP.
 SLNP is a registered trademark of Sisis Informationssysteme GmbH / OCLC.
 
 ## Synopsis
-The ILL backend 'SLNP'  provides a simple method to handle Interlibrary Loan requests that are initiated by a
-regional ILL server using the SLNP protocol.
 
-The additional service 'ILLZFLServerKoha' runs as a daemon in the background managing the communication with
-the regional ILL server and inserting records in tables illrequests and illrequestattributes by calling the
-*create* method of _SLNP_.
+This project involves three different pieces:
+
+* A Koha plugin, that bundles the ILL backend and provides convenient ways to add configurations.
+  _FIXME_: This should mention the upcoming `install` and `upgrade` tools.
+* An ILL backend **SLNP** that provides provides a simple method to handle ILL requests that
+  are initiated by a regional ILL server using the SLNP protocol.
+* A daemon  The additional service 'ILLZFLServerKoha' runs as a daemon in the background managing
+  the communication with the regional ILL server and inserting records in tables illrequests and
+  illrequestattributes by calling the *create* method of _SLNP_.
 
 The remaining features of this ILL backend are accessible via the standard ILL framework in the Koha staff interface.
 
 ## Installing
-* Create a directory in '/usr/share/koha/lib/Koha' called 'Illbackends', so you will end up with '/usr/share/koha/lib/Koha/Illbackends'.
-* Clone the repository into this directory, so you will end up with '/usr/share/koha/lib/Koha/Illbackends/SLNP'.
-* In the 'SLNP' directory switch to the branch you wish to use (in the moment only 'master' (matching Koha-LMSCloud master) is supported).
-* Load default values into table 'systempreferences' and into table 'letter' and update koha-conf.xml by calling
+
+* Download this plugin from the [Deployments > Releases](https://gitlab.com/thekesolutions/plugins/slnp/koha-plugin-slnp-ill/-/releases) page.
+* Point your `<backend_directory>` entry to your instance's plugin directory like this
+
+```xml
+<backend_directory>/var/lib/koha/<instance>/Koha/Illbackends</backend_directory>
+```
 
 ```shell
 export KOHA_INSTANCE=<the_name_of_your_Koha_instance>
