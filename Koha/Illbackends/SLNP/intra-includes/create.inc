@@ -1,6 +1,6 @@
 <div id="slnp_create_error" class="alert">
     <h2>SLNP</h2>
-    <p>Manually creating SNLP ILL requests manually is not supported for this backend.</p>
+    <p>Manually creating SNLP ILL requests is not supported for this backend.</p>
     <br />
     <p>ILL requests are solely added through the <a href="[% whole.value.portal_url | html %]">external ILL portal</a>.</p>
 </div>
