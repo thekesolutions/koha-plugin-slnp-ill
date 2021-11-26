@@ -40,6 +40,7 @@ use C4::Letters;
 use C4::Biblio;
 use Koha::DateUtils qw(dt_from_string output_pref);
 
+use Koha::Plugin::Com::Theke::SLNP;
 
 =head1 NAME
 
@@ -80,7 +81,15 @@ The remaining features of this ILL backend are accessible via the standard ILL f
 sub new {
     # -> instantiate the backend
     my ( $class ) = @_;
-    my $self = {framework => 'FA'};
+
+    my $plugin = Koha::Plugin::Com::Theke::SLNP->new;
+
+    my $self = {
+        framework     => 'FA', # FIXME: Make configurable?
+        plugin        => $plugin,
+        configuration => $plugin->configuration,
+    };
+
     bless( $self, $class );
     return $self;
 }
@@ -354,7 +363,11 @@ sub create {
 
     # Initiate process stage is dummy for SLNP
     if ( !$stage || $stage eq 'init' ) {
-        ;    # Ill request is created by the external ILLSLNLKoha server calling SLNPFLBestellung, so no manual handling at this stage
+        # Ill request is created by the external ILLSLNLKoha
+        # server calling SLNPFLBestellung, so no manual handling at this stage
+        # Pass useful information for rendering the create page
+        $backend_result->{value}->{portal_url} =
+          $self->{configuration}->{portal_url} // 'https://fix.me';
     }
 
     # Validate SLNP request parameter values and insert new ILL request in DB
