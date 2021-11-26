@@ -75,7 +75,7 @@ For developing the plugin, you need to have the plugins available in your [KTD](
 
 ```shell
 export SYNC_REPO=/path/to/git/koha
-export PLUGIN_REPO=/path/to/koha-plugin-snlp-ill
+export PLUGIN_REPO=/path/to/koha-plugin-slnp-ill
 export LOCAL_USER_ID=$(id -u)
 kup
 ```
