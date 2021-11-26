@@ -46,6 +46,17 @@ cd $PERL5LIB/Koha/Illbackends/SLNP/install
 * It is strongly recommended to encrypt the communication between the regional ILL SLNPServer and ILLZFLServerKoha (e.g. by using stunnel)
 
 ## Configuration
+## Plugin configuration
+
+The plugin configuration is an HTML text area in which a _YAML_ structure is pasted. The available options
+are maintained on this document.
+
+```yaml
+---
+portal_url: https://your.portal.url
+```
+
+*FIXME: this should all be moved to the YAML configuration page*
 You have to adapt the default values of the additional ILL preferences loaded into table systempreferences by $PERL5LIB/Koha/Illbackends/SLNP/install/install.pl to your requirements.
 The additional ILL preferences are listed with a short description in the load file $PERL5LIB/Koha/Illbackends/SLNP/install/insert_systempreferences.sql.
 You may use the additional ILL letter layouts "as is" or you can adapt them to your needs. 
