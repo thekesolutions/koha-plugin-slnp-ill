@@ -2,7 +2,6 @@ INSERT IGNORE INTO systempreferences (variable, value, options, explanation, typ
 ('ILLDefaultBranch', 'HST', NULL, 'Branchcode of the branch that is used as default with ILL requests.', 'Free'), 
 ('ILLItemTypes', 'FERNLEIHE|FERNLEIHE-KOPIEN', NULL, 'item types used for ILL media', 'Free'), 
 ('ILLPatronCategories', 'FERNLEIHE_TYP_1|FERNLEIHE_TYP_2', NULL, 'list of categorycodes of ILL libraries', 'Free'), 
-('ILLPortalURL', '<p>Neue Fernleihbestellung im Portal <a href="https://fernleihe.boss.bsz-bw.de/Bsz/saveIsil/DE-833" target="_blank" >https://fernleihe.boss.bsz-bw.de/Bsz/saveIsil/DE-833</a> anlegen.</p>', NULL, 'HTML that is used if borrower clicks on the button \'create a new ILL request\' in the Koha OPAC.', 'Htmlarea'), 
 ('ILLDeliverySlipCode', 'ILLSLNP_DELIVERY_SLIP', NULL, 'Code of letter layout used for ILL delivery processing slips.', 'Free'), 
 ('ILLItemLostBorrowerLettercode', 'ILLSLNP_ITEMLOST_BORROWER', NULL, 'code of letter that will be sent to ordering borrower if item is lost before check out', 'Free'), 
 ('ILLItemLostLibraryLettercode', 'ILLSLNP_ITEMLOST_LIBRARY', NULL, 'code of letter that will be sent to owning library if item is lost after receipt', 'Free'), 
