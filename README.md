@@ -69,5 +69,36 @@ The additional ILL preferences are listed with a short description in the load f
 You may use the additional ILL letter layouts "as is" or you can adapt them to your needs. 
 The additional ILL letter layouts are contained in the load file $PERL5LIB/Koha/Illbackends/SLNP/install/insert_letter.sql.
 
+## Development
+
+For developing the plugin, you need to have the plugins available in your [KTD](https://gitlab.com/koha-community/koha-testing-docker) environment:
+
+```shell
+export SYNC_REPO=/path/to/git/koha
+export PLUGIN_REPO=/path/to/koha-plugin-snlp-ill
+export LOCAL_USER_ID=$(id -u)
+kup
+```
+
+Then, point your *koha-conf.xml* file to the *koha_plugin* directory:
+
+```xml
+<pluginsdir>/kohadevbox/koha_plugin</pluginsdir>
+ ...
+<backend_directory>/kohadevbox/koha_plugin/Koha/Illbackends</backend_directory>
+```
+
+As this with any other plugin development, the only way to trigger the install method
+and thus have the plugin available on the UI, is to install it manually (in production,
+this will be triggered automatically when you upload the *.kpz* file):
+
+```shell
+$ kshell
+$ misc/devel/install_plugins.pl
+Installed SLNP ILL connector plugin for Koha version {VERSION}
+All plugins successfully re-initialised
+```
+
 ## Credits
+
 This plugin is based on the original work from [LMSCLoud GmbH](https://github.com/LMSCloud/ILLSLNPKoha).
