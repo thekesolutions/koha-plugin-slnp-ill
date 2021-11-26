@@ -1,5 +1,5 @@
-<h2>ILLSLNPKoha - Fernleihebestellungen werden ausschließlich über ein externes Portal angelegt.<br>
-Das manuelle Erfassen einer ILLSLNPKoha - Fernleihebestellung ist nicht vorgesehen.</h2>
+<h2>SLNP - ILL requests are solely added through an external ILL portal.<br>Creating ILL requests manually is not supported for this backend.
+</h2>
 
 
-<a class="cancel" href="/cgi-bin/koha/ill/ill-requests.pl">Abbrechen</a>
+<a class="cancel" href="/cgi-bin/koha/ill/ill-requests.pl">Cancel</a>
