@@ -54,7 +54,6 @@ cd $PERL5LIB/Koha/Illbackends/SLNP/install
 * It is strongly recommended to encrypt the communication between the regional ILL SLNPServer and ILLZFLServerKoha (e.g. by using stunnel)
 
 ## Configuration
-## Plugin configuration
 
 The plugin configuration is an HTML text area in which a _YAML_ structure is pasted. The available options
 are maintained on this document.
