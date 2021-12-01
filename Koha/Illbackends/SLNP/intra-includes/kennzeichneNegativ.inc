@@ -33,7 +33,7 @@
             <br>
 
             <input name="illrequest_id" id="illrequest_id" value="[% whole.illrequest_id %]" type="hidden" />
-            <input name="backend" id="backend" value="ILLSLNPKoha" type="hidden" />
+            <input name="backend" id="backend" value="SLNP" type="hidden" />
             <input name="method" id="method" value="kennzeichneNegativ" type="hidden" />
             <input name="stage" id="stage" value="[% whole.stage %]" type="hidden" />
             <input name="itemnumber" id="itemnumber" value="[% whole.value.other.itemnumber %]" type="hidden" />
