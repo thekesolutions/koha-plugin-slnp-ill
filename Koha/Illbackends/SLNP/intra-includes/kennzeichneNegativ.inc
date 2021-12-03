@@ -4,27 +4,27 @@
 
 
 [% IF whole.error %]
-    <p>Unbekannter Fehler</p>
+    <p>Unknown error</p>
 [% END %]
 
 [% IF ( whole.stage == "confirmcommit" ) %]
-    <h2>Negativ-Kennzeichen (Bestell-ID: [% request.orderid %])</h2>
-    <p>Das Bestätigen dieser Aktion setzt den Status der Fernleihebestellung auf 'Abgeschlossen'.</p>
-    <p>Das bedeutet, dass die besitzende Bibliothek das bestellte Medium nicht liefern kann, <br>
-       dass diese Fernleihebestellung beendet wird, <br>
-       und dass die dafür temporär angelegten Titel- und Exemplardaten gelöscht werden.</p>
+    <h2>Mark as not available ([% request.orderid %])</h2>
+    <p>By confirming this action the status of the ILL request is updated to 'Completed'.</p>
+    <p>This means that the owning library won't deliver the requested item,<br>
+    that the ILL request won't be fulfilled, <br> 
+    and that the temporarily added bibliographic record and item record will be deleted.</p>
 
     [% IF ! ( request.status == 'REQ' || request.status == 'CNCLDFU' ) %]
-        <p>Der aktuelle Status '[% request.status %]' der Fernleihebestellung steht der Negativ-Kennzeichnung entgegen.</p>
-        <p>Diese Aktion ist nur vor der Eingangsverbuchung möglich.</p>
+        <p>The current status ([% request.status %]) of the ILL request doesn't allow to mark this request as not available.</p>
+        <p>This action is only possible until the item has been received.</p>
 
-        <a class="cancel" href="/cgi-bin/koha/ill/ill-requests.pl?method=illview&amp;illrequest_id=[% request.illrequest_id %]">Abbrechen</a>
+        <a class="cancel" href="/cgi-bin/koha/ill/ill-requests.pl?method=illview&amp;illrequest_id=[% request.illrequest_id %]">Cancel</a>
 
     [% ELSE %]
 
         <form id="SLNP_notdelivered" name="SLNP_notdelivered" method="POST" action=[% here %]>
 
-            <label for="illnotdeliveredletterprint">Absage-Benachrichtigung an den Besteller:</label>
+            <label for="illnotdeliveredletterprint">Notification of the requesting patron:</label>
             [% IF whole.value.other.illnotdeliveredlettercode %]
                 <input type="checkbox" name="illnotdeliveredletterprint" id="illnotdeliveredletterprint" value="1" [% IF whole.value.other.illnotdeliveredletterprint %]checked="checked"[% END %] />
             [% ELSE %]
@@ -40,18 +40,18 @@
             <br>
 
             [% IF ( whole.stage == "confirmcommit" ) %]
-                <input id="submitbutton" name="submitbutton" type="submit" value="Bestätigen" onclick="stage.value='commit'" />
+                <input id="submitbutton" name="submitbutton" type="submit" value="Confirm" onclick="stage.value='commit'" />
             [% ELSE %]
-                <input id="submitbutton" name="submitbutton" type="submit" value="Bestätigen" onclick="stage.value='commit'" disabled />
+                <input id="submitbutton" name="submitbutton" type="submit" value="Confirm" onclick="stage.value='commit'" disabled />
             [% END %]
 
-            <a class="cancel" href="/cgi-bin/koha/ill/ill-requests.pl?method=illview&amp;illrequest_id=[% request.illrequest_id %]">Abbrechen</a>
+            <a class="cancel" href="/cgi-bin/koha/ill/ill-requests.pl?method=illview&amp;illrequest_id=[% request.illrequest_id %]">Cancel</a>
 
         </form>
     [% END %]
 
 [% ELSE %]
-    <p>Unbekannte Stufe '[% whole.stage %]'. Das sollte sich nicht ereignen.</p>
+    <p>Unknown stage: [% whole.stage %]</p>
 [% END %]
 
 
