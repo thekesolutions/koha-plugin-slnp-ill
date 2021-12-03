@@ -2,30 +2,35 @@
 
 
 [% IF whole.error %]
-    <p>Unbekannter Fehler</p>
+    <p>Unknown error</p>
 [% END %]
 
 [% IF whole.stage == "confirmcommit" %]
-    <h2>Rückversand des Fernleihe-Mediums an die besitzende Bibliothek (Bestell-ID: [% request.orderid %])</h2>
-    <p>Das Bestätigen dieser Aktion setzt den Status der Fernleihebestellung auf 'Abgeschlossen'.</p>
-    <p>Das bedeutet, dass der Besteller das Medium zurückgegeben oder die Fernleihebestellung vor der Ausleihe storniert hat,<br>
-       und dass der Rückversand des Fernleihe-Mediums an die besitzende Bibliothek in die Wege geleitet wird.</p>
+    <h2>Return to library ([% request.orderid %])</h2>
+    <p>By confirming this action the status of the ILL request will be updated to 'Completed'.</p>
+    <p>This means that the patron has returned the item or that the ILL request was cancelled before checkout.</p>
 
     [% IF ( request.status == 'RECVD' ) %]
-        <p><strong>
-            Das Fernleihe-Medium wurde noch nicht an den Besteller ausgeliehen bzw. ausgehändigt.<br>
-            Bestätigen Sie den Rückversand also nur dann, wenn Sie eine Stornierung dieser Fernleihebestellung durchführen wollen.</strong></p>
+        <p>
+            <strong>
+                The ILL item hasn't been checked out to the patron yet.<br>
+                Please only confirm the action, if you want to cancel the ILL request.
+            </strong>
+        </p>
     [% ELSE %]
         [% IF ! ( request.status == 'CHKDIN' || request.status == 'CNCLDFU' ) %]
-            <p><strong>
-                Der aktuelle Status '[% request.status %]' der Fernleihebestellung steht dem Rückversand entgegen.<br>
-                Vor dem Rückversand muss die Fernleihebestellung storniert werden oder das Fernleihe-Medium nach der Ausleihe erst Rückgabe-verbucht werden.</strong></p>
+            <p>
+                <strong>
+                    The current status ([% request.status %]) of the ILL request doesn't allow for this action.<br>
+                    Before returning the item to the lending library, the ILL request must be cancelled or checked in.
+                </strong>
+            </p>
         [% END %]
     [% END %]
 
     <form id="SLNP_shipback" name="SLNP_shipback" method="POST" action=[% here %]>
 
-        <label for="illshipbackslipprint">Brief für den Rückversand erstellen:</label>
+        <label for="illshipbackslipprint">Create return letter:</label>
         [% IF whole.value.other.illshipbacklettercode %]
             <input type="checkbox" name="illshipbackslipprint" id="illshipbackslipprint" value="1" [% IF whole.value.other.illshipbackslipprint %]checked="checked"[% END %] />
         [% ELSE %]
@@ -40,24 +45,24 @@
         <input type="hidden" name="itemnumber" id="itemnumber" value="[% whole.value.other.itemnumber %]" />
         <br>
 
-        <input id="submitbutton" name="submitbutton" type="submit" value="Bestätigen" onclick="stage.value='storeandprint';" />
+        <input id="submitbutton" name="submitbutton" type="submit" value="Confirm" onclick="stage.value='storeandprint';" />
 
-        <a class="cancel" id="cancelbutton" name="cancelbutton" href="/cgi-bin/koha/ill/ill-requests.pl?method=illview&amp;illrequest_id=[% request.illrequest_id %]">Abbrechen</a>
+        <a class="cancel" id="cancelbutton" name="cancelbutton" href="/cgi-bin/koha/ill/ill-requests.pl?method=illview&amp;illrequest_id=[% request.illrequest_id %]">Cancel</a>
 
     </form>
 
 [% ELSIF whole.stage == "storeandprint" %]
 
-  <p>Rückkehr zur Fernleihbestellung</p>
+  <p>Return to ILL request</p>
 
   <form id="SLNP_shipback" name="SLNP_shipback" method="POST" action=[% here %]>
     <input style="display:none" type="checkbox" name="illshipbackslipprint" id="illshipbackslipprint" value="1" [% IF ( whole.value.other.illshipbackslipprint ) %]checked="checked"[% END %] />
-    <input style="display:none" id="submitbutton" name="submitbutton" type="submit" value="Bestätigen" onclick="stage.value='storeandprint';" />
-    <a style="display:none" class="cancel" id="cancelbutton" name="cancelbutton" href="/cgi-bin/koha/ill/ill-requests.pl?method=illview&amp;illrequest_id=[% request.illrequest_id %]">Abbrechen</a>
+    <input style="display:none" id="submitbutton" name="submitbutton" type="submit" value="Confirm" onclick="stage.value='storeandprint';" />
+    <a style="display:none" class="cancel" id="cancelbutton" name="cancelbutton" href="/cgi-bin/koha/ill/ill-requests.pl?method=illview&amp;illrequest_id=[% request.illrequest_id %]">Cancel</a>
   </form>
 
 [% ELSE %]
-    <p>Unbekannte Stufe '[% whole.stage %]'. Das sollte sich nicht ereignen.</p>
+    <p>Unknown stage: '[% whole.stage %]'</p>
 [% END %]
 
 
@@ -113,7 +118,7 @@
 
             },
             error: function() {
-                alert( _("A server error occured processing the processing slip print request.") );
+                alert( _("A server error occured while processing the print request.") );
 
                 document.getElementById("cancelbutton").click();
             }
