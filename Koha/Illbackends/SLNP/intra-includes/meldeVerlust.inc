@@ -2,25 +2,26 @@
 
 
 [% IF whole.error %]
-    <p>Unbekannter Fehler</p>
+    <p>Unknown error</p>
 [% END %]
 
 [% IF ( whole.stage == "confirmcommit" ) %]
-    <h2>Verlustmeldung für Fernleihe-Medium (Bestell-ID: [% request.orderid %])</h2>
-    <p>Das Bestätigen dieser Aktion setzt den Status der Fernleihebestellung auf 'Abgeschlossen'.</p>
-    <p>Das bedeutet, dass der Besteller das Medium nach der Ausleihe verloren hat, <br>
-       oder dass das Medium in der Bibliothek nach Eingangsverbuchung vor der Ausleihe <br>
-       oder nach der Rückgabe vor dem Rückversand abhanden gekommen ist.</p>
+    <h2>Loss notification for ILL request ([% request.orderid %])</h2>
+    <p>If you confirm this action, the ILL request status will be updated to 'Completed'.</p>
+    <p>This means that either the patron has lost the item,<br>
+       or that the item went missing before checkout,<br>
+       or after checkin in the library.
+    </p>
 
     [% IF ! ( request.status == 'LOSTBCO' || request.status == 'LOSTACO' ) %]
         <p><strong>
-            Der aktuelle Status '[% request.status %]' der Fernleihebestellung steht der Verlustmeldung entgegen.<br>
-            Vor der Verlustmeldung muss im Fernleihe-Exemplar ein Verloren-Status gesetzt werden.</strong></p>
+            The current status ([% request.status %]) of the ILL request doesn't allow for creating a loss notification.<br>
+            You have to set the lost status in the ILL item first.</strong></p>
     [% END %]
 
     <form id="SLNP_itemlost" name="SLNP_itemlost" method="POST" action=[% here %]>
 
-        <label for="illitemlostlibraryletterprint">Verlustmeldung an die besitzende Bibliothek erstellen:</label>
+        <label for="illitemlostlibraryletterprint">Create a loss notification for the lending library:</label>
         [% IF whole.value.other.illitemlostlibrarylettercode %]
             <input type="checkbox" name="illitemlostlibraryletterprint" id="illitemlostlibraryletterprint" value="1" [% IF whole.value.other.illitemlostlibraryletterprint %]checked="checked"[% END %] />
         [% ELSE %]
@@ -29,7 +30,7 @@
         <br>
 
         [% IF ( request.status == 'LOSTBCO' ) %]
-            <label for="illitemlostborrowerletterprint">Verlustmeldung an den Besteller erstellen:</label>
+            <label for="illitemlostborrowerletterprint">Create a loss notification for the patron:</label>
             [% IF whole.value.other.illitemlostborrowerlettercode %]
                 <input type="checkbox" name="illitemlostborrowerletterprint" id="illitemlostborrowerletterprint" value="1" [% IF whole.value.other.illitemlostborrowerletterprint %]checked="checked"[% END %] />
             [% ELSE %]
@@ -49,17 +50,17 @@
         <br>
 
         [% IF ( whole.stage == "confirmcommit" ) %]
-            <input id="submitbutton" name="submitbutton" type="submit" value="Bestätigen" onclick="stage.value='confirmcommit'" />
+            <input id="submitbutton" name="submitbutton" type="submit" value="OK" onclick="stage.value='confirmcommit'" />
         [% ELSE %]
-            <input id="submitbutton" name="submitbutton" type="submit" value="Bestätigen" onclick="stage.value='commit'" disabled />
+            <input id="submitbutton" name="submitbutton" type="submit" value="OK" onclick="stage.value='commit'" disabled />
         [% END %]
 
-        <a class="cancel" href="/cgi-bin/koha/ill/ill-requests.pl?method=illview&amp;illrequest_id=[% request.illrequest_id %]">Abbrechen</a>
+        <a class="cancel" href="/cgi-bin/koha/ill/ill-requests.pl?method=illview&amp;illrequest_id=[% request.illrequest_id %]">Cancel</a>
 
     </form>
 
 [% ELSE %]
-    <p>Unbekannte Stufe '[% whole.stage %]'. Das sollte sich nicht ereignen.</p>
+    <p>Unknown stage: [% whole.stage %]</p>
 [% END %]
 
 
