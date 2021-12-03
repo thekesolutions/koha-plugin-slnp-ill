@@ -8,27 +8,27 @@
 
 [% IF whole.error %]
   [% IF whole.status == 'missing_sendingIllLibraryInfo' %]
-    <p><em>Hinweis:</em> Pflichtfeld 'Lieferbibliothek' hat keinen Eintrag.</p>
+    <p><em>Note:</em> The mandatory field 'Lending library' is empty.</p>
   [% ELSE %]
-    <p>Unbekannter Fehler</p>
+    <p>Unknown error</p>
   [% END %]
 [% END %]
 
 [% IF whole.stage == "deliveryInsert" || whole.stage == "deliveryUpdate" %]
   [% IF whole.stage == "deliveryInsert" %]
-    <h2>Eingangsverbuchung (Bestell-ID: [% whole.value.request.orderid %])</h2>
+    <h2>Process delivery ([% whole.value.request.orderid %])</h2>
   [% ELSE %]
-    <h2>Eingang bearbeiten (Bestell-ID: [% whole.value.request.orderid %])</h2>
+    <h2>Edit delivery ([% whole.value.request.orderid %])</h2>
   [% END %]
 
   <form id="SLNP_delivery" name="SLNP_delivery" method="POST" action=[% here %]>
 
     <fieldset class="rows">
-      <legend>Mediendaten</legend>
+      <legend>Item</legend>
       <ol id="general-slnp_delivery-fields">
 
         <li>
-          <label class="required" for="type">Bestelltyp:</label>
+          <label class="required" for="type">Request type:</label>
             <select name="type" id="type" required="required">
             [% IF !whole.error %]
               <option value=""/>
@@ -57,7 +57,7 @@
         </li>
 
         <li>
-          <label for="noncirccollection">Präsenzbestand:</label>
+          <label for="noncirccollection">Not for loan:</label>
           [% IF whole.value.other.noncirccollection %]
             <input type="checkbox" name="noncirccollection" id="noncirccollection" value="1" checked="checked" />
           [% ELSE %]
@@ -66,7 +66,7 @@
         </li>
 
         <li>
-          <label class="required" for="kohaitemtype">Medientyp:</label>
+          <label class="required" for="kohaitemtype">Item type:</label>
           <select id="kohaitemtype" name="kohaitemtype" required="required" >
             [% IF !whole.error %]
               <option value="" />
@@ -84,7 +84,7 @@
         </li>
 
         <li>
-          <label for="volumescount">Anzahl Bände:</label>
+          <label for="volumescount">Number of parts:</label>
          <input type="number" name="volumescount" id="volumescount" min="0" size="10" maxlength="10" value="[% whole.value.other.volumescount %]" />
         </li>
 
@@ -92,20 +92,20 @@
     </fieldset>
 
     <fieldset class="rows">
-      <legend>Lieferung</legend>
+      <legend>Delivery</legend>
       <ol id="details-delivery-fields">
 
         <li>
-          <label class="required" for="deliverydate">Exemplar/Dokument erhalten am:</label>
+          <label class="required" for="deliverydate">Item/document received on:</label>
           <input type="text" class="datepicker" name="deliverydate" id="deliverydate" size="10" maxlength="10" value="[% whole.value.other.deliverydate | $KohaDates %]" required="required" />
           <span class="hint">[% INCLUDE 'date-format.inc' %]</span>
         </li>
 
         <li id="sendingIllLibrary">
-          <label class="required" for="sendingIllLibraryInfo">Lieferbibliothek:</label>
+          <label class="required" for="sendingIllLibraryInfo">Lending library:</label>
 
           [% IF whole.value.other.sendingIllLibraryBorrowernumber %]
-            [% SET sendingIllLibraryInfo = 'Sigel: ' _ whole.value.other.sendingIllLibraryIsil _ ' / ' _ whole.value.other.sendingIllLibrarySurname _ ' / Ort: ' _ whole.value.other.sendingIllLibraryCity %]
+            [% SET sendingIllLibraryInfo = 'ISIL: ' _ whole.value.other.sendingIllLibraryIsil _ ' / ' _ whole.value.other.sendingIllLibrarySurname _ ' / City: ' _ whole.value.other.sendingIllLibraryCity %]
             <span></span><a target="blank" href="/cgi-bin/koha/members/moremember.pl?borrowernumber=[% whole.value.other.sendingIllLibraryBorrowernumber %]"><input disabled type="text" name="sendingIllLibraryInfo" id="sendingIllLibraryInfo" size="80" value="[% sendingIllLibraryInfo | html %]" required="required" /></a>
           [% ELSE %]
             <span></span><a target="blank" href="/cgi-bin/koha/members/moremember.pl"><input required="required" disabled type="text" name="sendingIllLibraryInfo" id="sendingIllLibraryInfo" size="80" value="" /></a>
@@ -118,16 +118,16 @@
           [% FOREACH category IN whole.value.other.kohaIllPatronCategories %]
             [% SET illcategs = illcategs _ category.categorycode _ ',' %]
           [% END %]
-           <input id="illlibrarysearch" type="button" [% IF whole.value.other.sendingIllLibraryBorrowernumber %]value="Ändern"[% ELSE %]value="Suchen"[% END %] onclick="DoPopIllLibrarySearch('illLibrary_search.pl?illcategories=[% illcategs %]');" />
+           <input id="illlibrarysearch" type="button" [% IF whole.value.other.sendingIllLibraryBorrowernumber %]value="Update"[% ELSE %]value="Search"[% END %] onclick="DoPopIllLibrarySearch('illLibrary_search.pl?illcategories=[% illcategs %]');" />
         </li>
 
         <li>
-          <label for="billedillrequestcosts">Kosten:</label>
+          <label for="billedillrequestcosts">Cost:</label>
           <input type="text" size="10" name="billedillrequestcosts" id="billedillrequestcosts" value="[% whole.value.other.billedillrequestcosts | $Price %]"  oninput="floatInput(document.SLNP_delivery.billedillrequestcosts,2)"  onchange="moneyFormat(document.SLNP_delivery.billedillrequestcosts)" />
         </li>
 
         <li>
-          <label class="required" for="duedate">Rückgabedatum:</label>
+          <label class="required" for="duedate">Due date:</label>
           <input type="text" class="datepicker" name="duedate" id="duedate" size="10" maxlength="10" value="[% whole.value.other.duedate | $KohaDates %]" required="required" />
          <span class="hint">[% INCLUDE 'date-format.inc' %]</span>
         </li>
@@ -136,10 +136,10 @@
     </fieldset>
 
     <fieldset class="rows">
-      <legend>Benachrichtigung / Laufzettel</legend>
+      <legend>Notification / Processing slip</legend>
       <ol>
         <li>
-          <label for="borrowerinfo">Besteller:</label>
+          <label for="borrowerinfo">Requesting patron:</label>
           [% SET borrowerInfo = whole.value.other.borrowerFirstname _ ' ' _ whole.value.other.borrowerSurname _ ' (' _ whole.value.other.borrowerCardnumber _ ')'  %]
           <a target="blank" href="/cgi-bin/koha/members/moremember.pl?borrowernumber=[% whole.value.other.borrowerBorrowernumber %]"><input disabled type="text" name="borrowerinfo" id="borrowerinfo" size="80" value="[% borrowerInfo %]" /></a>
           <input type="hidden" id="borrowerBorrowernumber" name="borrowerBorrowernumber" value="[% whole.value.other.borrowerBorrowernumber %]" />
@@ -149,7 +149,7 @@
         </li>
 
         <li>
-          <label [% IF ( whole.stage == "deliveryInsert" ) %]class="required"[% END %] for="illdeliverylettercode">Benachrichtigung:</label>
+          <label [% IF ( whole.stage == "deliveryInsert" ) %]class="required"[% END %] for="illdeliverylettercode">Notification:</label>
           <select id="illdeliverylettercode" name="illdeliverylettercode" [% IF ( whole.stage == "deliveryInsert" ) %]required="required"[% END %] [% IF ( whole.stage == "deliveryUpdate" ) %]onchange="actualizePrintButton(document.SLNP_delivery.printButton)"[% END %] >
           [% IF ( whole.stage != "deliveryInsert" ) %]
             <option value="" />
@@ -165,7 +165,7 @@
         </li>
 
         <li>
-          <label for="illdeliveryslipprint">Laufzettel drucken:</label>
+          <label for="illdeliveryslipprint">Print processing slip:</label>
           [% IF ( whole.stage == "deliveryUpdate" && ! whole.error ) %]
             <input type="checkbox" name="illdeliveryslipprint" id="illdeliveryslipprint" value="1" [% IF ( whole.stage == "deliveryUpdate" ) %]oninput="actualizePrintButton(document.SLNP_delivery.printButton)"[% END %] />
           [% ELSE %]
@@ -188,27 +188,27 @@
       <input type="hidden" name="itemnumber" id="itemnumber" value="[% whole.value.other.itemnumber %]" />
 
       [% IF ( whole.stage == "deliveryInsert" ) %]
-        <input type="submit" id="submitbutton" name="submitbutton" value="Speichern" onclick="stage.value='InsertAndPrint';" />
+        <input type="submit" id="submitbutton" name="submitbutton" value="Save" onclick="stage.value='InsertAndPrint';" />
       [% ELSE %]    <!-- whole.stage == "deliveryUpdate" -->
-        <input type="submit" id="submitbutton" name="submitbutton" value="Änderungen speichern" onclick="stage.value='UpdateAndMaybePrint';" />
-        <input type="submit" id="printButton"  name="printButton"  value="Drucken" disabled onclick="stage.value='PrintOnly';" />
+        <input type="submit" id="submitbutton" name="submitbutton" value="Save changes" onclick="stage.value='UpdateAndMaybePrint';" />
+        <input type="submit" id="printButton"  name="printButton"  value="Print" disabled onclick="stage.value='PrintOnly';" />
       [% END %]
 
-      <a class="cancel" id="cancelbutton" name="cancelbutton" href="/cgi-bin/koha/ill/ill-requests.pl?method=illview&amp;illrequest_id=[% request.illrequest_id %]">Abbrechen</a>
+      <a class="cancel" id="cancelbutton" name="cancelbutton" href="/cgi-bin/koha/ill/ill-requests.pl?method=illview&amp;illrequest_id=[% request.illrequest_id %]">Cancel</a>
     </fieldset>
   </form>
 
 [% ELSIF whole.stage == "InsertAndPrint" || whole.stage == "UpdateAndMaybePrint" || whole.stage == "PrintOnly" %]
 
-  <p>Rückkehr zur Fernleihbestellung</p>
+  <p>Return to ILL request</p>
 
   <form id="SLNP_delivery" name="SLNP_delivery" method="POST" action=[% here %]>
     <input style="display:none" type="checkbox" name="illdeliveryslipprint" id="illdeliveryslipprint" value="1" [% IF ( whole.value.other.illdeliveryslipprint ) %]checked="checked"[% END %] />
-    <a style="display:none" class="cancel" id="cancelbutton" name="cancelbutton" href="/cgi-bin/koha/ill/ill-requests.pl?method=illview&amp;illrequest_id=[% request.illrequest_id %]">Abbrechen</a>
+    <a style="display:none" class="cancel" id="cancelbutton" name="cancelbutton" href="/cgi-bin/koha/ill/ill-requests.pl?method=illview&amp;illrequest_id=[% request.illrequest_id %]">Cancel</a>
   </form>
 
 [% ELSE %]
-  <p>Unbekannte Stufe '[% whole.stage %]'. Das sollte sich nicht ereignen.</p>
+  <p>Unknown stage: '[% whole.stage %]'</p>
 [% END %]
 
 
@@ -378,7 +378,7 @@
         if ( !sendingLib.borr_attr_attribute_SIGEL ) {
             sendingLib.borr_attr_attribute_SIGEL = '';
         }
-        var sendingIllLibraryInfo = 'Sigel: ' + sendingLib.borr_attr_attribute_SIGEL + ' / ' + sendingLib.surname + ' / Ort: ' + sendingLib.city;
+        var sendingIllLibraryInfo = 'ISIL: ' + sendingLib.borr_attr_attribute_SIGEL + ' / ' + sendingLib.surname + ' / City: ' + sendingLib.city;
         $('#sendingIllLibrary')
             .show()
             .find('a')
@@ -390,7 +390,7 @@
         form.sendingIllLibraryCity.value = sendingLib.city;
         form.sendingIllLibraryInfo.value = sendingIllLibraryInfo;
 
-        form.illlibrarysearch.value = 'Ändern';
+        form.illlibrarysearch.value = 'Update';
 
         return 0;
     }
