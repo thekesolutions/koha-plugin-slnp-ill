@@ -1,4 +1,4 @@
-package Koha::Plugin::Com::Theke::SLNP::Server::ILLZFLServerKoha;
+package SLNP::Server;
 
 # Copyright 2018-2019 (C) LMSCLoud GmbH
 #
@@ -42,14 +42,14 @@ use Data::Dumper;
 use DateTime;
 
 # each real SLNP command is handled in an individual perl module
-use Koha::Plugin::Com::Theke::SLNP::Server::SLNPFLBestellung;
+use SLNP::Commands::Bestellung;
 
 # include the default Koha lib directory
 use lib '/usr/share/koha/lib/';
 
 BEGIN {
     if ( !exists( $ENV{"KOHA_CONF"} ) ) {
-        croak "lib::ILLZFLServerKoha: KOHA_CONF is not set.\n";
+        croak "SLNP::Server: KOHA_CONF is not set.\n";
     }
     if ( exists( $ENV{"MEMCACHED_NAMESPACE"} ) ) {
         delete $ENV{"MEMCACHED_NAMESPACE"};
@@ -521,7 +521,7 @@ sub analyzeSLNPReq {
     my $self    = shift;
     my $slnpreq = shift;
     my ( $slnpreqlineNo, @level, $lv, $cmd );
-    $self->log( 1, getTime() . " lib::ILLZFLServerKoha::analyzeSLNPReq Start" );
+    $self->log( 1, getTime() . " SLNP::Server::analyzeSLNPReq Start" );
 
     if (   $slnpreq =~ /^\s*SLNPEndCommand\s*/m
         || $slnpreq =~ /^\s*SLNPQuit\s*/m )
@@ -620,7 +620,7 @@ sub validateSLNPReq {
     my $rejectUnspecifiedParameters = shift;
     $self->log( 1,
         getTime()
-          . " lib::ILLZFLServerKoha::validateSLNPReq Start cmd->{'cmd_name'}:$cmd->{'cmd_name'}:"
+          . " SLNP::Server::validateSLNPReq Start cmd->{'cmd_name'}:$cmd->{'cmd_name'}:"
     );
 
     my ( $cmdname, %slnp, $level, $leveloffsets );
@@ -719,7 +719,7 @@ sub validateSLNPReq {
     else {
         $self->log( 1,
             getTime()
-              . " lib::ILLZFLServerKoha::validateSLNPReq Start cmd->{'cmd_name'}:$cmd->{'cmd_name'}: DOES NOT EXIST"
+              . " SLNP::Server::validateSLNPReq Start cmd->{'cmd_name'}:$cmd->{'cmd_name'}: DOES NOT EXIST"
         );
         $cmd->{'req_valid'} = 0;
         $cmd->{'err_type'}  = 'SLNP_CMD_NOT_IMPLEMENTED';
@@ -998,7 +998,7 @@ sub cmdFLBestellung {
 
     $self->log( 1,
         getTime() . " cmdFLBestellung is calling doSLNPFLBestellung" );
-    lib::SLNPFLBestellung::doSLNPFLBestellung( $slnpcmd, $params );
+    SLNP::Commands::Bestellung::doSLNPFLBestellung( $slnpcmd, $params );
     $self->log( 1,
         getTime()
           . " cmdFLBestellung doSLNPFLBestellung has returned, res->{'cmd_name'}:$res->{'cmd_name'}:, res->{'req_valid'}:$res->{'req_valid'}:"

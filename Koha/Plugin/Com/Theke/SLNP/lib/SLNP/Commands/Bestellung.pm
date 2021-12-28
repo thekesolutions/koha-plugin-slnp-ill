@@ -1,4 +1,4 @@
-package Koha::Plugin::Com::Theke::SLNP::Server::SLNPFLBestellung;
+package SLNP::Commands::Bestellung;
 
 # Copyright 2018-2019 (C) LMSCLoud GmbH
 #
@@ -36,7 +36,7 @@ sub doSLNPFLBestellung {
     if ( $cmd->{'req_valid'} == 1 ) {
         my $illrequest = Koha::Illrequest->new();
         my $slnp_illbackend =
-          $illrequest->load_backend("ILLSLNPKoha");  # this is still $illrequest
+          $illrequest->load_backend("SLNP");  # this is still $illrequest
 
         my $args;
         $args->{stage} = 'commit';
