@@ -22,13 +22,20 @@ use Modern::Perl;
 use base qw(Koha::Plugins::Base);
 
 use List::MoreUtils qw(any);
+use Module::Metadata;
 use Mojo::JSON qw(decode_json encode_json);
 use YAML;
 
 use Koha::Biblioitems;
 use Koha::Items;
 
-use Koha::Plugin::Com::Theke::SLNP::Exceptions;
+BEGIN {
+    my $path = Module::Metadata->find_module_by_name(__PACKAGE__);
+    $path =~ s!\.pm$!/lib!;
+    unshift @INC, $path;
+
+    require SLNP::Exceptions;
+}
 
 our $VERSION = "{VERSION}";
 

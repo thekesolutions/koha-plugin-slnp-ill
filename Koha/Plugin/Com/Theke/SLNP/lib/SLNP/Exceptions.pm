@@ -1,5 +1,7 @@
-package Koha::Plugin::Com::Theke::SLNP::Exceptions;
+package SLNP::Exceptions;
 
+# Copyright 2021 Theke Solutions
+#
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
 # the Free Software Foundation, either version 3 of the License, or
@@ -18,11 +20,12 @@ package Koha::Plugin::Com::Theke::SLNP::Exceptions;
 use Modern::Perl;
 
 use Exception::Class (
-  'SLNP::Ill',
-  'SLNP::Ill::InconsistentStatus'   => { isa => 'SLNP::Ill', fields => ['expected_status'] },
-  'SLNP::Ill::MissingParameter'     => { isa => 'SLNP::Ill', fields => ['param'] },
-  'SLNP::Ill::UnknownItemId'        => { isa => 'SLNP::Ill', fields => ['item_id'] },
-  'SLNP::Ill::UnknownBiblioId'      => { isa => 'SLNP::Ill', fields => ['biblio_id'] }
+    'SLNP::Exception',
+    'SLNP::Exception::InconsistentStatus' => { isa => 'SLNP::Exception', fields => ['expected_status'] },
+    'SLNP::Exception::MissingParameter'   => { isa => 'SLNP::Exception', fields => ['param'] },
+    'SLNP::Exception::UnknownItemId'      => { isa => 'SLNP::Exception', fields => ['item_id'] },
+    'SLNP::Exception::UnknownBiblioId'    => { isa => 'SLNP::Exception', fields => ['biblio_id'] },
+    'SLNP::Exception::PatronNotFound'     => { isa => 'SLNP::Exception', fields => ['cardnumber'] },
 );
 
 1;
