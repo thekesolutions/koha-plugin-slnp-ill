@@ -45,13 +45,6 @@ cd $PERL5LIB/Koha/Illbackends/SLNP/install
 
 * Activate the Koha ILL framwork and ILL backends by enabling the 'ILLModule' system preference.
 * Check the <interlibrary_loans> division in your koha-conf.xml.
-* Copy the Net::Server::Fork configuration file '/usr/share/koha/lib/Koha/Illbackends/SLNP/ILLZFLServerKoha/conf/ILLZFLServerKoha.conf' into directory '/etc/koha/sites/{name-of-your-Koha-instance}/'.
-* Adapt the Net::Server::Fork configuration file '/etc/koha/sites/{name-of-your-Koha-instance}/ILLZFLServerKoha.conf', otherwise ILLZFLServerKoha will not work.
-* Copy the service script '/usr/share/koha/lib/Koha/Illbackends/SLNP/ILLZFLServerKoha/conf/koha-ILLZFLServerKoha' into directory '/etc/init.d'
-* Register the service script '/etc/init.d/koha-ILLZFLServerKoha' by calling 'update-rc.d koha-ILLZFLServerKoha defaults'.
-+ Now the service ILLZFLServerKoha may be started (or stopped) by calling '/etc/init.d/koha-ILLZFLServerKoha start (or stop)' or by 'service koha-ILLZFLServerKoha start (or stop)'.
-* Call hierarchy: '/etc/init.d/koha-ILLZFLServerKoha' calls '/usr/share/koha/lib/Koha/Illbackends/SLNP/ILLZFLServerKoha/bin/koha-ILLZFLServerKoha.sh' that calls '/usr/share/koha/lib/Koha/Illbackends/SLNP/ILLZFLServerKoha/bin/runILLZFLServerKoha.pl' that finally starts (or stops) the daemon.
-* It is strongly recommended to encrypt the communication between the regional ILL SLNPServer and ILLZFLServerKoha (e.g. by using stunnel)
 
 ## Configuration
 
@@ -66,7 +59,6 @@ server:
   ipv: *
   host: 127.0.0.1
   log_level: 3
-  instance: kohadev
 ```
 
 *FIXME: this should all be moved to the YAML configuration page*
@@ -75,6 +67,13 @@ The additional ILL preferences are listed with a short description in the load f
 You may use the additional ILL letter layouts "as is" or you can adapt them to your needs. 
 The additional ILL letter layouts are contained in the load file $PERL5LIB/Koha/Illbackends/SLNP/install/insert_letter.sql.
 
+## Running the SLNP server
+
+The plugin bundles an SLNP server. The server code belongs to a specific Koha instance for which the plugin has been installed. If your instance is called _kohadev_, then you will start the server like this:
+
+```shell
+/path/to/the/plugins/dir/Koha/Plugin/Com/Theke/SLNP/scripts/slnp-server.sh --start kohadev
+```
 ## Development
 
 For developing the plugin, you need to have the plugins available in your [KTD](https://gitlab.com/koha-community/koha-testing-docker) environment:

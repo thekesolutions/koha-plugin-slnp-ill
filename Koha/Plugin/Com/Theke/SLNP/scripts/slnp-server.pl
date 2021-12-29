@@ -1,5 +1,7 @@
 #!/usr/bin/env perl
 
+# Copyright 2021 Theke Solutions
+#
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
 # the Free Software Foundation, either version 3 of the License, or
@@ -27,7 +29,7 @@ my $port = $configuration->{server}->{port} // 9001;
 my $ipv  = $configuration->{server}->{ipv}  // '*';
 my $host = $configuration->{server}->{host} // '127.0.0.1';
 
-my $instance  = $configuration->{server}->{instance} // 'kohadev';
+my $instance  = $ARGV[0] // 'kohadev';
 my $user      = "$instance-koha";
 my $group     = "$instance-koha";
 my $log_file  = "/var/log/koha/$instance/slnp-server.log";
