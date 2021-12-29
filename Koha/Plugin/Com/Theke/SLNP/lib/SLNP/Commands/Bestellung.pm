@@ -22,7 +22,7 @@ use Modern::Perl;
 use utf8;
 
 use C4::Context;
-use Koha::Illrequest;
+use Koha::Illrequests;
 
 sub doSLNPFLBestellung {
     my $cmd = shift;
@@ -34,9 +34,9 @@ sub doSLNPFLBestellung {
 # create an illrequests record and some illrequestattributes records from the sent title data using the Illbackend's methods
 
     if ( $cmd->{'req_valid'} == 1 ) {
+
         my $illrequest = Koha::Illrequest->new();
-        my $slnp_illbackend =
-          $illrequest->load_backend("SLNP");  # this is still $illrequest
+        my $slnp_illbackend = $illrequest->load_backend("SLNP");  # this is still $illrequest
 
         my $args;
         $args->{stage} = 'commit';

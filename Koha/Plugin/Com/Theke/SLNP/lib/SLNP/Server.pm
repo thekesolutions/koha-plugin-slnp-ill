@@ -456,7 +456,7 @@ sub evalSlnpCmd {
 
     $self->log( 1,
         getTime()
-          . "lib::ILLZFLServerKoha::evalSlnpCmd START slnpreq:$slnpreq:" );
+          . "SLNP::Server::evalSlnpCmd START slnpreq:$slnpreq:" );
 
     $slnpcmd = eval { $self->analyzeSLNPReq($slnpreq); };
     if ($slnpcmd) {
@@ -766,7 +766,7 @@ sub genSLNPResp {
 
     $self->log( 1,
             getTime()
-          . " lib::ILLZFLServerKoha::genSLNPResp Start cmd:"
+          . " SLNP::Server::genSLNPResp Start cmd:"
           . Dumper($cmd)
           . ' ' );
 
@@ -812,7 +812,7 @@ sub genSLNPResp {
     }
     $self->log( 1,
             getTime()
-          . " lib::ILLZFLServerKoha::genSLNPResp slnpresp:"
+          . " SLNP::Server::genSLNPResp slnpresp:"
           . $slnpresp );
     return $slnpresp;
 }
@@ -865,7 +865,7 @@ sub readSLNPParam {
     my $lv     = shift;
     my @params = @_;
     $self->log( 1,
-        getTime() . " lib::ILLZFLServerKoha::readSLNPParam Start level:$lv:" );
+        getTime() . " SLNP::Server::readSLNPParam Start level:$lv:" );
     my ( $reqParamVals, $oldbaselevel, $leveloffsets );
 
     $reqParamVals = undef;

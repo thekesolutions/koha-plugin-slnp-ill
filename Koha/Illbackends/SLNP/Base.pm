@@ -284,7 +284,7 @@ sub name {
 
     $capability = $backend->capabilities($name);
 
-Return the sub implementing a capability selected by NAME, or 0 if that
+Return the sub implementing a capability selected by I<$name>, or 0 if that
 capability is not implemented.
 
 =cut
