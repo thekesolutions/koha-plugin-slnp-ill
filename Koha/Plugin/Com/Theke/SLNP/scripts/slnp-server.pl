@@ -2,9 +2,7 @@
 
 # Copyright 2018-2019 (C) LMSCloud GmbH
 
-use strict;
-use warnings;
-use utf8;
+use ModernPerl;
 
 # get the local directory
 use FindBin '$Bin';
