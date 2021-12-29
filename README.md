@@ -61,6 +61,12 @@ are maintained on this document.
 ```yaml
 ---
 portal_url: https://your.portal.url
+server:
+  port: 9001
+  ipv: *
+  host: 127.0.0.1
+  log_level: 3
+  instance: kohadev
 ```
 
 *FIXME: this should all be moved to the YAML configuration page*

@@ -110,7 +110,7 @@ sub configuration {
     my ($self) = @_;
 
     my $configuration;
-    eval { $configuration = YAML::Load( $self->retrieve_data('configuration') . "\n\n" ); };
+    eval { $configuration = YAML::Load( $self->retrieve_data('configuration') // '' . "\n\n" ); };
     die($@) if $@;
 
     return $configuration;
