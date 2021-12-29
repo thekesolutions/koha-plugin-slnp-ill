@@ -18,26 +18,28 @@ package Koha::Illbackends::SLNP::Base;
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 
 use Modern::Perl;
-use Carp;
-use File::Basename qw( dirname );
-use Data::Dumper;
 
-use Koha::Libraries;
+use Carp;
 use Clone qw( clone );
+use Data::Dumper;
+use File::Basename qw( dirname );
+use JSON qw( to_json );
 use Locale::Country;
-use XML::LibXML;
 use MARC::Record;
-use C4::Context;
-use C4::Biblio qw( AddBiblio );
-use Koha::Illrequest::Config;
 use Try::Tiny;
 use URI::Escape;
+use XML::LibXML;
 use YAML;
-use JSON qw( to_json );
+
+use C4::Biblio qw( AddBiblio );
+use C4::Context;
+use C4::Letters;
+
+use Koha::Illrequest::Config;
+use Koha::Libraries;
 use Koha::Patron::Attributes;
 use Koha::Patron::Categories;
-use C4::Letters;
-use C4::Biblio;
+use Koha::Patrons;
 use Koha::DateUtils qw(dt_from_string output_pref);
 
 use Koha::Plugin::Com::Theke::SLNP;
@@ -378,8 +380,8 @@ sub create {
     # Initiate process stage is dummy for SLNP
     if ( !$stage || $stage eq 'init' ) {
 
-        # Ill request is created by the external ILLSLNLKoha
-        # server calling SLNPFLBestellung, so no manual handling at this stage
+        # ILL request is created by the external server sending
+        # a SLNPFLBestellung request, so no manual handling at this stage
         # Pass useful information for rendering the create page
         $backend_result->{value}->{portal_url} = $self->{configuration}->{portal_url} // 'https://fix.me';
     }
@@ -387,8 +389,9 @@ sub create {
     # Validate SLNP request parameter values and insert new ILL request in DB
     elsif ( $stage eq 'commit' ) {
 
-        # Check for borrower by sent cardnumber
-        my ( $brw_count, $brw ) = _validate_borrower( $params->{other}->{attributes}->{'cardnumber'} );
+        # Search for the patron using the passed cardnumber
+        my $patron = Koha::Patrons->find({ cardnumber => $params->{other}->{attributes}->{cardnumber} });
+#        my ( $patron_count, $patron ) = _validate_borrower( $params->{other}->{attributes}->{cardnumber} );
 
         if ( !$params->{other}->{'attributes'}->{'title'} ) {
             $backend_result->{error}  = 1;
@@ -406,12 +409,12 @@ sub create {
             $backend_result->{error}  = 1;
             $backend_result->{status} = "invalid_branch";
             $backend_result->{value}  = $params;
-        } elsif ( $brw_count != 1 ) {
+        } elsif ( !defined $patron ) {
             $backend_result->{error}  = 1;
             $backend_result->{status} = "invalid_borrower";
             $backend_result->{value}  = $params;
         } else {
-            $params->{other}->{borrowernumber} = $brw->borrowernumber;
+            $params->{other}->{borrowernumber} = $patron->borrowernumber;
             $backend_result->{borrowernumber} = $params->{other}->{borrowernumber};
         }
 
@@ -437,7 +440,7 @@ sub create {
             # populate Illrequest
 
             # illrequest_id is set automatically if 0
-            $params->{request}->borrowernumber( $brw->borrowernumber );
+            $params->{request}->borrowernumber( $patron->borrowernumber );
             $params->{request}->biblio_id($biblionumber) unless !$biblionumber;
             $params->{request}->branchcode( $params->{other}->{branchcode} );
             $params->{request}->status('REQ');
@@ -1398,31 +1401,6 @@ sub slnp2items {
     }
 
     return $itemnumberItem;
-}
-
-=head3 _validate_borrower
-    my ( $brw_count, $brw ) = _validate_borrower($params->{other}->{attributes}->{'cardnumber'});
-
-Try to read the borrowers record using the cardnumber field.
-=cut
-
-sub _validate_borrower {
-
-    # Perform cardnumber search.
-    # Return ( 0, undef ), ( 1, $brw ) or ( n, $brws )
-    my ($sel_cardnumber) = @_;
-    my $patrons = Koha::Patrons->new;
-    my ( $count, $brw );
-    my $query = { cardnumber => $sel_cardnumber };
-
-    my $brws = $patrons->search($query);
-    $count = $brws->count;
-    if ( $count == 1 ) {
-        $brw = $brws->next;
-    } else {
-        $brw = $brws;    # found multiple results, should never happen
-    }
-    return ( $count, $brw );
 }
 
 # methods that are called by the Koha application via the ILL framework, but not exclusively by the framework

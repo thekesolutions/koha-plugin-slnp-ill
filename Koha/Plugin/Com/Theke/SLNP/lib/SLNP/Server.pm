@@ -630,7 +630,7 @@ sub validateSLNPReq {
         {
             $level = scalar( split( /_/, $leveloffsets ) ) - 1;
             if (
-                ( $cmd->{'lvl_line'}->{$leveloffsets}->{'req_pcnt'} * 1 ) == 0 )
+                ( $cmd->{'lvl_line'}->{$leveloffsets}->{'req_pcnt'} // 0 * 1 ) == 0 )
             {
                 $slnp{ $cmd->{'lvl_line'}->{$leveloffsets}->{'req_pnam'} }
                   ->{$level} += 1;
@@ -662,7 +662,7 @@ sub validateSLNPReq {
         {
             $level = scalar( split( /_/, $leveloffsets ) ) - 1;
             if (
-                ( $cmd->{'lvl_line'}->{$leveloffsets}->{'req_pcnt'} + 0 ) == 0 )
+                ( $cmd->{'lvl_line'}->{$leveloffsets}->{'req_pcnt'} // 0 + 0 ) == 0 )
             {
                 my $req_pnam =
                   $cmd->{'lvl_line'}->{$leveloffsets}->{'req_pnam'};
@@ -875,7 +875,7 @@ sub readSLNPParam {
         {
             my $l = scalar( split( /_/, $leveloffsets ) ) - 1;
             if (   $l == $lv
-                && $cmd->{'lvl_line'}->{$leveloffsets}->{'req_pcnt'} + 0 == 0 )
+                && $cmd->{'lvl_line'}->{$leveloffsets}->{'req_pcnt'} // 0 + 0 == 0 )
             {
                 foreach my $param ( 0 .. $#params ) {
                     if ( $params[$param] eq

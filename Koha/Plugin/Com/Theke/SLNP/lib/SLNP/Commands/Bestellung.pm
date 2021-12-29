@@ -22,11 +22,18 @@ use Modern::Perl;
 use utf8;
 
 use C4::Context;
+
+use Koha::Database;
 use Koha::Illrequests;
+use Koha::Plugin::Com::Theke::SLNP;
+
+use Try::Tiny;
 
 sub doSLNPFLBestellung {
     my $cmd = shift;
     my ($params) = @_;
+
+    my $configuration = Koha::Plugin::Com::Theke::SLNP->new->configuration;
 
     my $dbh = C4::Context->dbh;
     $dbh->{AutoCommit} = 0;
@@ -42,9 +49,7 @@ sub doSLNPFLBestellung {
         $args->{stage} = 'commit';
 
         # fields for table illrequests
-        my @illDefaultBranch =
-          split( /\|/, C4::Context->preference("ILLDefaultBranch") );
-        $args->{'branchcode'} = $illDefaultBranch[0];
+        $args->{'branchcode'} = $configuration->{default_ill_branch} // 'CPL';
         if (
             (
                 defined $params->{AufsatzAutor}
