@@ -46,6 +46,7 @@ server:
   log_level: 3
 default_framework: FA
 default_ill_itype: BK
+default_hold_note: Placed by ILL
 pfl_number_prefix: "PREFIX "
 item_types:
   loan: BK

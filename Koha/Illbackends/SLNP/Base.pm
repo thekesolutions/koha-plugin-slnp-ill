@@ -34,6 +34,7 @@ use YAML;
 use C4::Biblio qw( AddBiblio );
 use C4::Context;
 use C4::Letters qw(GetPreparedLetter);
+use C4::Reserves qw(AddReserve);
 
 use Koha::Biblios;
 use Koha::DateUtils qw(dt_from_string output_pref);
@@ -500,6 +501,31 @@ sub create {
                     stocknumber   => $params->{request}->illrequest_id()
                 }
             );
+
+            # place a hold on behalf of the patron
+            # FIXME: Should call CanItemBeReserved first?
+            my $hold_id = AddReserve(
+                {
+                    branchcode       => $params->{request}->branchcode,
+                    borrowernumber   => $patron->borrowernumber,
+                    biblionumber     => $biblionumber,
+                    priority         => 1,
+                    reservation_date => undef,
+                    expiration_date  => undef,
+                    notes            => $self->{configuration}->{default_hold_note} // 'Placed by ILL',
+                    title            => '',
+                    itemnumber       => $itemnumber,
+                    found            => undef,
+                    itemtype         => undef
+                }
+            );
+
+            Koha::Illrequestattribute->new(
+                {   illrequest_id => $params->{request}->illrequest_id,
+                    type          => 'hold_id',
+                    value         => $hold_id,
+                }
+            )->store;
 
             # send ILL request confirmation notice (e.g. with letter.code ILLSLNP_REQUEST_CONFIRM) to ordering borrower if configured (syspref ILLRequestConfirm)
             my $illrequestconfirmLetterCode = C4::Context->preference("ILLRequestConfirm");
