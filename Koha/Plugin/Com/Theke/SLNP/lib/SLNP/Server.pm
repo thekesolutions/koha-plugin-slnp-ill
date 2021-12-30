@@ -42,6 +42,8 @@ use DateTime;
 # each real SLNP command is handled in an individual perl module
 use SLNP::Commands::Bestellung;
 
+use SLNP::Normalizer;
+
 # include the default Koha lib directory
 use lib '/usr/share/koha/lib/';
 
@@ -878,6 +880,16 @@ sub readSLNPParam {
                 && $cmd->{'lvl_line'}->{$leveloffsets}->{'req_pcnt'} // 0 + 0 == 0 )
             {
                 foreach my $param ( 0 .. $#params ) {
+
+                    my $value = SLNP::Normalizer->new(
+                        {
+                            string => $self->escapeSLNP(
+                                $cmd->{'lvl_line'}->{$leveloffsets}
+                                  ->{'req_pval'}
+                            )
+                        }
+                    )->trim->get_string;
+
                     if ( $params[$param] eq
                         $cmd->{'lvl_line'}->{$leveloffsets}->{'req_pnam'} )
                     {
@@ -888,24 +900,16 @@ sub readSLNPParam {
                             if ( $reqParamVals->[$#$reqParamVals]->[$param] eq
                                 '' )
                             {
-                                $reqParamVals->[$#$reqParamVals]->[$param] =
-                                  $self->escapeSLNP(
-                                    $cmd->{'lvl_line'}->{$leveloffsets}
-                                      ->{'req_pval'} );
+                                $reqParamVals->[$#$reqParamVals]->[$param] = $value;
                             }
                             else {
                                 $reqParamVals->[$#$reqParamVals]->[$param] .=
                                   "\n"
-                                  . $self->escapeSLNP(
-                                    $cmd->{'lvl_line'}->{$leveloffsets}
-                                      ->{'req_pval'} );
+                                  . $value;
                             }
                         }
                         else {
-                            $reqParamVals->[ $#$reqParamVals + 1 ]->[$param] =
-                              $self->escapeSLNP(
-                                $cmd->{'lvl_line'}->{$leveloffsets}
-                                  ->{'req_pval'} );
+                            $reqParamVals->[ $#$reqParamVals + 1 ]->[$param] = $value;
                             $oldbaselevel = $baselevel;
                         }
                     }
@@ -913,6 +917,7 @@ sub readSLNPParam {
             }
         }
     }
+
     return $reqParamVals;
 }
 
