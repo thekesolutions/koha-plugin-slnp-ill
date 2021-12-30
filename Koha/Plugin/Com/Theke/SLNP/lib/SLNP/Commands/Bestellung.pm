@@ -1,6 +1,7 @@
 package SLNP::Commands::Bestellung;
 
 # Copyright 2018-2019 (C) LMSCLoud GmbH
+#           2021 Theke Solutions
 #
 # This file is part of Koha.
 #
@@ -29,16 +30,13 @@ use Koha::Plugin::Com::Theke::SLNP;
 
 use Try::Tiny;
 
+use SLNP::Exceptions;
+
 sub doSLNPFLBestellung {
     my $cmd = shift;
     my ($params) = @_;
 
     my $configuration = Koha::Plugin::Com::Theke::SLNP->new->configuration;
-
-    my $dbh = C4::Context->dbh;
-    $dbh->{AutoCommit} = 0;
-
-# create an illrequests record and some illrequestattributes records from the sent title data using the Illbackend's methods
 
     if ( $cmd->{'req_valid'} == 1 ) {
 
@@ -49,7 +47,7 @@ sub doSLNPFLBestellung {
         $args->{stage} = 'commit';
 
         # fields for table illrequests
-        $args->{'branchcode'} = $configuration->{default_ill_branch} // 'CPL';
+        $args->{branchcode} = $configuration->{default_ill_branch} // 'CPL';
         if (
             (
                 defined $params->{AufsatzAutor}
@@ -59,12 +57,12 @@ sub doSLNPFLBestellung {
                 && length( $params->{AufsatzTitel} ) )
           )
         {
-            $args->{'medium'} = "Article";
+            $args->{medium} = 'Article';
         }
         else {
-            $args->{'medium'} = "Book";
+            $args->{medium} = 'Book';
         }
-        $args->{'orderid'} = $params->{BestellId};
+        $args->{orderid} = $params->{BestellId};
 
         # fields for table illrequestattributes
         $args->{attributes} = {
@@ -77,42 +75,53 @@ sub doSLNPFLBestellung {
             'issn'      => $params->{Issn},
             'publisher' => $params->{Verlag},
             'publyear'  => $params->{EJahr},
-            'issue'     => $params->{Auflage},
+            'issue'     => $params->{Auflage}, # FIXME: duplicate mapping, see sub attribute_mapping
             'shelfmark' => $params->{Signatur},
             'info'      => $params->{Info},
             'notes'     => $params->{Bemerkung}
         };
-        if ( defined $params->{AufsatzAutor}
-            && length( $params->{AufsatzAutor} ) )
-        {
-            $args->{attributes}->{article_author} = $params->{AufsatzAutor};
-        }
-        if ( defined $params->{AufsatzTitel}
-            && length( $params->{AufsatzTitel} ) )
-        {
-            $args->{attributes}->{article_title} = $params->{AufsatzTitel};
-        }
-        if ( defined $params->{Heft} && length( $params->{Heft} ) ) {
-            $args->{attributes}->{issue} = $params->{Heft};
-        }
-        if ( defined $params->{Seitenangabe}
-            && length( $params->{Seitenangabe} ) )
-        {
-            $args->{attributes}->{article_pages} = $params->{Seitenangabe};
-        }
-        if ( defined $params->{AusgabeOrt} && length( $params->{AusgabeOrt} ) )
-        {
-            $args->{attributes}->{pickUpLocation} = $params->{AusgabeOrt};
+
+        my $attribute_mapping = attribute_mapping();
+        foreach my $attribute ( keys %{$attribute_mapping} ) {
+            if ( defined $params->{$attribute}
+                && length( $params->{$attribute} ) )
+            {
+                $args->{attributes}->{ $attribute_mapping->{$attribute} } =
+                  $params->{$attribute};
+            }
         }
 
-        my $backend_result = $slnp_illbackend->backend_create($args);
+        my $backend_result;
 
-        if (   $backend_result->{error} ne '0'
-            || !defined $backend_result->{value}
-            || !defined $backend_result->{value}->{request}
-            || !$backend_result->{value}->{request}->illrequest_id() )
-        {
-            $dbh->rollback;
+        try {
+            Koha::Database->new->schema->txn_do(
+                sub {
+                    $backend_result = $slnp_illbackend->backend_create($args);
+
+                    if (   $backend_result->{error} ne '0'
+                        || !defined $backend_result->{value}
+                        || !defined $backend_result->{value}->{request}
+                        || !$backend_result->{value}->{request}->illrequest_id()
+                      )
+                    {
+                        # short-circuit, force rollback
+                        SLNP::Exception->throw();
+                    }
+
+                    $cmd->{'rsp_para'}->[0] = {
+                        'resp_pnam' => 'PFLNummer',
+                        'resp_pval' =>
+                          $backend_result->{value}->{request}->illrequest_id()
+                    };
+                    $cmd->{'rsp_para'}->[1] = {
+                        'resp_pnam' => 'OKMsg',
+                        'resp_pval' => 'ILL request successfully inserted.'
+                    };
+
+                }
+            );
+        }
+        catch {
             $cmd->{'req_valid'} = 0;
             if ( $backend_result->{status} eq "invalid_borrower" ) {
                 $cmd->{'err_type'} = 'PATRON_NOT_FOUND';
@@ -128,24 +137,26 @@ sub doSLNPFLBestellung {
                   . scalar $backend_result->{status} . ' '
                   . scalar $backend_result->{message} . ")";
             }
-        }
-        else {
-            $cmd->{'rsp_para'}->[0] = {
-                'resp_pnam' => 'PFLNummer',
-                'resp_pval' =>
-                  $backend_result->{value}->{request}->illrequest_id()
-            };
-            $cmd->{'rsp_para'}->[1] = {
-                'resp_pnam' => 'OKMsg',
-                'resp_pval' => 'ILL request successfully inserted.'
-            };
-
-            $dbh->commit();
-            $dbh->{AutoCommit} = 1;
-        }
+        };
     }
 
     return $cmd;
+}
+
+=head3 attribute_mapping
+
+Simple SLNP -> Koha ILL request attribute mapping.
+
+=cut
+
+sub attribute_mapping {
+    return {
+        AufsatzAutor => 'article_author',
+        AufsatzTitel => 'article_title',
+        Heft         => 'issue', # FIXME: duplicate mapping
+        Seitenangabe => 'article_pages',
+        AusgabeOrt   => 'pickUpLocation',
+    };
 }
 
 1;

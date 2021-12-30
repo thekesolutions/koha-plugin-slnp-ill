@@ -29,4 +29,3 @@ use Exception::Class (
 );
 
 1;
-
