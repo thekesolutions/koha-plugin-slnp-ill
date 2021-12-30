@@ -36,13 +36,13 @@ use C4::Context;
 use C4::Letters qw(GetPreparedLetter);
 
 use Koha::Biblios;
+use Koha::DateUtils qw(dt_from_string output_pref);
 use Koha::Illrequest::Config;
 use Koha::Items;
 use Koha::Libraries;
 use Koha::Patron::Attributes;
 use Koha::Patron::Categories;
 use Koha::Patrons;
-use Koha::DateUtils qw(dt_from_string output_pref);
 
 use Koha::Plugin::Com::Theke::SLNP;
 
@@ -437,7 +437,7 @@ sub create {
         }
 
         if ( $backend_result->{error} == 0 ) {
-            my $now = DateTime->now( time_zone => C4::Context->tz() );
+            my $now = dt_from_string();
 
             # populate Illrequest
 
