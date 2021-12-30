@@ -929,68 +929,34 @@ sub cmdFLBestellung {
 
     my $params = undef;
 
-    my $param = $self->readSLNPParam( $slnpcmd, 1, "SpecIssue" );
-    $params->{SpecIssue} = $param->[0]->[0] if $param;
+    my @fields = (
+        'SpecIssue',      'BsTyp',
+        'BestellId',      'SigelListe',
+        'SigelNB',        'BenutzerNummer',
+        'Verfasser',      'Titel',
+        'AufsatzTitel',   'AufsatzAutor',
+        'Verlag',         'Isbn',
+        'Issn',           'EJahr',
+        'Heft',           'Auflage',
+        'Seitenangabe',   'Signatur',
+        'Info',           'Bemerkung',
+        'AusgabeOrt',     'SpecIssue',
+        'BsTyp',          'BestellId',
+        'SigelListe',     'SigelNB',
+        'BenutzerNummer', 'Verfasser',
+        'Titel',          'AufsatzTitel',
+        'AufsatzAutor',   'Verlag',
+        'Isbn',           'Issn',
+        'EJahr',          'Heft',
+        'Auflage',        'Seitenangabe',
+        'Signatur',       'Info',
+        'Bemerkung',      'AusgabeOrt',
+    );
 
-    $param = $self->readSLNPParam( $slnpcmd, 1, "BsTyp" );
-    $params->{BsTyp} = $param->[0]->[0] if $param;
-
-    $param = $self->readSLNPParam( $slnpcmd, 1, "BestellId" );
-    $params->{BestellId} = $param->[0]->[0] if $param;
-
-    $param = $self->readSLNPParam( $slnpcmd, 1, "SigelListe" );
-    $params->{SigelListe} = $param->[0]->[0] if $param;
-
-    $param = $self->readSLNPParam( $slnpcmd, 1, "SigelNB" );
-    $params->{SigelNB} = $param->[0]->[0] if $param;
-
-    $param = $self->readSLNPParam( $slnpcmd, 1, "BenutzerNummer" );
-    $params->{BenutzerNummer} = $param->[0]->[0] if $param;
-
-    $param = $self->readSLNPParam( $slnpcmd, 1, "Verfasser" );
-    $params->{Verfasser} = $param->[0]->[0] if $param;
-
-    $param = $self->readSLNPParam( $slnpcmd, 1, "Titel" );
-    $params->{Titel} = $param->[0]->[0] if $param;
-
-    $param = $self->readSLNPParam( $slnpcmd, 1, "AufsatzTitel" );
-    $params->{AufsatzTitel} = $param->[0]->[0] if $param;
-
-    $param = $self->readSLNPParam( $slnpcmd, 1, "AufsatzAutor" );
-    $params->{AufsatzAutor} = $param->[0]->[0] if $param;
-
-    $param = $self->readSLNPParam( $slnpcmd, 1, "Verlag" );
-    $params->{Verlag} = $param->[0]->[0] if $param;
-
-    $param = $self->readSLNPParam( $slnpcmd, 1, "Isbn" );
-    $params->{Isbn} = $param->[0]->[0] if $param;
-
-    $param = $self->readSLNPParam( $slnpcmd, 1, "Issn" );
-    $params->{Issn} = $param->[0]->[0] if $param;
-
-    $param = $self->readSLNPParam( $slnpcmd, 1, "EJahr" );
-    $params->{EJahr} = $param->[0]->[0] if $param;
-
-    $param = $self->readSLNPParam( $slnpcmd, 1, "Heft" );
-    $params->{Heft} = $param->[0]->[0] if $param;
-
-    $param = $self->readSLNPParam( $slnpcmd, 1, "Auflage" );
-    $params->{Auflage} = $param->[0]->[0] if $param;
-
-    $param = $self->readSLNPParam( $slnpcmd, 1, "Seitenangabe" );
-    $params->{Seitenangabe} = $param->[0]->[0] if $param;
-
-    $param = $self->readSLNPParam( $slnpcmd, 1, "Signatur" );
-    $params->{Signatur} = $param->[0]->[0] if $param;
-
-    $param = $self->readSLNPParam( $slnpcmd, 1, "Info" );
-    $params->{Info} = $param->[0]->[0] if $param;
-
-    $param = $self->readSLNPParam( $slnpcmd, 1, "Bemerkung" );
-    $params->{Bemerkung} = $param->[0]->[0] if $param;
-
-    $param = $self->readSLNPParam( $slnpcmd, 1, "AusgabeOrt" );
-    $params->{AusgabeOrt} = $param->[0]->[0] if $param;
+    foreach my $field (@fields) {
+        my $param = $self->readSLNPParam( $slnpcmd, 1, $field );
+        $params->{$field} = $param->[0]->[0] if $param;
+    }
 
     $self->log( 1, getTime() . " cmdFLBestellung params:" . Dumper($params) );
 
