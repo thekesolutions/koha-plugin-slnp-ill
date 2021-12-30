@@ -47,6 +47,9 @@ server:
 default_framework: FA
 default_ill_itype: BK
 pfl_number_prefix: "PREFIX "
+item_types:
+  loan: BK
+  copy: CR
 ```
 
 *FIXME: this should all be moved to the YAML configuration page*

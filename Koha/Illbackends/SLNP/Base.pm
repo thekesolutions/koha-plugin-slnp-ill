@@ -45,6 +45,7 @@ use Koha::Patron::Categories;
 use Koha::Patrons;
 
 use Koha::Plugin::Com::Theke::SLNP;
+use SLNP::Exceptions;
 
 =head1 NAME
 
@@ -1380,6 +1381,8 @@ sub slnp2items {
         SLNP::Exception::UnknownBiblioId->throw( biblio_id => $biblio_id );
     }
 
+    my $item_type = $self->get_item_type( $params->{other}->{medium} );
+
     if ( !keys %{$itemfieldsvals} )    # create items record
     {
         my $item_data = {
@@ -1391,7 +1394,7 @@ sub slnp2items {
             itemnotes => scalar $params->{other}->{attributes}->{info},
             itemnotes_nonpublic => scalar $params->{other}->{attributes}->{notes},
             holdingbranch    => $params->{request}->branchcode(),
-            itype            => $self->{configuration}->{default_itype} // 'BK',
+            itype            => $item_type,
             biblionumber     => $biblio->biblionumber,
             biblioitemnumber => $biblio->biblioitem->biblioitemnumber,
 
@@ -1525,6 +1528,41 @@ sub sortAction {
     }
 
     return $ret;
+}
+
+=head3 get_item_type
+
+    my $item_type = $self->get_item_type( $medium );
+
+Given the calculated I<illrequest.medium> value passed to the I<create> method,
+this helper will return the right item type for the request, given the local
+settings.
+
+=cut
+
+sub get_item_type {
+    my ( $self, $medium ) = @_;
+
+    SLNP::Exception::BadParameter->throw( param => 'medium', value => $medium )
+      unless $medium eq 'Article' or $medium eq 'Book';
+
+    my $item_type;
+    my $item_types = $self->{configuration}->{item_types};
+
+    if ($item_types) {
+
+        # Use the configuration if possible
+        $item_type =
+          ( $medium eq 'Article' )
+          ? $self->{configuration}->{item_types}->{copy} // 'CR'
+          : $self->{configuration}->{item_types}->{loan} // 'BK';
+    }
+    else {
+        # No configuration, default values
+        $item_type = ( $medium eq 'Article' ) ? 'CR' : 'BK';
+    }
+
+    return $item_type;
 }
 
 1;

@@ -114,11 +114,11 @@ sub doSLNPFLBestellung {
                         'resp_pnam' => 'PFLNummer',
                         'resp_pval' => $prefix . $backend_result->{value}->{request}->illrequest_id()
                     };
+
                     $cmd->{'rsp_para'}->[1] = {
                         'resp_pnam' => 'OKMsg',
                         'resp_pval' => 'ILL request successfully inserted.'
                     };
-
                 }
             );
         }
