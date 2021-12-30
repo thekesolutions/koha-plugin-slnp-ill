@@ -22,6 +22,7 @@ use Modern::Perl;
 use Exception::Class (
     'SLNP::Exception',
     'SLNP::Exception::InconsistentStatus' => { isa => 'SLNP::Exception', fields => ['expected_status'] },
+    'SLNP::Exception::BadParameter'       => { isa => 'SLNP::Exception', fields => ['param', 'value'] },
     'SLNP::Exception::MissingParameter'   => { isa => 'SLNP::Exception', fields => ['param'] },
     'SLNP::Exception::UnknownItemId'      => { isa => 'SLNP::Exception', fields => ['item_id'] },
     'SLNP::Exception::UnknownBiblioId'    => { isa => 'SLNP::Exception', fields => ['biblio_id'] },
