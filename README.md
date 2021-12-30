@@ -59,6 +59,8 @@ server:
   ipv: *
   host: 127.0.0.1
   log_level: 3
+default_framework: FA
+default_ill_itype: BK
 ```
 
 *FIXME: this should all be moved to the YAML configuration page*

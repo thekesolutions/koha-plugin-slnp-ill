@@ -33,9 +33,11 @@ use YAML;
 
 use C4::Biblio qw( AddBiblio );
 use C4::Context;
-use C4::Letters;
+use C4::Letters qw(GetPreparedLetter);
 
+use Koha::Biblios;
 use Koha::Illrequest::Config;
+use Koha::Items;
 use Koha::Libraries;
 use Koha::Patron::Attributes;
 use Koha::Patron::Categories;
@@ -86,11 +88,12 @@ sub new {
     my ($class) = @_;
 
     my $plugin = Koha::Plugin::Com::Theke::SLNP->new;
+    my $configuration = $plugin->configuration;
 
     my $self = {
-        framework     => 'FA',                     # FIXME: Make configurable?
+        framework     => $configuration->{default_framework} // 'FA',
         plugin        => $plugin,
-        configuration => $plugin->configuration,
+        configuration => $configuration,
     };
 
     bless( $self, $class );
@@ -391,7 +394,6 @@ sub create {
 
         # Search for the patron using the passed cardnumber
         my $patron = Koha::Patrons->find({ cardnumber => $params->{other}->{attributes}->{cardnumber} });
-#        my ( $patron_count, $patron ) = _validate_borrower( $params->{other}->{attributes}->{cardnumber} );
 
         if ( !$params->{other}->{'attributes'}->{'title'} ) {
             $backend_result->{error}  = 1;
@@ -866,7 +868,7 @@ sub format_to_dbmoneyfloat {
 
 sub printIllNoticeSlnp {
     my ( $branchcode, $borrowernumber, $biblionumber, $itemnumber, $illrequest_id, $illreqattr_hashptr, $accountBorrowernumber, $letter_code ) = @_;
-    my $noticeFees          = C4::NoticeFees->new();
+    #my $noticeFees          = C4::NoticeFees->new();
     my $patron              = Koha::Patrons->find($borrowernumber);
     my $library             = Koha::Libraries->find($branchcode)->unblessed;
     my $admin_email_address = $library->{branchemail} || C4::Context->preference('KohaAdminEmailAddress');
@@ -910,37 +912,37 @@ sub printIllNoticeSlnp {
             }
         );
 
-        # check whether there are notice fee rules defined
-        if ( $noticeFees->checkForNoticeFeeRules() == 1 ) {
+        # # check whether there are notice fee rules defined
+        # if ( $noticeFees->checkForNoticeFeeRules() == 1 ) {
 
-            #check whether there is a matching notice fee rule
-            my $noticeFeeRule = $noticeFees->getNoticeFeeRule( $letter_params{branchcode}, $patron->categorycode, $mtt, $letter_code );
+        #     #check whether there is a matching notice fee rule
+        #     my $noticeFeeRule = $noticeFees->getNoticeFeeRule( $letter_params{branchcode}, $patron->categorycode, $mtt, $letter_code );
 
-            if ($noticeFeeRule) {
-                my $fee = $noticeFeeRule->notice_fee();
+        #     if ($noticeFeeRule) {
+        #         my $fee = $noticeFeeRule->notice_fee();
 
-                if ( $fee && $fee > 0.0 ) {
+        #         if ( $fee && $fee > 0.0 ) {
 
-                    # Bad for the patron, staff has assigned a notice fee for sending the notification
-                    $noticeFees->AddNoticeFee(
-                        {   borrowernumber => $borrowernumber,
-                            amount         => $fee,
-                            letter_code    => $letter_code,
-                            letter_date    => output_pref( { dt => dt_from_string, dateonly => 1 } ),
+        #             # Bad for the patron, staff has assigned a notice fee for sending the notification
+        #             $noticeFees->AddNoticeFee(
+        #                 {   borrowernumber => $borrowernumber,
+        #                     amount         => $fee,
+        #                     letter_code    => $letter_code,
+        #                     letter_date    => output_pref( { dt => dt_from_string, dateonly => 1 } ),
 
-                            # these are parameters that we need for fancy message printing
-                            branchcode => $letter_params{branchcode},
-                            substitute => {
-                                bib     => $library->{branchname},
-                                'count' => 1,
-                            },
-                            tables => $letter_params{tables}
+        #                     # these are parameters that we need for fancy message printing
+        #                     branchcode => $letter_params{branchcode},
+        #                     substitute => {
+        #                         bib     => $library->{branchname},
+        #                         'count' => 1,
+        #                     },
+        #                     tables => $letter_params{tables}
 
-                        }
-                    );
-                }
-            }
-        }
+        #                 }
+        #             );
+        #         }
+        #     }
+        # }
     };
 
     if ($to_address) {
@@ -1354,53 +1356,57 @@ sub slnp2biblio {
     my $marc_field942 = MARC::Field->new( '942', '', '', n => '1' );
     $marcrecord->append_fields($marc_field942);
 
-    # We use a minimal framework named 'ILLSLNP', which needs to be created beforehand.
-    my $biblionumber = AddBiblio( $marcrecord, $self->{framework} );
+    my $biblionumber = C4::Biblio::AddBiblio( $marcrecord, $self->{framework} );
 
     return $biblionumber;
 }
 
 =head3 slnp2items
 
-    my $itemnumber = $slnp_backend->slnp2items($params->{other}, $biblionumber, {});
+    my $itemnumber = $slnp_backend->slnp2items($params->{other}, $biblio_id, {});
 
 Create or update a basic items record from the sent SLNPFLCommand data
 
 =cut
 
 sub slnp2items {
-    my ( $self, $params, $biblionumber, $itemfieldsvals ) = @_;
-    my ( $biblionumberItem, $biblioitemnumberItem, $itemnumberItem ) = ( undef, undef, undef );
-    if ( !keys %{$itemfieldsvals} )    # create items record
-    {
-        my $item_hash;
-        $item_hash->{homebranch} = $params->{request}->branchcode();
-        $item_hash->{notforloan} = -1;                                                        # 'ordered'
-        my $itemcallnumber = 'Fernleihe ' . $params->{other}->{attributes}->{shelfmark};
-        $item_hash->{itemcallnumber}      = $itemcallnumber;
-        $item_hash->{itemnotes}           = scalar $params->{other}->{attributes}->{info};
-        $item_hash->{itemnotes_nonpublic} = scalar $params->{other}->{attributes}->{notes};
-        $item_hash->{holdingbranch}       = $params->{request}->branchcode();
-        $item_hash->{itype}               = 'Fernleihe';                                      # dummy initialisation
-        my @illItemtypes = split( /\|/, C4::Context->preference("IllItemtypes") );
+    my ( $self, $params, $biblio_id, $itemfieldsvals ) = @_;
 
-        foreach my $it (@illItemtypes) {
-            my $rs = Koha::ItemTypes->search( { itemtype => $it } );
-            if ( my $itres = $rs->next ) {
-                $item_hash->{itype} = $itres->itemtype;
-                last;
-            }
-        }
+    my $item_id;
 
-        # finally add the next items record
-        ( $biblionumberItem, $biblioitemnumberItem, $itemnumberItem ) = C4::Items::AddItem( $item_hash, $biblionumber );
-    } else {    # update items record
-        $itemnumberItem = scalar $params->{other}->{attributes}->{itemnumber};
-        my $itemrs = Koha::Items->find( { itemnumber => $itemnumberItem } );
-        $itemrs->update($itemfieldsvals);
+    my $biblio = Koha::Biblios->find($biblio_id);
+
+    if ( $biblio_id and !$biblio ) {
+        SLNP::Exception::UnknownBiblioId->throw( biblio_id => $biblio_id );
     }
 
-    return $itemnumberItem;
+    if ( !keys %{$itemfieldsvals} )    # create items record
+    {
+        my $item_data = {
+            homebranch => $params->{request}->branchcode(),
+            # FIXME: Configuration?
+            notforloan     => -1,            # 'ordered'
+            # FIXME: Configuration?
+            itemcallnumber => 'Fernleihe ' . $params->{other}->{attributes}->{shelfmark},
+            itemnotes => scalar $params->{other}->{attributes}->{info},
+            itemnotes_nonpublic => scalar $params->{other}->{attributes}->{notes},
+            holdingbranch    => $params->{request}->branchcode(),
+            itype            => $self->{configuration}->{default_itype} // 'BK',
+            biblionumber     => $biblio->biblionumber,
+            biblioitemnumber => $biblio->biblioitem->biblioitemnumber,
+
+        };
+
+        my $item = Koha::Item->new($item_data)->store;
+        $item_id = $item->id;
+    }
+    else {    # update items record
+        $item_id = scalar $params->{other}->{attributes}->{itemnumber};
+        my $item = Koha::Items->find($item_id);
+        $item->update($itemfieldsvals)->store;
+    }
+
+    return $item_id;
 }
 
 # methods that are called by the Koha application via the ILL framework, but not exclusively by the framework
