@@ -1,28 +1,13 @@
 # Koha Interlibrary Loans SLNP backend
-
-## About SLNP
-
-SLNP (TM) (Simple Library Network Protocol) is a TCP network socket based protocol 
-designed and introduced by the company Sisis Informationssysteme GmbH (later a part of OCLC) 
-for their library management system SISIS-SunRise (TM).
-This protocol supports the bussiness processes of libraries.
-A subset of SLNP that enables the communication required for regional an national ILL (Inter Library Loan) processes
-has been published by Sisis Informationssysteme GmbH as basis for 
-connection of library management systems to ILL servers that use SLNP.
-Sisis Informationssysteme GmbH / OCLC owns all rights to SLNP.
-SLNP is a registered trademark of Sisis Informationssysteme GmbH / OCLC.
-
 ## Synopsis
 
 This project involves three different pieces:
 
 * A Koha plugin, that bundles the ILL backend and provides convenient ways to add configurations.
   _FIXME_: This should mention the upcoming `install` and `upgrade` tools.
-* An ILL backend **SLNP** that provides provides a simple method to handle ILL requests that
-  are initiated by a regional ILL server using the SLNP protocol.
-* A daemon  The additional service 'ILLZFLServerKoha' runs as a daemon in the background managing
-  the communication with the regional ILL server and inserting records in tables illrequests and
-  illrequestattributes by calling the *create* method of _SLNP_.
+* The **SLNP** ILL backend that provides provides a simple method to handle ILL requests that
+  are initiated by a regional ILL server using the SLNP protocol through a ZFL server.
+* A server speaking the _SLNP_ protocol, that can run as a daemon.
 
 The remaining features of this ILL backend are accessible via the standard ILL framework in the Koha staff interface.
 
@@ -105,6 +90,14 @@ $ misc/devel/install_plugins.pl
 Installed SLNP ILL connector plugin for Koha version {VERSION}
 All plugins successfully re-initialised
 ```
+
+## About SLNP
+
+SLNP (TM) (Simple Library Network Protocol) is a TCP network socket based protocol designed and introduced by the company Sisis Informationssysteme GmbH (later a part of OCLC) for their library management system SISIS-SunRise (TM).
+
+This protocol supports the bussiness processes of libraries. A subset of SLNP that enables the communication required for regional an national ILL (Inter Library Loan) processes has been published by Sisis Informationssysteme GmbH as basis for connection of library management systems to ILL servers that use SLNP.
+
+Sisis Informationssysteme GmbH / OCLC owns all rights to SLNP. SLNP is a registered trademark of Sisis Informationssysteme GmbH / OCLC.
 
 ## Credits
 
