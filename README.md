@@ -46,6 +46,7 @@ server:
   log_level: 3
 default_framework: FA
 default_ill_itype: BK
+pfl_number_prefix: "PREFIX "
 ```
 
 *FIXME: this should all be moved to the YAML configuration page*

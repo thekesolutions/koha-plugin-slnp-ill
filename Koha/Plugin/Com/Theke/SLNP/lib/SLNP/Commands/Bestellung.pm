@@ -108,10 +108,11 @@ sub doSLNPFLBestellung {
                         SLNP::Exception->throw();
                     }
 
+                    my $prefix = $configuration->{pfl_number_prefix} // '';
+
                     $cmd->{'rsp_para'}->[0] = {
                         'resp_pnam' => 'PFLNummer',
-                        'resp_pval' =>
-                          $backend_result->{value}->{request}->illrequest_id()
+                        'resp_pval' => $prefix . $backend_result->{value}->{request}->illrequest_id()
                     };
                     $cmd->{'rsp_para'}->[1] = {
                         'resp_pnam' => 'OKMsg',
