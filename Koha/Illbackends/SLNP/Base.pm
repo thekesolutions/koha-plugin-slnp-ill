@@ -430,7 +430,17 @@ sub create {
             $backend_result->{status} = "error_creating_biblio";
             $backend_result->{value}  = $params;
         } else {
-            $itemnumber = $self->slnp2items( $params, $biblionumber, {} );
+            $itemnumber = $self->add_item(
+                {
+                    biblio_id       => $biblionumber,
+                    medium          => $params->{other}->{medium},
+                    request         => $params->{request},
+                    barcode         => $params->{other}->{attributes}->{zflorderid};
+                    callnumber      => $params->{other}->{attributes}->{shelfmark},
+                    notes           => $params->{other}->{attributes}->{info},
+                    notes_nonpublic => $params->{other}->{attributes}->{notes},
+                }
+            )->id;
             if ( !$itemnumber ) {
                 $backend_result->{error}  = 1;
                 $backend_result->{status} = "error_creating_items";
@@ -489,18 +499,6 @@ sub create {
                     )->store;
                 };
             }
-
-            # update items record: store (maybe modified) zflorderid in items.barcode, illrequest.illrequest_id in items.stocknumber, etc.
-            $self->slnp2items(
-                $params,
-                $biblionumber,
-                {   barcode    => scalar $params->{other}->{attributes}->{zflorderid},
-                    homebranch => $params->{request}->branchcode(),
-                    ,
-                    holdingbranch => $params->{request}->branchcode(),
-                    stocknumber   => $params->{request}->illrequest_id()
-                }
-            );
 
             # place a hold on behalf of the patron
             # FIXME: Should call CanItemBeReserved first?
@@ -1388,54 +1386,62 @@ sub slnp2biblio {
     return $biblionumber;
 }
 
-=head3 slnp2items
+=head3 add_item
 
-    my $itemnumber = $slnp_backend->slnp2items($params->{other}, $biblio_id, {});
+    my $item = $slnp_backend->add_item(
+        {
+            biblio_id       => $biblio->id,
+            medium          => 'Book' / 'Article',
+            request         => $ill_request,
+            callnumber      => $callnumber,
+            notes           => $item_notes,
+            notes_nonpublic => $item_notes_nonpublic,
+        }
+    );
 
-Create or update a basic items record from the sent SLNPFLCommand data
+Create a I<Koha::Item> object from the ill request data.
 
 =cut
 
-sub slnp2items {
-    my ( $self, $params, $biblio_id, $itemfieldsvals ) = @_;
+sub add_item {
+    my ( $self, $params ) = @_;
 
-    my $item_id;
-
-    my $biblio = Koha::Biblios->find($biblio_id);
-
-    if ( $biblio_id and !$biblio ) {
-        SLNP::Exception::UnknownBiblioId->throw( biblio_id => $biblio_id );
+    my @mandatory = (
+        'biblio_id', 'medium', 'request'
+    );
+    for my $param (@mandatory) {
+        unless ( defined( $params->{$param} ) ) {
+            SLNP::Exception::MissingParameter->throw( param => $param );
+        }
     }
 
-    my $item_type = $self->get_item_type( $params->{other}->{medium} );
+    my $biblio  = Koha::Biblios->find( $params->{biblio_id} );
+    my $request = $params->{request};
 
-    if ( !keys %{$itemfieldsvals} )    # create items record
-    {
-        my $item_data = {
-            homebranch => $params->{request}->branchcode(),
+    unless ($biblio) {
+        SLNP::Exception::UnknownBiblioId->throw(
+            biblio_id => $params->{biblio_id} );
+    }
+
+    my $item_type = $self->get_item_type( $params->{medium} );
+
+    return Koha::Item->new(
+        {
+            homebranch => $request->branchcode(),
+            barcode    => $params->{barcode},
             # FIXME: Configuration?
-            notforloan     => -1,            # 'ordered'
+            notforloan => -1,    # 'ordered'
             # FIXME: Configuration?
-            itemcallnumber => 'Fernleihe ' . $params->{other}->{attributes}->{shelfmark},
-            itemnotes => scalar $params->{other}->{attributes}->{info},
-            itemnotes_nonpublic => scalar $params->{other}->{attributes}->{notes},
-            holdingbranch    => $params->{request}->branchcode(),
-            itype            => $item_type,
-            biblionumber     => $biblio->biblionumber,
-            biblioitemnumber => $biblio->biblioitem->biblioitemnumber,
-
-        };
-
-        my $item = Koha::Item->new($item_data)->store;
-        $item_id = $item->id;
-    }
-    else {    # update items record
-        $item_id = scalar $params->{other}->{attributes}->{itemnumber};
-        my $item = Koha::Items->find($item_id);
-        $item->update($itemfieldsvals)->store;
-    }
-
-    return $item_id;
+            itemcallnumber      => 'Fernleihe ' . $params->{callnumber},
+            itemnotes           => $params->{notes},
+            itemnotes_nonpublic => $params->{notes_nonpublic},
+            holdingbranch       => $request->branchcode(),
+            itype               => $item_type,
+            biblionumber        => $biblio->biblionumber,
+            biblioitemnumber    => $biblio->biblioitem->biblioitemnumber,
+            stocknumber         => $request->id,
+        }
+    )->store;
 }
 
 # methods that are called by the Koha application via the ILL framework, but not exclusively by the framework
