@@ -248,18 +248,6 @@ sub status_graph {
             ui_method_icon => 'fa-times',
         },
 
-        # status of core graph used in this ill backend:
-        REQ => {
-            prev_actions   => ['QUEUED'],
-            id             => 'REQ',
-            name           => 'Requested',
-            ui_method_name => 'Confirm request',
-            method         => 'confirm',
-
-            #next_actions   => [ 'RECVD' ],
-            next_actions   => [],
-            ui_method_icon => 'fa-check',
-        },
         REQREV => {
             prev_actions   => [],
             id             => 'REQREV',
@@ -435,7 +423,7 @@ sub create {
                     biblio_id       => $biblionumber,
                     medium          => $params->{other}->{medium},
                     request         => $params->{request},
-                    barcode         => $params->{other}->{attributes}->{zflorderid};
+                    barcode         => $params->{other}->{attributes}->{zflorderid},
                     callnumber      => $params->{other}->{attributes}->{shelfmark},
                     notes           => $params->{other}->{attributes}->{info},
                     notes_nonpublic => $params->{other}->{attributes}->{notes},
