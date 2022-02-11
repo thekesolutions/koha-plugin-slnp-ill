@@ -390,30 +390,22 @@ sub create {
               . $params->{other}->{attributes}->{cardnumber} )
           unless $patron;
 
-        if ( !$params->{other}->{'attributes'}->{'title'} ) {
-            $backend_result->{error}  = 1;
-            $backend_result->{status} = "missing_title";
-            $backend_result->{value}  = $params;
-        } elsif ( !$params->{other}->{'medium'} ) {
-            $backend_result->{error}  = 1;
-            $backend_result->{status} = "missing_ILLtype";
-            $backend_result->{value}  = $params;
-        } elsif ( !$params->{other}->{'branchcode'} ) {
-            $backend_result->{error}  = 1;
-            $backend_result->{status} = "missing_branch";
-            $backend_result->{value}  = $params;
-        } elsif ( !Koha::Libraries->find( $params->{other}->{'branchcode'} ) ) {
-            $backend_result->{error}  = 1;
-            $backend_result->{status} = "invalid_branch";
-            $backend_result->{value}  = $params;
-        } elsif ( !defined $patron ) {
-            $backend_result->{error}  = 1;
-            $backend_result->{status} = "invalid_borrower";
-            $backend_result->{value}  = $params;
-        } else {
-            $params->{other}->{borrowernumber} = $patron->borrowernumber;
-            $backend_result->{borrowernumber} = $params->{other}->{borrowernumber};
-        }
+        $params->{other}->{borrowernumber} = $patron->borrowernumber;
+        $backend_result->{borrowernumber} = $params->{other}->{borrowernumber};
+
+        SLNP::Exception::MissingParameter->throw( param => 'title')
+          unless $params->{other}->{attributes}->{title};
+
+        SLNP::Exception::MissingParameter->throw( param => 'medium')
+          unless $params->{other}->{medium};
+
+        my $library_id = $params->{other}->{branchcode};
+
+        SLNP::Exception::MissingParameter->throw( param => 'branchcode')
+          unless $library_id;
+
+        SLNP::Exception::BadParameter->throw( param => 'branchcode', value => $library_id )
+          unless Koha::Libraries->find($library_id);
 
         my $biblionumber = $self->slnp2biblio( $params->{other} );
         my $itemnumber   = 0;

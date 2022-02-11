@@ -132,6 +132,13 @@ sub doSLNPFLBestellung {
                     $cmd->{'err_text'} = "No patron found having cardnumber '"
                     . scalar $params->{BenutzerNummer} . "'.";
                 }
+                else {
+                    $cmd->{'err_type'} = 'ILLREQUEST_NOT_CREATED';
+                    $cmd->{'err_text'} =
+                        "The Koha illrequest for the title '"
+                    . scalar $params->{Titel}
+                    . "' could not be created. ($_)";
+                }
             }
             else {
                 $cmd->{'err_type'} = 'ILLREQUEST_NOT_CREATED';
