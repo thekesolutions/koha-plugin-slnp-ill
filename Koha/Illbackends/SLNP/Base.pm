@@ -408,30 +408,17 @@ sub create {
           unless Koha::Libraries->find($library_id);
 
         my $biblionumber = $self->add_biblio( $params->{other} );
-        my $itemnumber   = 0;
-
-        if ( !$biblionumber ) {
-            $backend_result->{error}  = 1;
-            $backend_result->{status} = "error_creating_biblio";
-            $backend_result->{value}  = $params;
-        } else {
-            $itemnumber = $self->add_item(
-                {
-                    biblio_id       => $biblionumber,
-                    medium          => $params->{other}->{medium},
-                    request         => $params->{request},
-                    barcode         => $params->{other}->{attributes}->{zflorderid},
-                    callnumber      => $params->{other}->{attributes}->{shelfmark},
-                    notes           => $params->{other}->{attributes}->{info},
-                    notes_nonpublic => $params->{other}->{attributes}->{notes},
-                }
-            )->id;
-            if ( !$itemnumber ) {
-                $backend_result->{error}  = 1;
-                $backend_result->{status} = "error_creating_items";
-                $backend_result->{value}  = $params;
+        my $itemnumber   = $self->add_item(
+            {
+                biblio_id       => $biblionumber,
+                medium          => $params->{other}->{medium},
+                request         => $params->{request},
+                barcode         => $params->{other}->{attributes}->{zflorderid},
+                callnumber      => $params->{other}->{attributes}->{shelfmark},
+                notes           => $params->{other}->{attributes}->{info},
+                notes_nonpublic => $params->{other}->{attributes}->{notes},
             }
-        }
+        )->id;
 
         if ( $backend_result->{error} == 0 ) {
             my $now = dt_from_string();
@@ -1325,50 +1312,55 @@ Create a basic biblio record for the passed SLNP API request
 sub add_biblio {
     my ( $self, $other ) = @_;
 
-    # We're going to try and populate author, title, etc.
-    my $author = $other->{attributes}->{author};
-    my $title  = $other->{attributes}->{title};
-    my $isbn   = $other->{attributes}->{isbn};
-    my $issn   = $other->{attributes}->{issn};
+    return try {
+        # We're going to try and populate author, title, etc.
+        my $author = $other->{attributes}->{author};
+        my $title  = $other->{attributes}->{title};
+        my $isbn   = $other->{attributes}->{isbn};
+        my $issn   = $other->{attributes}->{issn};
 
-    # Create the MARC::Record object and populate it
-    my $marcrecord = MARC::Record->new();
-    $marcrecord->MARC::Record::encoding('UTF-8');
+        # Create the MARC::Record object and populate it
+        my $marcrecord = MARC::Record->new();
+        $marcrecord->MARC::Record::encoding('UTF-8');
 
-    if ( $isbn && length($isbn) > 0 ) {
-        my $marc_isbn = MARC::Field->new( '020', ' ', ' ', 'a' => $isbn );
-        $marcrecord->insert_fields_ordered($marc_isbn);
-    }
-    if ( $issn && length($issn) > 0 ) {
-        my $marc_issn = MARC::Field->new( '022', ' ', ' ', 'a' => $issn );
-        $marcrecord->insert_fields_ordered($marc_issn);
-    }
-    if ($author) {
-        my $marc_author = MARC::Field->new( '100', '1', '', 'a' => $author );
-        $marcrecord->insert_fields_ordered($marc_author);
-    }
-    my $marc_field245;
-    if ( defined($title) && length($title) > 0 ) {
-        $marc_field245 = MARC::Field->new( '245', '0', '0', 'a' => $title );
-    }
-    if ( defined($author) && length($author) > 0 ) {
-        if ( !defined($marc_field245) ) {
-            $marc_field245 = MARC::Field->new( '245', '0', '0', 'c' => $author );
-        } else {
-            $marc_field245->add_subfields( 'c' => $author );
+        if ( $isbn && length($isbn) > 0 ) {
+            my $marc_isbn = MARC::Field->new( '020', ' ', ' ', 'a' => $isbn );
+            $marcrecord->insert_fields_ordered($marc_isbn);
         }
+        if ( $issn && length($issn) > 0 ) {
+            my $marc_issn = MARC::Field->new( '022', ' ', ' ', 'a' => $issn );
+            $marcrecord->insert_fields_ordered($marc_issn);
+        }
+        if ($author) {
+            my $marc_author = MARC::Field->new( '100', '1', '', 'a' => $author );
+            $marcrecord->insert_fields_ordered($marc_author);
+        }
+        my $marc_field245;
+        if ( defined($title) && length($title) > 0 ) {
+            $marc_field245 = MARC::Field->new( '245', '0', '0', 'a' => $title );
+        }
+        if ( defined($author) && length($author) > 0 ) {
+            if ( !defined($marc_field245) ) {
+                $marc_field245 = MARC::Field->new( '245', '0', '0', 'c' => $author );
+            } else {
+                $marc_field245->add_subfields( 'c' => $author );
+            }
+        }
+        if ( defined($marc_field245) ) {
+            $marcrecord->insert_fields_ordered($marc_field245);
+        }
+
+        # set opac display suppression flag of the record
+        my $marc_field942 = MARC::Field->new( '942', '', '', n => '1' );
+        $marcrecord->append_fields($marc_field942);
+
+        my $biblionumber = C4::Biblio::AddBiblio( $marcrecord, $self->{framework} );
+
+        return $biblionumber;
     }
-    if ( defined($marc_field245) ) {
-        $marcrecord->insert_fields_ordered($marc_field245);
-    }
-
-    # set opac display suppression flag of the record
-    my $marc_field942 = MARC::Field->new( '942', '', '', n => '1' );
-    $marcrecord->append_fields($marc_field942);
-
-    my $biblionumber = C4::Biblio::AddBiblio( $marcrecord, $self->{framework} );
-
-    return $biblionumber;
+    catch {
+        SLNP::Exception->throw( "error_creating_biblio" );
+    };
 }
 
 =head3 add_item
