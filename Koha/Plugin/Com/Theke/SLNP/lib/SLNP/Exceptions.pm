@@ -34,8 +34,17 @@ sub full_message {
 
     my $msg = $self->message;
 
-    $msg = ref($self) . "exception thrown."
-        unless $msg;
+    unless ($msg) {
+        if ( $self->isa('SLNP::Exception::MissingParameter') ) {
+            $msg = sprintf("missing_%s", $self->param );
+        }
+        elsif ( $self->isa('SLNP::Exception::BadParameter') ) {
+            $msg = sprintf("invalid_%s -- %s", $self->param, $self->value // 'undef' );
+        }
+        else {
+            $msg = ref($self) . "exception thrown.";
+        }
+    }
 
     return $msg;
 }
