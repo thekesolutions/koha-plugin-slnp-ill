@@ -408,17 +408,6 @@ sub create {
           unless Koha::Libraries->find($library_id);
 
         my $biblionumber = $self->add_biblio( $params->{other} );
-        my $itemnumber   = $self->add_item(
-            {
-                biblio_id       => $biblionumber,
-                medium          => $params->{other}->{medium},
-                request         => $params->{request},
-                barcode         => $params->{other}->{attributes}->{zflorderid},
-                callnumber      => $params->{other}->{attributes}->{shelfmark},
-                notes           => $params->{other}->{attributes}->{info},
-                notes_nonpublic => $params->{other}->{attributes}->{notes},
-            }
-        )->id;
 
         my $now = dt_from_string();
         $params->{request}->set(
@@ -434,6 +423,17 @@ sub create {
                 backend        => $self->name,
             }
         )->store;
+
+        my $itemnumber   = $self->add_item(
+            {
+                biblio_id       => $biblionumber,
+                medium          => $params->{other}->{medium},
+                request         => $params->{request},
+                callnumber      => $params->{other}->{attributes}->{shelfmark},
+                notes           => $params->{other}->{attributes}->{info},
+                notes_nonpublic => $params->{other}->{attributes}->{notes},
+            }
+        )->id;
 
         # populate table illrequestattributes
         $params->{other}->{attributes}->{itemnumber} = $itemnumber;
@@ -1378,7 +1378,7 @@ sub add_item {
 
     my $item_type = $self->get_item_type( $params->{medium} );
     # Barcode needs to be prefixed
-    my $barcode = $self->{configuration}->{pfl_number_prefix} . $params->{barcode};
+    my $barcode = $self->{configuration}->{pfl_number_prefix} . $request->id;
 
     return Koha::Item->new(
         {
