@@ -385,6 +385,11 @@ sub create {
         # Search for the patron using the passed cardnumber
         my $patron = Koha::Patrons->find({ cardnumber => $params->{other}->{attributes}->{cardnumber} });
 
+        SLNP::Exception::PatronNotFound->throw(
+            "Patron not found with cardnumber: "
+              . $params->{other}->{attributes}->{cardnumber} )
+          unless $patron;
+
         if ( !$params->{other}->{'attributes'}->{'title'} ) {
             $backend_result->{error}  = 1;
             $backend_result->{status} = "missing_title";

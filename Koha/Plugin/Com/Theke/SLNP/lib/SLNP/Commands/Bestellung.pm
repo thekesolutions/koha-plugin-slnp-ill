@@ -28,6 +28,7 @@ use Koha::Database;
 use Koha::Illrequests;
 use Koha::Plugin::Com::Theke::SLNP;
 
+use Scalar::Util qw(blessed);
 use Try::Tiny;
 
 use SLNP::Exceptions;
@@ -124,10 +125,13 @@ sub doSLNPFLBestellung {
         }
         catch {
             $cmd->{'req_valid'} = 0;
-            if ( $backend_result->{status} eq "invalid_borrower" ) {
-                $cmd->{'err_type'} = 'PATRON_NOT_FOUND';
-                $cmd->{'err_text'} = "No patron found having cardnumber '"
-                  . scalar $params->{BenutzerNummer} . "'.";
+
+            if ( blessed $_ ) { # An exception
+                if ( $_->isa('SLNP::Exception::PatronNotFound') ) {
+                    $cmd->{'err_type'} = 'PATRON_NOT_FOUND';
+                    $cmd->{'err_text'} = "No patron found having cardnumber '"
+                    . scalar $params->{BenutzerNummer} . "'.";
+                }
             }
             else {
                 $cmd->{'err_type'} = 'ILLREQUEST_NOT_CREATED';

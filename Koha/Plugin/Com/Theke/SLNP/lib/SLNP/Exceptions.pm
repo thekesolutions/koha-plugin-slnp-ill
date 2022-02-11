@@ -29,4 +29,14 @@ use Exception::Class (
     'SLNP::Exception::PatronNotFound'     => { isa => 'SLNP::Exception', fields => ['cardnumber'] },
 );
 
+sub full_message {
+    my $self = shift;
+
+    my $msg = $self->message;
+
+    $msg = ref($self) . "exception thrown."
+        unless $msg;
+
+    return $msg;
+}
 1;
