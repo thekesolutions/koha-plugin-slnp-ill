@@ -1409,11 +1409,13 @@ sub add_item {
     }
 
     my $item_type = $self->get_item_type( $params->{medium} );
+    # Barcode needs to be prefixed
+    my $barcode = $self->{configuration}->{pfl_number_prefix} . $params->{barcode};
 
     return Koha::Item->new(
         {
             homebranch => $request->branchcode(),
-            barcode    => $params->{barcode},
+            barcode    => $barcode,
             # FIXME: Configuration?
             notforloan => -1,    # 'ordered'
             # FIXME: Configuration?
