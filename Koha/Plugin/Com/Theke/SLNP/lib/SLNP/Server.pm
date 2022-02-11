@@ -44,9 +44,6 @@ use SLNP::Commands::Bestellung;
 
 use SLNP::Normalizer;
 
-# include the default Koha lib directory
-use lib '/usr/share/koha/lib/';
-
 BEGIN {
     if ( !exists( $ENV{"KOHA_CONF"} ) ) {
         croak "SLNP::Server: KOHA_CONF is not set.\n";
