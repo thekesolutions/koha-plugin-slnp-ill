@@ -407,7 +407,7 @@ sub create {
         SLNP::Exception::BadParameter->throw( param => 'branchcode', value => $library_id )
           unless Koha::Libraries->find($library_id);
 
-        my $biblionumber = $self->slnp2biblio( $params->{other} );
+        my $biblionumber = $self->add_biblio( $params->{other} );
         my $itemnumber   = 0;
 
         if ( !$biblionumber ) {
@@ -1314,15 +1314,15 @@ sub delBiblioAndItem {
     }
 }
 
-=head3 slnp2biblio
+=head3 add_biblio
 
-    my $biblionumber = $slnp_backend->slnp2biblio($params->{other});
+    my $biblionumber = $slnp_backend->add_biblio($params->{other});
 
 Create a basic biblio record for the passed SLNP API request
 
 =cut
 
-sub slnp2biblio {
+sub add_biblio {
     my ( $self, $other ) = @_;
 
     # We're going to try and populate author, title, etc.
