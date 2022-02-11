@@ -420,99 +420,75 @@ sub create {
             }
         )->id;
 
-        if ( $backend_result->{error} == 0 ) {
-            my $now = dt_from_string();
-
-            # populate Illrequest
-
-            # illrequest_id is set automatically if 0
-            $params->{request}->borrowernumber( $patron->borrowernumber );
-            $params->{request}->biblio_id($biblionumber) unless !$biblionumber;
-            $params->{request}->branchcode( $params->{other}->{branchcode} );
-            $params->{request}->status('REQ');
-            $params->{request}->placed($now);
-
-            # replied is NULL
-            $params->{request}->updated($now);
-
-            # completed is NULL
-            $params->{request}->medium( $params->{other}->{medium} );
-
-            # accessurl is NULL
-            # cost is NULL
-            # notesopac is NULL
-            # notesstaff is NULL
-            $params->{request}->orderid( $params->{other}->{orderid} );
-            $params->{request}->backend( $self->name );
-
-            $params->{request}->store;
-
-            # Consortium HBZ has two ways of calling SLNPFLBestellung:
-            # A) directly by ZFL-Server: BestellID is correct and of form yyyyiiiiiii with yyyy: current year and iiiiiii: serial number, e.g. 19990000123
-            # B) by a perl script from the end user portal: BestellID is always dummy 999999999
-            # In case B) we replace the not unique '999999999' by unique yyyyiiiiiiiF with yyyy: current year and iiiiiii: illrequests.illrequest_id and F: text 'F'
-            if ( $params->{request}->orderid() eq '999999999' ) {
-                my $newOrderId = sprintf( "%04d%07dF", $now->year(), $params->{request}->illrequest_id() % 10000000 );
-                $params->{other}->{attributes}->{zflorderid} = $newOrderId;    # content for items.barcode
-                $params->{request}->orderid($newOrderId);                      # content for hit list table column 'Order ID' (en) / 'Bestell-ID' (de)
-                $params->{request}->store;
+        my $now = dt_from_string();
+        $params->{request}->set(
+            {
+                borrowernumber => $patron->borrowernumber,
+                biblio_id      => $biblionumber,
+                branchcode     => $library_id,
+                status         => 'REQ',
+                placed         => $now,
+                updated        => $now,
+                medium         => $params->{other}->{medium},
+                orderid        => $params->{other}->{orderid},
+                backend        => $self->name,
             }
+        )->store;
 
-            # populate table illrequestattributes
-            $params->{other}->{attributes}->{itemnumber} = $itemnumber;
-            while ( my ( $type, $value ) = each %{ $params->{other}->{attributes} } ) {
+        # populate table illrequestattributes
+        $params->{other}->{attributes}->{itemnumber} = $itemnumber;
+        while ( my ( $type, $value ) = each %{ $params->{other}->{attributes} } ) {
 
-                try {
-                    Koha::Illrequestattribute->new(
-                        {   illrequest_id => $params->{request}->illrequest_id,
-                            type          => $type,
-                            value         => $value,
-                        }
-                    )->store;
-                };
-            }
-
-            # place a hold on behalf of the patron
-            # FIXME: Should call CanItemBeReserved first?
-            my $hold_id = AddReserve(
-                {
-                    branchcode       => $params->{request}->branchcode,
-                    borrowernumber   => $patron->borrowernumber,
-                    biblionumber     => $biblionumber,
-                    priority         => 1,
-                    reservation_date => undef,
-                    expiration_date  => undef,
-                    notes            => $self->{configuration}->{default_hold_note} // 'Placed by ILL',
-                    title            => '',
-                    itemnumber       => $itemnumber,
-                    found            => undef,
-                    itemtype         => undef
-                }
-            );
-
-            Koha::Illrequestattribute->new(
-                {   illrequest_id => $params->{request}->illrequest_id,
-                    type          => 'hold_id',
-                    value         => $hold_id,
-                }
-            )->store;
-
-            # send ILL request confirmation notice (e.g. with letter.code ILLSLNP_REQUEST_CONFIRM) to ordering borrower if configured (syspref ILLRequestConfirm)
-            my $illrequestconfirmLetterCode = C4::Context->preference("ILLRequestConfirm");
-            if ( $illrequestconfirmLetterCode && length($illrequestconfirmLetterCode) ) {
-                &printIllNoticeSlnp(
-                    $params->{request}->branchcode(),
-                    $params->{request}->borrowernumber(),
-                    undef, undef,
-                    $params->{request}->illrequest_id(),
-                    $params->{other}->{attributes},
-                    0, $illrequestconfirmLetterCode
-                );
-            }
-
-            $backend_result->{stage} = "commit";
-            $backend_result->{value} = $params;
+            try {
+                Koha::Illrequestattribute->new(
+                    {   illrequest_id => $params->{request}->illrequest_id,
+                        type          => $type,
+                        value         => $value,
+                    }
+                )->store;
+            };
         }
+
+        # place a hold on behalf of the patron
+        # FIXME: Should call CanItemBeReserved first?
+        my $hold_id = AddReserve(
+            {
+                branchcode       => $params->{request}->branchcode,
+                borrowernumber   => $patron->borrowernumber,
+                biblionumber     => $biblionumber,
+                priority         => 1,
+                reservation_date => undef,
+                expiration_date  => undef,
+                notes            => $self->{configuration}->{default_hold_note} // 'Placed by ILL',
+                title            => '',
+                itemnumber       => $itemnumber,
+                found            => undef,
+                itemtype         => undef
+            }
+        );
+
+        Koha::Illrequestattribute->new(
+            {   illrequest_id => $params->{request}->illrequest_id,
+                type          => 'hold_id',
+                value         => $hold_id,
+            }
+        )->store;
+
+        # send ILL request confirmation notice (e.g. with letter.code ILLSLNP_REQUEST_CONFIRM) to ordering borrower if configured (syspref ILLRequestConfirm)
+        my $illrequestconfirmLetterCode = C4::Context->preference("ILLRequestConfirm");
+        if ( $illrequestconfirmLetterCode && length($illrequestconfirmLetterCode) ) {
+            &printIllNoticeSlnp(
+                $params->{request}->branchcode(),
+                $params->{request}->borrowernumber(),
+                undef, undef,
+                $params->{request}->illrequest_id(),
+                $params->{other}->{attributes},
+                0, $illrequestconfirmLetterCode
+            );
+        }
+
+        $backend_result->{stage} = "commit";
+        $backend_result->{value} = $params;
     }
 
     # Invalid stage, return error.
