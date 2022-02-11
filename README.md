@@ -48,6 +48,7 @@ default_framework: FA
 default_ill_itype: BK
 default_hold_note: Placed by ILL
 pfl_number_prefix: "PREFIX "
+default_ill_branch: CPL
 item_types:
   loan: BK
   copy: CR
