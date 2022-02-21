@@ -48,4 +48,5 @@ sub full_message {
 
     return $msg;
 }
+
 1;
