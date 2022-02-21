@@ -33,8 +33,6 @@ BEGIN {
     my $path = Module::Metadata->find_module_by_name(__PACKAGE__);
     $path =~ s!\.pm$!/lib!;
     unshift @INC, $path;
-
-    require SLNP::Exceptions;
 }
 
 our $VERSION = "{VERSION}";
