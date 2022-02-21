@@ -41,7 +41,7 @@ are maintained on this document.
 portal_url: https://your.portal.url
 server:
   port: 9001
-  ipv: *
+  ipv: '*'
   host: 127.0.0.1
   log_level: 3
 default_framework: FA
