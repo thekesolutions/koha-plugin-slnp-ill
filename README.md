@@ -44,6 +44,11 @@ server:
   ipv: '*'
   host: 127.0.0.1
   log_level: 3
+fee_debit_type: ILL
+default_fee: 2
+category_fee:
+  ST: null # no charge
+  PT: 2
 default_framework: FA
 default_ill_itype: BK
 default_hold_note: Placed by ILL
