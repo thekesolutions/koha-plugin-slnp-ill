@@ -131,9 +131,9 @@ sub status_graph {
             id             => 'RECVD',
             name           => 'Eingangsverbucht',
             ui_method_name => 'Eingang verbuchen',
-            method         => 'verbucheEingang',
+            method         => 'receive',
             next_actions   => [],                    # in reality: ['CHKDOUT', 'LOSTBCO']
-            ui_method_icon => 'fa-check',
+            ui_method_icon => 'fa-download',
         },
 
         # Pseudo status, not stored in illrequests. Sole purpose: displaying 'Eingang bearbeiten' dialog for update (status stays unchanged)
@@ -142,7 +142,7 @@ sub status_graph {
             id             => 'RECVDUPD',
             name           => 'Eingangsverbucht',
             ui_method_name => 'Eingang bearbeiten',
-            method         => 'verbucheEingang',
+            method         => 'receive',
             next_actions   => [],                                 # in reality: status stays unchanged
             ui_method_icon => 'fa-check',
         },
@@ -503,13 +503,15 @@ sub create {
 
 # stages if status=='REQ':   init -> deliveryInsert -> InsertAndPrint-> commit
 # stages if status=='RCVD':  init -> deliveryUpdate -> UpdateAndMaybePrint-> commit  or  init -> deliveryUpdate -> PrintOnly-> commit
-sub verbucheEingang {
+sub receive {
     my ( $self, $params ) = @_;
 
-    my $stage          = $params->{other}->{stage};    # empty at the beginning; only filled if HTML page has been submitted
+    # empty at the beginning; only filled if HTML page has been submitted
+    my $stage = $params->{other}->{stage};
+
     my $backend_result = {
         backend => $self->name,
-        method  => "verbucheEingang",
+        method  => "receive",
         stage   => $stage,                             # default for testing the template
         error   => 0,
         status  => "",
