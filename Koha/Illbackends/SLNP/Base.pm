@@ -1409,7 +1409,7 @@ sub isShippingBackRequired {
     my ( $self, $request ) = @_;
     my $shippingBackRequired = 1;
 
-    if ( $request->medium() eq 'Article' ) {
+    if ( $request->medium() eq 'copy' ) {
         $shippingBackRequired = 0;
     }
     return $shippingBackRequired;
@@ -1451,7 +1451,7 @@ sub itemCheckedIn {
     $request->status('CHKDIN')->store;
 
     # if it is an article, then use this action to transfer the status to completed
-    if ( $request->medium() eq 'Article' ) {
+    if ( $request->medium() eq 'copy' ) {
         my $params = {};
         $params->{request}        = $request;
         $params->{other}          = {};
@@ -1535,7 +1535,7 @@ sub get_item_type {
     my ( $self, $medium ) = @_;
 
     SLNP::Exception::BadParameter->throw( param => 'medium', value => $medium )
-      unless $medium eq 'Article' or $medium eq 'Book';
+      unless $medium eq 'copy' or $medium eq 'loan';
 
     my $item_type;
     my $item_types = $self->{configuration}->{item_types};
@@ -1544,13 +1544,13 @@ sub get_item_type {
 
         # Use the configuration if possible
         $item_type =
-          ( $medium eq 'Article' )
+          ( $medium eq 'copy' )
           ? $self->{configuration}->{item_types}->{copy} // 'CR'
           : $self->{configuration}->{item_types}->{loan} // 'BK';
     }
     else {
         # No configuration, default values
-        $item_type = ( $medium eq 'Article' ) ? 'CR' : 'BK';
+        $item_type = ( $medium eq 'copy' ) ? 'CR' : 'BK';
     }
 
     return $item_type;
