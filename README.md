@@ -1,4 +1,5 @@
 # Koha Interlibrary Loans SLNP backend
+
 ## Synopsis
 
 This project involves three different pieces:
@@ -59,12 +60,6 @@ item_types:
   copy: CR
 ```
 
-*FIXME: this should all be moved to the YAML configuration page*
-You have to adapt the default values of the additional ILL preferences loaded into table systempreferences by $PERL5LIB/Koha/Illbackends/SLNP/install/install.pl to your requirements.
-The additional ILL preferences are listed with a short description in the load file $PERL5LIB/Koha/Illbackends/SLNP/install/insert_systempreferences.sql.
-You may use the additional ILL letter layouts "as is" or you can adapt them to your needs. 
-The additional ILL letter layouts are contained in the load file $PERL5LIB/Koha/Illbackends/SLNP/install/insert_letter.sql.
-
 ## Running the SLNP server
 
 The plugin bundles an SLNP server. The server code belongs to a specific Koha instance for which the plugin has been installed. If your instance is called _kohadev_, then you will start the server like this:
@@ -72,6 +67,7 @@ The plugin bundles an SLNP server. The server code belongs to a specific Koha in
 ```shell
 /path/to/the/plugins/dir/Koha/Plugin/Com/Theke/SLNP/scripts/slnp-server.sh --start kohadev
 ```
+
 ## Development
 
 For developing the plugin, you need to have the plugins available in your [KTD](https://gitlab.com/koha-community/koha-testing-docker) environment:
@@ -83,7 +79,7 @@ export LOCAL_USER_ID=$(id -u)
 kup
 ```
 
-Then, point your *koha-conf.xml* file to the *koha_plugin* directory:
+Then, point your _koha-conf.xml_ file to the *koha_plugin* directory:
 
 ```xml
 <pluginsdir>/kohadevbox/koha_plugin</pluginsdir>
@@ -93,7 +89,7 @@ Then, point your *koha-conf.xml* file to the *koha_plugin* directory:
 
 As this with any other plugin development, the only way to trigger the install method
 and thus have the plugin available on the UI, is to install it manually (in production,
-this will be triggered automatically when you upload the *.kpz* file):
+this will be triggered automatically when you upload the _.kpz_ file):
 
 ```shell
 $ kshell
