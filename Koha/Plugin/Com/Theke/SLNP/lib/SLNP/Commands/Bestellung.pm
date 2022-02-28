@@ -58,10 +58,10 @@ sub doSLNPFLBestellung {
                 && length( $params->{AufsatzTitel} ) )
           )
         {
-            $args->{medium} = 'Article';
+            $args->{medium} = 'copy';
         }
         else {
-            $args->{medium} = 'Book';
+            $args->{medium} = 'loan';
         }
         $args->{orderid} = $params->{BestellId};
 
