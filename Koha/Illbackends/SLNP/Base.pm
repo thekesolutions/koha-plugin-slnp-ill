@@ -474,6 +474,8 @@ sub create {
             }
         )->store;
 
+        $self->charge_ill_fee( { patron => $patron } );
+
         # send ILL request confirmation notice (e.g. with letter.code ILLSLNP_REQUEST_CONFIRM) to ordering borrower if configured (syspref ILLRequestConfirm)
         my $illrequestconfirmLetterCode = C4::Context->preference("ILLRequestConfirm");
         if ( $illrequestconfirmLetterCode && length($illrequestconfirmLetterCode) ) {
@@ -1552,6 +1554,64 @@ sub get_item_type {
     }
 
     return $item_type;
+}
+
+=head3 get_fee
+
+    my $fee = $self->get_fee({ patron => $patron });
+
+Given a I<Koha::Patron> object, it returns the configured request fee.
+
+=cut
+
+sub get_fee {
+    my ( $self, $args ) = @_;
+
+    my $patron = $args->{patron};
+    SLNP::Exception::BadParameter->throw( param => 'patron', value => $patron )
+      unless $patron and ref($patron) eq 'Koha::Patron';
+
+    my $configuration = $self->{configuration};
+
+    my $default_fee = ( exists $configuration->{default_fee} )
+      ? $configuration->{default_fee} // 0    # explicit undef means 'no charge'
+      : 0;
+
+    my $fee = ( exists $configuration->{category_fee} and exists $configuration->{category_fee}->{ $patron->categorycode } )
+      ? $configuration->{category_fee}->{ $patron->categorycode } // 0    # explicit undef means 'no charge'
+      : $default_fee;
+
+    return $fee;
+}
+
+=head3 charge_ill_fee
+
+    $self->charge_ill_fee({ patron => $patron });
+
+Given a I<Koha::Patron> object, it charges the corresponding fee.
+
+=cut
+
+sub charge_ill_fee {
+    my ( $self, $args ) = @_;
+
+    my $patron = $args->{patron};
+    SLNP::Exception::BadParameter->throw( param => 'patron', value => $patron )
+      unless $patron and ref($patron) eq 'Koha::Patron';
+
+    my $fee        = $self->get_fee( { patron => $patron } );
+    my $debit_type = $self->{configuration}->{fee_debit_type} // 'ILL';
+
+    if ( $fee > 0 ) {
+        $patron->account->add_debit(
+            {   amount    => $fee,
+                interface => 'intranet',
+                type      => $debit_type,
+            }
+        );
+    }
+
+    return $self;
 }
 
 1;
