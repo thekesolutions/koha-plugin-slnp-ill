@@ -476,19 +476,6 @@ sub create {
 
         $self->charge_ill_fee( { patron => $patron } );
 
-        # send ILL request confirmation notice (e.g. with letter.code ILLSLNP_REQUEST_CONFIRM) to ordering borrower if configured (syspref ILLRequestConfirm)
-        my $illrequestconfirmLetterCode = C4::Context->preference("ILLRequestConfirm");
-        if ( $illrequestconfirmLetterCode && length($illrequestconfirmLetterCode) ) {
-            &printIllNoticeSlnp(
-                $params->{request}->branchcode(),
-                $params->{request}->borrowernumber(),
-                undef, undef,
-                $params->{request}->illrequest_id(),
-                $params->{other}->{attributes},
-                0, $illrequestconfirmLetterCode
-            );
-        }
-
         $backend_result->{stage} = "commit";
         $backend_result->{value} = $params;
     }
@@ -503,24 +490,75 @@ sub create {
     return $backend_result;
 }
 
-# stages if status=='REQ':   init -> deliveryInsert -> InsertAndPrint-> commit
-# stages if status=='RCVD':  init -> deliveryUpdate -> UpdateAndMaybePrint-> commit  or  init -> deliveryUpdate -> PrintOnly-> commit
+=head3 receive
+
+    $backend->receive;
+
+Handle receiving the request. It should involve the following I<stage>:
+
+=over
+
+=item B<no stage> initial stage, for rendering the form.
+
+=item B<commit> process the receiving parameters.
+
+=item B<update> updating the request was asked, prepare the form.
+
+=item B<update_commit> process the updated request parameters.
+
+=back
+
+=cut
+
 sub receive {
     my ( $self, $params ) = @_;
 
-    # empty at the beginning; only filled if HTML page has been submitted
-    my $stage = $params->{other}->{stage};
+    my $request = $params->{request};
+    my $method  = $params->{other}->{method};
+    my $stage   = $params->{other}->{stage};
+
+    use Data::Printer colored => 1;
+    p($self);
+    p($params);
+
+    my $template_params = {};
 
     my $backend_result = {
         backend => $self->name,
         method  => "receive",
-        stage   => $stage,                             # default for testing the template
+        stage   => $stage, # default for testing the template
         error   => 0,
         status  => "",
         message => "",
-        value   => {},
+        value   => $template_params,
         next    => "illview",
     };
+
+    if ( !defined $stage ) { # init
+        $template_params->{medium} = $request->medium;
+        $template_params->{lending_libraries} = Koha::Patrons->search({ categorycode => 'IL' });
+        $template_params->{item_types} = [
+            { value => $self->get_item_type( 'copy' ), selected => ( $request->medium eq 'copy' ) ? 1 : 0 },
+            { value => $self->get_item_type( 'loan' ), selected => ( $request->medium eq 'loan' ) ? 1 : 0 },
+        ];
+        p($template_params);
+        $backend_result->{stage} = 'init';
+    }
+    # else ( $stage eq 'commit' ) {
+    #     # process the receiving parameters
+
+    # }
+    # elsif ( $stage eq 'update' ) {
+    #     # update requested, prepare the form
+    # }
+    # elsif ( $stage eq 'update_commit' ) {
+    #     # read the passed params, and update the request accordingly
+    # }
+    # else {
+    #     # something went wrong
+    # }
+
+    # p($backend_result);
 
     if ( ( $stage eq 'InsertAndPrint' || $stage eq 'UpdateAndMaybePrint' || $stage eq 'PrintOnly' || $stage eq 'commit' )
         && !$params->{other}->{'sendingIllLibraryBorrowernumber'} ) {
@@ -572,11 +610,11 @@ sub receive {
     $backend_result->{value}->{other}->{kohaIllPatronLetters} = $kohaILLNoticesLetters;
 
     if ( !$stage || $stage eq 'init' || $stage eq 'errorNoSendingIllLibraryInfo' ) {
-        if ( $params->{request}->status eq 'REQ' ) {
-            $backend_result->{stage} = 'deliveryInsert';
-        } else {
-            $backend_result->{stage} = 'deliveryUpdate';
-        }
+        # if ( $params->{request}->status eq 'REQ' ) {
+        #     $backend_result->{stage} = 'deliveryInsert';
+        # } else {
+        #     $backend_result->{stage} = 'deliveryUpdate';
+        # }
 
         # data of ordering patron
         $backend_result->{value}->{other}->{borrowerBorrowernumber} = $params->{request}->borrowernumber();
