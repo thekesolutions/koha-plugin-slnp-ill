@@ -50,6 +50,7 @@ default_fee: 2
 category_fee:
   ST: null # no charge
   PT: 2
+partner_category_code: IL
 default_framework: FA
 default_ill_itype: BK
 default_hold_note: Placed by ILL

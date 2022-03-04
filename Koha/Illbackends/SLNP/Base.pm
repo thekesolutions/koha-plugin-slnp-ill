@@ -536,7 +536,8 @@ sub receive {
 
     if ( !defined $stage ) { # init
         $template_params->{medium} = $request->medium;
-        $template_params->{lending_libraries} = Koha::Patrons->search({ categorycode => 'IL' });
+        my $partner_category_code = $self->{configuration}->{partner_category_code} // 'IL';
+        $template_params->{lending_libraries} = Koha::Patrons->search({ categorycode => $partner_category_code });
         $template_params->{item_types} = [
             { value => $self->get_item_type( 'copy' ), selected => ( $request->medium eq 'copy' ) ? 1 : 0 },
             { value => $self->get_item_type( 'loan' ), selected => ( $request->medium eq 'loan' ) ? 1 : 0 },
