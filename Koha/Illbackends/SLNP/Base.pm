@@ -24,7 +24,6 @@ use Clone qw( clone );
 use Data::Dumper;
 use File::Basename qw( dirname );
 use JSON qw( to_json );
-use Locale::Country;
 use MARC::Record;
 use Try::Tiny;
 use URI::Escape;
@@ -41,6 +40,7 @@ use Koha::DateUtils qw(dt_from_string output_pref);
 use Koha::Illrequest::Config;
 use Koha::Items;
 use Koha::Libraries;
+use Koha::Logger;
 use Koha::Patron::Attributes;
 use Koha::Patron::Categories;
 use Koha::Patrons;
@@ -536,8 +536,14 @@ sub receive {
 
     if ( !defined $stage ) { # init
         $template_params->{medium} = $request->medium;
+
         my $partner_category_code = $self->{configuration}->{partner_category_code} // 'IL';
-        $template_params->{lending_libraries} = Koha::Patrons->search({ categorycode => $partner_category_code });
+        my $lending_libraries = Koha::Patrons->search({ categorycode => $partner_category_code });
+        Koha::Logger->get->error("No patrons defined as lending libraries (categorycode=$partner_category_code)")
+          unless $lending_libraries->count > 0;
+
+        $template_params->{lending_libraries} = $lending_libraries;
+
         $template_params->{item_types} = [
             { value => $self->get_item_type( 'copy' ), selected => ( $request->medium eq 'copy' ) ? 1 : 0 },
             { value => $self->get_item_type( 'loan' ), selected => ( $request->medium eq 'loan' ) ? 1 : 0 },
