@@ -108,37 +108,28 @@
         </li>
 
         <li>
-          <label for="callnumber">Callnumber:</label>
-          <input type="text" size="50" name="callnumber" id="callnumber" value="[% whole.value.other.callnumber | html %]" />
-        </li>
-
-        <!--li>
-          <label for="noncirccollection">Not for loan:</label>
-          [% IF whole.value.other.noncirccollection %]
-            <input type="checkbox" name="noncirccollection" id="noncirccollection" value="1" checked="checked" />
-          [% ELSE %]
-            <input type="checkbox" name="noncirccollection" id="noncirccollection" value="1" />
-          [% END %]
-        </li-->
-
-        <li>
-          <label for="number_of_parts">Number of parts:</label>
-          <input type="number" name="number_of_parts" id="number_of_parts" min="0" size="10" maxlength="10" value="[% whole.value.number_of_parts %]" />
+          <label for="item_callnumber">Callnumber:</label>
+          <input type="text" size="50" name="item_callnumber" id="item_callnumber" value="[% whole.value.other.callnumber | html %]" />
         </li>
 
         <li>
-          <label for="callnumber">Callnumber:</label>
-          <input type="text" size="50" name="callnumber" id="callnumber" value="[% whole.value.other.callnumber | html %]" />
+          <label for="item_number_of_parts">Number of parts:</label>
+          <input type="text" size="50" name="item_number_of_parts" id="item_number_of_parts" value="[% whole.value.number_of_parts | html %]" />
         </li>
 
         <li>
-          <label for="usage_restrictions">Usage restrictions:</label>
-          [% PROCESS 'av-build-dropbox.inc' name="usage_restrictions", category="RESTRICTED", empty=1 %]
+          <label for="item_usage_restrictions">Usage restrictions:</label>
+          [% PROCESS 'av-build-dropbox.inc' name="item_usage_restrictions", category="RESTRICTED", empty=1 %]
         </li>
 
         <li>
-          <label for="damaged">Damaged:</label>
-          [% PROCESS 'av-build-dropbox.inc' name="damaged", category="DAMAGED", empty=1 %]
+          <label for="item_damaged">Damaged:</label>
+          [% PROCESS 'av-build-dropbox.inc' name="item_damaged", category="DAMAGED", empty=1 %]
+        </li>
+
+        <li>
+          <label for="item_internal_note">Internal note:</label>
+          <input type="text" size="50" name="item_internal_note" id="item_internal_note" value="[% whole.value.other.item_internal_note | html %]" />
         </li>
 
         <li>
