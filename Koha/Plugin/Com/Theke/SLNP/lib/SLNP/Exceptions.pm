@@ -27,6 +27,7 @@ use Exception::Class (
     'SLNP::Exception::UnknownItemId'      => { isa => 'SLNP::Exception', fields => ['item_id'] },
     'SLNP::Exception::UnknownBiblioId'    => { isa => 'SLNP::Exception', fields => ['biblio_id'] },
     'SLNP::Exception::PatronNotFound'     => { isa => 'SLNP::Exception', fields => ['cardnumber'] },
+    'SLNP::Exception::BadConfig'          => { isa => 'SLNP::Exception', fields => ['param', 'value'] },
 );
 
 sub full_message {

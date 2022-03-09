@@ -404,7 +404,7 @@ sub create {
         SLNP::Exception::MissingParameter->throw( param => 'branchcode')
           unless $library_id;
 
-        SLNP::Exception::BadParameter->throw( param => 'branchcode', value => $library_id )
+        SLNP::Exception::BadConfig->throw( param => 'default_ill_branch', value => $library_id )
           unless Koha::Libraries->find($library_id);
 
         my $biblionumber = $self->add_biblio( $params->{other} );

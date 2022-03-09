@@ -106,7 +106,7 @@ sub doSLNPFLBestellung {
                       )
                     {
                         # short-circuit, force rollback
-                        SLNP::Exception->throw();
+                        SLNP::Exception->throw("Error creating the illrequest object");
                     }
 
                     my $prefix = $configuration->{pfl_number_prefix} // '';
@@ -131,6 +131,23 @@ sub doSLNPFLBestellung {
                     $cmd->{'err_type'} = 'PATRON_NOT_FOUND';
                     $cmd->{'err_text'} = "No patron found having cardnumber '"
                     . scalar $params->{BenutzerNummer} . "'.";
+                }
+                elsif ( $_->isa('SLNP::Exception::MissingParameter') ) {
+                    $cmd->{err_type} = 'SLNP_MAND_PARAM_LACKING';
+                    $cmd->{err_text} = 'Mandatory parameter missing: ' . $_->param;
+                }
+                elsif ( $_->isa('SLNP::Exception::BadConfig') ) {
+                    $cmd->{err_type} = 'INTERNAL_SERVER_ERROR';
+                    $cmd->{err_text} = 'Internal server error';
+                    $cmd->{warn} =
+                         'Configuration problem with mandatory parameter '
+                        . $_->param
+                        . ' (' . $_->value . ')';
+                }
+                elsif ( $_->isa('SLNP::Exception') ) {
+                    $cmd->{err_type} = 'INTERNAL_SERVER_ERROR';
+                    $cmd->{err_text} = 'Internal server error';
+                    $cmd->{warn} = "Uncaught exception: $_";
                 }
                 else {
                     $cmd->{'err_type'} = 'ILLREQUEST_NOT_CREATED';

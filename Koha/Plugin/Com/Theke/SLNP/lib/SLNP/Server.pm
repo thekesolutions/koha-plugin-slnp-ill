@@ -98,10 +98,13 @@ my $SlnpErr2HttpCode = {
         'code' => 520,
         'text' => 'SlnpExecutionError'
     },
-
-    'PATRON_NOT_FOUND' => {
-        'code' => 510,
-        'text' => 'SLNPParameterValueError'
+    INTERNAL_SERVER_ERROR => {
+        code => 520,
+        text => 'SlnpExecutionError'
+    },
+    PATRON_NOT_FOUND => {
+        code => 510,
+        text => 'SLNPParameterValueError'
     }
 };
 
@@ -398,7 +401,7 @@ sub process_request {
     my $self  = shift;
     my $inbuf = '';
     my ( $loginrequired, $loggedin, $quitconnection ) = ( 0, 0, 0 );
-    $self->log( 1, getTime() . " process_request START" );
+    $self->log( 3, getTime() . " process_request START" );
 
     binmode STDIN,  ":utf8";
     binmode STDOUT, ":utf8";
@@ -407,14 +410,14 @@ sub process_request {
     while ( my $line = <STDIN> ) {
         $line =~ s/\r//sg;
 
-        $self->log( 1, getTime() . " read from STDIN:$line:" );
+        $self->log( 3, getTime() . " read from STDIN:$line:" );
 
         $inbuf .= $line;
         if (   $inbuf =~ /^\s*SLNPEndCommand\s*/m
             || $inbuf =~ /^\s*SLNPQuit\s*/m )
         {
 
-            $self->log( 1, getTime() . " New SLNP command received:$inbuf:" );
+            $self->log( 3, getTime() . " New SLNP command received:$inbuf:" );
 
             my $responsecode = '501';
             my $responsetext = 'Error while processing SLNP command';
@@ -424,7 +427,7 @@ sub process_request {
                 \$quitconnection );
 
             if ( $responsecode ne '200' ) {
-                $self->log( 1,
+                $self->log( 3,
                     getTime()
                       . " responsecode:$responsecode: responsetext:$responsetext:"
                 );
@@ -451,7 +454,7 @@ sub evalSlnpCmd {
     my $slnpcmd;
     my $slnpcmdname;
 
-    $self->log( 1,
+    $self->log( 3,
         getTime()
           . "SLNP::Server::evalSlnpCmd START slnpreq:$slnpreq:" );
 
@@ -518,7 +521,7 @@ sub analyzeSLNPReq {
     my $self    = shift;
     my $slnpreq = shift;
     my ( $slnpreqlineNo, @level, $lv, $cmd );
-    $self->log( 1, getTime() . " SLNP::Server::analyzeSLNPReq Start" );
+    $self->log( 3, getTime() . " SLNP::Server::analyzeSLNPReq Start" );
 
     if (   $slnpreq =~ /^\s*SLNPEndCommand\s*/m
         || $slnpreq =~ /^\s*SLNPQuit\s*/m )
@@ -615,7 +618,7 @@ sub validateSLNPReq {
     my $self                        = shift;
     my $cmd                         = shift;
     my $rejectUnspecifiedParameters = shift;
-    $self->log( 1,
+    $self->log( 3,
         getTime()
           . " SLNP::Server::validateSLNPReq Start cmd->{'cmd_name'}:$cmd->{'cmd_name'}:"
     );
@@ -714,7 +717,7 @@ sub validateSLNPReq {
         }
     }
     else {
-        $self->log( 1,
+        $self->log( 3,
             getTime()
               . " SLNP::Server::validateSLNPReq Start cmd->{'cmd_name'}:$cmd->{'cmd_name'}: DOES NOT EXIST"
         );
@@ -757,15 +760,18 @@ sub sortlevels {
 # functions for generating the SLNP response
 
 sub genSLNPResp {
-    my $self     = shift;
-    my $cmd      = shift;
+    my ( $self, $cmd ) = @_;
+
     my $slnpresp = '';
 
-    $self->log( 1,
+    $self->log( 3,
             getTime()
           . " SLNP::Server::genSLNPResp Start cmd:"
           . Dumper($cmd)
           . ' ' );
+
+    $self->log( 1, getTime() . ' Error running command ' . $cmd->{cmd_name} . ': ' . $cmd->{warn} )
+      if $cmd->{warn};
 
     if ( $cmd->{'req_valid'} == 1 ) {
         if ( exists( $cmd->{'rsp_para'} ) ) {
@@ -792,22 +798,25 @@ sub genSLNPResp {
         }
     }
     else {
-        my $err_type = $cmd->{'err_type'};
+
+        my $err_type = $cmd->{err_type};
+
         if ( exists( $SlnpErr2HttpCode->{$err_type} ) ) {
-            $slnpresp =
-              $self->escapeSLNP( $SlnpErr2HttpCode->{$err_type}->{'code'} . ' '
-                  . $SlnpErr2HttpCode->{$err_type}->{'text'} . ': '
-                  . $err_type );
+            $slnpresp = $self->escapeSLNP(
+                $SlnpErr2HttpCode->{$err_type}->{code} . ' '
+                  . $SlnpErr2HttpCode->{$err_type}->{text}
+            );
         }
         else {
             $slnpresp = '510 SLNPEvalError: Undefined error';
         }
-        if ( $cmd->{'err_text'} ne '' ) {
-            $slnpresp .= ' ' . $cmd->{'err_text'};
+
+        if ( $cmd->{err_text} ne '' ) {
+            $slnpresp .= ': ' . $cmd->{err_text};
         }
         $slnpresp .= "\n";
     }
-    $self->log( 1,
+    $self->log( 3,
             getTime()
           . " SLNP::Server::genSLNPResp slnpresp:"
           . $slnpresp );
@@ -861,7 +870,7 @@ sub readSLNPParam {
     my $cmd    = shift;
     my $lv     = shift;
     my @params = @_;
-    $self->log( 1,
+    $self->log( 3,
         getTime() . " SLNP::Server::readSLNPParam Start level:$lv:" );
     my ( $reqParamVals, $oldbaselevel, $leveloffsets );
 
@@ -921,7 +930,7 @@ sub readSLNPParam {
 sub cmdFLBestellung {
     my $self    = shift;
     my $slnpcmd = shift;
-    $self->log( 1,
+    $self->log( 3,
             getTime()
           . " cmdFLBestellung START slnpcmd->{'cmd_name'}:"
           . $slnpcmd->{'cmd_name'}
@@ -960,12 +969,12 @@ sub cmdFLBestellung {
         $params->{$field} = $param->[0]->[0] if $param;
     }
 
-    $self->log( 1, getTime() . " cmdFLBestellung params:" . Dumper($params) );
+    $self->log( 3, getTime() . " cmdFLBestellung params:" . Dumper($params) );
 
-    $self->log( 1,
+    $self->log( 3,
         getTime() . " cmdFLBestellung is calling doSLNPFLBestellung" );
     SLNP::Commands::Bestellung::doSLNPFLBestellung( $slnpcmd, $params );
-    $self->log( 1,
+    $self->log( 3,
         getTime()
           . " cmdFLBestellung doSLNPFLBestellung has returned, res->{'cmd_name'}:$res->{'cmd_name'}:, res->{'req_valid'}:$res->{'req_valid'}:"
     );
