@@ -1648,12 +1648,25 @@ sub charge_ill_fee {
     my $debit_type = $self->{configuration}->{fee_debit_type} // 'ILL';
 
     if ( $fee > 0 ) {
-        $patron->account->add_debit(
-            {   amount    => $fee,
-                interface => 'intranet',
-                type      => $debit_type,
+        try {
+            $patron->account->add_debit(
+                {   amount    => $fee,
+                    interface => 'intranet',
+                    type      => $debit_type,
+                }
+            );
+        }
+        catch {
+            if ( $_->isa('Koha::Exceptions::Account::UnrecognisedType') ) {
+                SLNP::Exception::BadConfig->throw(
+                    param => 'fee_debit_type',
+                    value => $debit_type,
+                );
+
+                $_->rethrow;
             }
-        );
+
+        };
     }
 
     return $self;
