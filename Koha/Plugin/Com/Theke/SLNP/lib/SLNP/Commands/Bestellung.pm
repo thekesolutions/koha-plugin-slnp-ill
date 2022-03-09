@@ -66,22 +66,6 @@ sub doSLNPFLBestellung {
         $args->{orderid} = $params->{BestellId};
 
         # fields for table illrequestattributes
-        $args->{attributes} = {
-            'zflorderid' => $params->{BestellId},
-            'cardnumber' => $params->{BenutzerNummer}
-            ,    # backend->create() will search for borrowers.borrowernumber
-            'author'    => $params->{Verfasser},
-            'title'     => $params->{Titel},
-            'isbn'      => $params->{Isbn},
-            'issn'      => $params->{Issn},
-            'publisher' => $params->{Verlag},
-            'publyear'  => $params->{EJahr},
-            'issue'     => $params->{Auflage}, # FIXME: duplicate mapping, see sub attribute_mapping
-            'shelfmark' => $params->{Signatur},
-            'info'      => $params->{Info},
-            'notes'     => $params->{Bemerkung}
-        };
-
         my $attribute_mapping = attribute_mapping();
         foreach my $attribute ( keys %{$attribute_mapping} ) {
             if ( defined $params->{$attribute}
@@ -180,11 +164,23 @@ Simple SLNP -> Koha ILL request attribute mapping.
 
 sub attribute_mapping {
     return {
-        AufsatzAutor => 'article_author',
-        AufsatzTitel => 'article_title',
-        Heft         => 'issue', # FIXME: duplicate mapping
-        Seitenangabe => 'article_pages',
-        AusgabeOrt   => 'pickUpLocation',
+        AufsatzAutor   => 'article_author',
+        AufsatzTitel   => 'article_title',
+        Bemerkung      => 'notes',
+        Heft           => 'issue',            # FIXME: duplicate mapping
+        Seitenangabe   => 'article_pages',
+        AusgabeOrt     => 'pickUpLocation',
+        Issn           => 'issn',
+        BestellId      => 'zflorderid',
+        BenutzerNummer => 'cardnumber',
+        Verfasser      => 'author',
+        Titel          => 'title',
+        Isbn           => 'isbn',
+        Verlag         => 'publisher',
+        EJahr          => 'publyear',
+        Auflage        => 'issue',
+        Signatur       => 'shelfmark',
+        Info           => 'info',
     };
 }
 
