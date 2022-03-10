@@ -96,6 +96,7 @@ sub new {
         framework     => $configuration->{default_framework} // 'FA',
         plugin        => $plugin,
         configuration => $configuration,
+        logger        => Koha::Logger->get,
     };
 
     bless( $self, $class );
@@ -496,6 +497,10 @@ sub receive {
     p($self);
     p($params);
 
+    my $item = $self->get_item_from_request({ request => $request });
+
+    p($item->unblessed);
+
     my $template_params = {};
 
     my $backend_result = {
@@ -514,10 +519,11 @@ sub receive {
 
         my $partner_category_code = $self->{configuration}->{partner_category_code} // 'IL';
         my $lending_libraries = Koha::Patrons->search({ categorycode => $partner_category_code });
-        Koha::Logger->get->error("No patrons defined as lending libraries (categorycode=$partner_category_code)")
+        $self->{logger}->error("No patrons defined as lending libraries (categorycode=$partner_category_code)")
           unless $lending_libraries->count > 0;
 
         $template_params->{lending_libraries} = $lending_libraries;
+        $template_params->{item} = $item;
 
         $template_params->{item_types} = [
             { value => $self->get_item_type( 'copy' ), selected => ( $request->medium eq 'copy' ) ? 1 : 0 },
@@ -1573,6 +1579,9 @@ sub get_item_type {
         $item_type = ( $medium eq 'copy' ) ? 'CR' : 'BK';
     }
 
+    $self->{logger}->error("Configured item type for '$medium' is not valid: $item_type")
+      unless Koha::ItemTypes->find($item_type);
+
     return $item_type;
 }
 
@@ -1645,6 +1654,35 @@ sub charge_ill_fee {
     }
 
     return $self;
+}
+
+=head3 get_item_from_request
+
+    $self->get_item_from_request({ request => $request });
+
+Given a I<Koha::Illrequest> object, retrieve the linked I<Koha::Item> object.
+
+=cut
+
+sub get_item_from_request {
+    my ( $self, $args ) = @_;
+
+    my $request = $args->{request};
+    SLNP::Exception::BadParameter->throw( param => 'patron', value => $request )
+      unless $request and ref($request) eq 'Koha::Illrequest';
+
+    my $item_id_attributes = $request->illrequestattributes->search({ type => 'item_id' });
+
+    SLNP::Exception::UnknownItemId->throw("Request not linked to an item when it should")
+      unless $item_id_attributes->count > 0;
+
+    my $item_id = $item_id_attributes->next->value;
+    my $item = Koha::Items->find( $item_id );
+
+    SLNP::Exception::UnknownItemId->throw("Request not linked to an item when it should")
+      unless $item;
+
+    return $item;
 }
 
 1;

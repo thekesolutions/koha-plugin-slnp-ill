@@ -89,22 +89,22 @@
 
         <li>
           <label for="item_callnumber">Callnumber:</label>
-          <input type="text" size="50" name="item_callnumber" id="item_callnumber" value="[% whole.value.other.callnumber | html %]" />
+          <input type="text" size="50" name="item_callnumber" id="item_callnumber" value="[% whole.value.item.itemcallnumber | html %]" />
         </li>
 
         <li>
           <label for="item_number_of_parts">Number of parts:</label>
-          <input type="text" size="50" name="item_number_of_parts" id="item_number_of_parts" value="[% whole.value.number_of_parts | html %]" />
+          <input type="text" size="50" name="item_number_of_parts" id="item_number_of_parts" value="[% whole.value.item.materials | html %]" />
         </li>
 
         <li>
           <label for="item_usage_restrictions">Usage restrictions:</label>
-          [% PROCESS 'av-build-dropbox.inc' name="item_usage_restrictions", category="RESTRICTED", empty=1 %]
+          [% PROCESS 'av-build-dropbox.inc' name="item_usage_restrictions", category="RESTRICTED", empty=1, default=whole.value.item.restricted %]
         </li>
 
         <li>
           <label for="item_damaged">Damaged:</label>
-          [% PROCESS 'av-build-dropbox.inc' name="item_damaged", category="DAMAGED", empty=1 %]
+          [% PROCESS 'av-build-dropbox.inc' name="item_damaged", category="DAMAGED", empty=1, default=whole.value.item.damaged %]
         </li>
 
         <li>
