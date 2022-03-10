@@ -424,7 +424,7 @@ sub create {
             }
         )->store;
 
-        my $itemnumber   = $self->add_item(
+        my $item_id = $self->add_item(
             {
                 biblio_id       => $biblionumber,
                 medium          => $params->{other}->{medium},
@@ -436,7 +436,7 @@ sub create {
         )->id;
 
         # populate table illrequestattributes
-        $params->{other}->{attributes}->{itemnumber} = $itemnumber;
+        $params->{other}->{attributes}->{item_id} = $item_id;
         while ( my ( $type, $value ) = each %{ $params->{other}->{attributes} } ) {
 
             try {
