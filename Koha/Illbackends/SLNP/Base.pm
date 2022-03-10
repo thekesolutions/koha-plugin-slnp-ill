@@ -449,31 +449,6 @@ sub create {
             };
         }
 
-        # place a hold on behalf of the patron
-        # FIXME: Should call CanItemBeReserved first?
-        my $hold_id = AddReserve(
-            {
-                branchcode       => $params->{request}->branchcode,
-                borrowernumber   => $patron->borrowernumber,
-                biblionumber     => $biblionumber,
-                priority         => 1,
-                reservation_date => undef,
-                expiration_date  => undef,
-                notes            => $self->{configuration}->{default_hold_note} // 'Placed by ILL',
-                title            => '',
-                itemnumber       => $itemnumber,
-                found            => undef,
-                itemtype         => undef
-            }
-        );
-
-        Koha::Illrequestattribute->new(
-            {   illrequest_id => $params->{request}->illrequest_id,
-                type          => 'hold_id',
-                value         => $hold_id,
-            }
-        )->store;
-
         $self->charge_ill_fee( { patron => $patron } );
 
         $backend_result->{stage} = "commit";
