@@ -426,6 +426,8 @@ sub process_request {
               $self->evalSlnpCmd( $inbuf, $loginrequired, \$loggedin,
                 \$quitconnection );
 
+            $responsetext //= '';
+
             if ( $responsecode ne '200' ) {
                 $self->log( 3,
                     getTime()
@@ -973,10 +975,10 @@ sub cmdFLBestellung {
 
     $self->log( 3,
         getTime() . " cmdFLBestellung is calling doSLNPFLBestellung" );
-    SLNP::Commands::Bestellung::doSLNPFLBestellung( $slnpcmd, $params );
+    $res = SLNP::Commands::Bestellung::doSLNPFLBestellung( $slnpcmd, $params );
     $self->log( 3,
         getTime()
-          . " cmdFLBestellung doSLNPFLBestellung has returned, res->{'cmd_name'}:$res->{'cmd_name'}:, res->{'req_valid'}:$res->{'req_valid'}:"
+          . " cmdFLBestellung doSLNPFLBestellung has returned, res->{'cmd_name'}:" . $res->{'cmd_name'} .":, res->{'req_valid'}:". $res->{'req_valid'}
     );
 
     return $slnpcmd;
