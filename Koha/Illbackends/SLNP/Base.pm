@@ -431,8 +431,9 @@ sub create {
                 medium          => $params->{other}->{medium},
                 request         => $params->{request},
                 callnumber      => $params->{other}->{attributes}->{shelfmark},
-                notes           => $params->{other}->{attributes}->{info},
+                notes           => undef,
                 notes_nonpublic => $params->{other}->{attributes}->{notes},
+                orderid         => $params->{other}->{orderid}, # zflorderid
             }
         )->id;
 
@@ -1390,7 +1391,7 @@ sub add_item {
     my ( $self, $params ) = @_;
 
     my @mandatory = (
-        'biblio_id', 'medium', 'request'
+        'biblio_id', 'medium', 'request', 'orderid'
     );
     for my $param (@mandatory) {
         unless ( defined( $params->{$param} ) ) {
@@ -1408,23 +1409,21 @@ sub add_item {
 
     my $item_type = $self->get_item_type( $params->{medium} );
     # Barcode needs to be prefixed
-    my $barcode = $self->{configuration}->{pfl_number_prefix} . $request->id;
+    my $barcode = $self->{configuration}->{barcode_prefix} . $params->{orderid};
 
     return Koha::Item->new(
         {
-            homebranch => $request->branchcode(),
-            barcode    => $barcode,
-            # FIXME: Configuration?
-            notforloan => -1,    # 'ordered'
-            # FIXME: Configuration?
-            itemcallnumber      => 'Fernleihe ' . $params->{callnumber},
+            homebranch          => $request->branchcode(),
+            barcode             => $barcode,
+            notforloan          => undef,
+            itemcallnumber      => undef,
             itemnotes           => $params->{notes},
             itemnotes_nonpublic => $params->{notes_nonpublic},
             holdingbranch       => $request->branchcode(),
             itype               => $item_type,
             biblionumber        => $biblio->biblionumber,
             biblioitemnumber    => $biblio->biblioitem->biblioitemnumber,
-            stocknumber         => $request->id,
+            stocknumber         => undef,
         }
     )->store;
 }
