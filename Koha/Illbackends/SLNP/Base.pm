@@ -519,7 +519,12 @@ sub receive {
         $template_params->{medium} = $request->medium;
 
         my $partner_category_code = $self->{configuration}->{partner_category_code} // 'IL';
-        my $lending_libraries = Koha::Patrons->search({ categorycode => $partner_category_code });
+
+        my $lending_libraries = Koha::Patrons->search(
+            { categorycode => $partner_category_code },
+            { order_by     => [ 'surname', 'othernames' ] }
+        );
+
         $self->{logger}->error("No patrons defined as lending libraries (categorycode=$partner_category_code)")
           unless $lending_libraries->count > 0;
 

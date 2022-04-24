@@ -60,7 +60,7 @@
 
         <li>
           <label for="request_charges">Cost:</label>
-          <input type="text" size="10" name="request_charges" id="request_charges" value="[% whole.value.request_charges | $Price %]"  oninput="floatInput(document.SLNP_delivery.billedillrequestcosts,2)"  onchange="moneyFormat(document.SLNP_delivery.billedillrequestcosts)" />
+          <input type="text" size="10" name="request_charges" id="request_charges" value="[% whole.value.request_charges | $Price %]" />
         </li>
 
         <li>
