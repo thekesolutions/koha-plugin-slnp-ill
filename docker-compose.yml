@@ -1,0 +1,67 @@
+version: '3'
+services:
+    db:
+        image: mariadb:10.5
+        restart: always
+        environment:
+            MYSQL_ROOT_PASSWORD: password
+            MYSQL_DATABASE: koha_kohadev
+            MYSQL_USER: koha_kohadev
+            MYSQL_PASSWORD: password
+        networks:
+            - kohanet
+    koha:
+        image: koha/koha-testing:20.11
+        depends_on:
+            - db
+            - memcached
+            - es
+        cap_add:
+            - ALL
+        volumes:
+            - /home/tcohen/git/koha-20.11:/kohadevbox/koha
+        tmpfs:
+            - /cover_db
+            - /tmp
+        env_file:
+            - .env
+        environment:
+            COVERAGE: 0
+            CPAN: 0
+            RUN_TESTS_AND_EXIT: 0
+            LOCAL_USER_ID: ${LOCAL_USER_ID}
+            LIGHT_TEST_SUITE: 1
+        ulimits:
+            nofile:
+                soft: 65536
+                hard: 65536
+        networks:
+            kohanet:
+                aliases:
+                    - "${KOHA_INTRANET_PREFIX}${KOHA_INSTANCE}${KOHA_INTRANET_SUFFIX}${KOHA_DOMAIN}"
+                    - "${KOHA_OPAC_PREFIX}${KOHA_INSTANCE}${KOHA_OPAC_SUFFIX}${KOHA_DOMAIN}"
+        ports:
+            - "8090:8080"
+            - "8091:8081"
+    memcached:
+        image: memcached
+        command: memcached -m 64m
+        networks:
+            - kohanet
+    es:
+        image: koha/elasticsearch-icu:6.x
+        environment:
+            - cluster.name=docker-cluster
+            - bootstrap.memory_lock=true
+            - xpack.security.enabled=false
+            - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
+        ulimits:
+            memlock:
+                soft: -1
+                hard: -1
+        networks:
+            - kohanet
+
+networks:
+    kohanet:
+
