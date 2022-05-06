@@ -531,6 +531,7 @@ sub receive {
         $template_params->{deliverydate} = dt_from_string;
         $template_params->{lending_libraries} = $lending_libraries;
         $template_params->{item} = $item;
+        $template_params->{patron} = $request->patron;
 
         $template_params->{item_types} = [
             { value => $self->get_item_type( 'copy' ), selected => ( $request->medium eq 'copy' ) ? 1 : 0 },

@@ -121,6 +121,16 @@
       </ol>
     </fieldset>
 
+    <fieldset class="rows">
+    <legend>Notification</legend>
+      <ol>
+        <li>
+          <label for="the_patron">Patron:</label>
+          <div name="the_patron" id="the_patron">[% whole.value.patron.firstname | html %] [% whole.value.patron.surname | html %] ([% whole.value.patron.cardnumber | html %])</div>
+        </li>
+      </ol>
+    </fieldset>
+
     <fieldset class="action">
       <input type="hidden" name="illrequest_id" id="illrequest_id" value="[% whole.illrequest_id %]" />
       <input type="hidden" name="backend" id="backend" value="[% request.backend %]" />
