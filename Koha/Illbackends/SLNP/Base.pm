@@ -528,6 +528,7 @@ sub receive {
         $self->{logger}->error("No patrons defined as lending libraries (categorycode=$partner_category_code)")
           unless $lending_libraries->count > 0;
 
+        $template_params->{deliverydate} = dt_from_string;
         $template_params->{lending_libraries} = $lending_libraries;
         $template_params->{item} = $item;
 

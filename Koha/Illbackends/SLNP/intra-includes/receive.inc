@@ -45,7 +45,7 @@
 
         <li>
           <label class="required" for="delivery_date">Received on:</label>
-          <input type="text" class="datepicker" name="delivery_date" id="delivery_date" size="10" maxlength="10" value="[% whole.value.other.deliverydate | $KohaDates %]" required="required" />
+          <input type="text" class="datepicker" name="delivery_date" id="delivery_date" size="10" maxlength="10" value="[% whole.value.deliverydate | $KohaDates %]" required="required" />
           <span class="hint">[% INCLUDE 'date-format.inc' %]</span>
         </li>
 
