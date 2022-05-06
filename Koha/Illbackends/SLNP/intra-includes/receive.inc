@@ -65,7 +65,7 @@
 
         <li>
           <label for="circulation_notes">Circulation restrictions:</label>
-          <input type="textarea" rows="4" cols="100" name="circulation_notes" id="circulation_notes" value="[% whole.value.other.circulation_notes | html %]" />
+          <input type="text" size="50" name="circulation_notes" id="circulation_notes" value="[% whole.value.other.circulation_notes | html %]" />
         </li>
 
       </ol>
