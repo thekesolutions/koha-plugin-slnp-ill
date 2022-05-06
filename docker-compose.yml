@@ -20,6 +20,7 @@ services:
             - ALL
         volumes:
             - /home/tcohen/git/koha-20.11:/kohadevbox/koha
+            - ${PLUGIN_REPO}:/kohadevbox/koha_plugin
         tmpfs:
             - /cover_db
             - /tmp
@@ -41,8 +42,8 @@ services:
                     - "${KOHA_INTRANET_PREFIX}${KOHA_INSTANCE}${KOHA_INTRANET_SUFFIX}${KOHA_DOMAIN}"
                     - "${KOHA_OPAC_PREFIX}${KOHA_INSTANCE}${KOHA_OPAC_SUFFIX}${KOHA_DOMAIN}"
         ports:
-            - "8090:8080"
-            - "8091:8081"
+            - "8090:8090"
+            - "8091:8091"
     memcached:
         image: memcached
         command: memcached -m 64m
