@@ -113,8 +113,8 @@
         </li>
 
         <li>
-          <label class="required" for="duedate">Due date:</label>
-          <input type="text" class="datepicker" name="duedate" id="duedate" size="10" maxlength="10" value="[% whole.value.other.duedate | $KohaDates %]" required="required" />
+          <label for="duedate">Due date:</label>
+          <input type="text" class="datepicker" name="duedate" id="duedate" size="10" maxlength="10" value="[% whole.value.other.duedate | $KohaDates %]" />
          <span class="hint">[% INCLUDE 'date-format.inc' %]</span>
         </li>
 
