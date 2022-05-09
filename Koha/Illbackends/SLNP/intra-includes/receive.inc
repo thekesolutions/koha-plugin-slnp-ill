@@ -150,7 +150,7 @@
       </button>
 
       <button type="submit" class="btn btn-default openWin" data-url="/api/v1/contrib/slnp/ill_requests/[% whole.illrequest_id | uri %]/print_slips/ILL_SLNP_RECEIIVE_SLIP" data-prevent-default="yes">
-        <i class="fa fa-print"></i> Print slip
+        <i class="fa fa-print"></i> Print slip and receive
       </button>
 
       <a class="cancel" id="cancelbutton" name="cancelbutton" href="/cgi-bin/koha/ill/ill-requests.pl?method=illview&amp;illrequest_id=[% request.illrequest_id | uri %]">Cancel</a>
