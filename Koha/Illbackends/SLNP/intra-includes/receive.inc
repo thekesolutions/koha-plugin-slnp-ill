@@ -17,9 +17,9 @@
 [% END %]
 
 [% IF whole.stage == "update" %]
-  <h2>Edit delivery ([% whole.illrequest_id %])</h2>
+  <h2>Edit delivery ([% request.orderid %])</h2>
 [% ELSIF whole.stage == 'init' %]
-  <h2>Process delivery ([% whole.illrequest_id %])</h2>
+  <h2>Process delivery ([% request.orderid %])</h2>
 
   <form id="SLNP_delivery" name="SLNP_delivery" method="POST" action=[% here %]>
 
