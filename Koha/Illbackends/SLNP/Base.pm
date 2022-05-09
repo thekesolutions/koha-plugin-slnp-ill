@@ -133,7 +133,7 @@ sub status_graph {
             name           => 'Eingangsverbucht',
             ui_method_name => 'Eingang verbuchen',
             method         => 'receive',
-            next_actions   => [],                    # in reality: ['CHKDOUT', 'LOSTBCO']
+            next_actions   => [ 'RECVDUPD' ],                    # in reality: ['CHKDOUT', 'LOSTBCO']
             ui_method_icon => 'fa-download',
         },
 
@@ -475,13 +475,9 @@ Handle receiving the request. It should involve the following I<stage>:
 
 =over
 
-=item B<no stage> initial stage, for rendering the form.
+=item B<no stage> initial stage, for rendering the form (a.k.a. I<init>).
 
 =item B<commit> process the receiving parameters.
-
-=item B<update> updating the request was asked, prepare the form.
-
-=item B<update_commit> process the updated request parameters.
 
 =back
 
@@ -494,13 +490,7 @@ sub receive {
     my $method  = $params->{other}->{method};
     my $stage   = $params->{other}->{stage};
 
-    use Data::Printer colored => 1;
-    p($self);
-    p($params);
-
     my $item = $self->get_item_from_request({ request => $request });
-
-    p($item->unblessed);
 
     my $template_params = {};
 
@@ -513,6 +503,7 @@ sub receive {
         message => "",
         value   => $template_params,
         next    => "illview",
+        illrequest_id => $request->id,
     };
 
     if ( !defined $stage ) { # init
@@ -528,335 +519,106 @@ sub receive {
         $self->{logger}->error("No patrons defined as lending libraries (categorycode=$partner_category_code)")
           unless $lending_libraries->count > 0;
 
-        $template_params->{deliverydate} = dt_from_string;
+        $template_params->{received_on_date}  = dt_from_string;
         $template_params->{lending_libraries} = $lending_libraries;
-        $template_params->{item} = $item;
-        $template_params->{patron} = $request->patron;
+        $template_params->{item}              = $item;
+        $template_params->{patron}            = $request->patron;
 
         $template_params->{item_types} = [
             { value => $self->get_item_type( 'copy' ), selected => ( $request->medium eq 'copy' ) ? 1 : 0 },
             { value => $self->get_item_type( 'loan' ), selected => ( $request->medium eq 'loan' ) ? 1 : 0 },
         ];
-        p($template_params);
+
         $backend_result->{stage} = 'init';
     }
-    # else ( $stage eq 'commit' ) {
-    #     # process the receiving parameters
+    elsif ( $stage eq 'commit' ) {
+        # process the receiving parameters
 
-    # }
-    # elsif ( $stage eq 'update' ) {
-    #     # update requested, prepare the form
-    # }
-    # elsif ( $stage eq 'update_commit' ) {
-    #     # read the passed params, and update the request accordingly
-    # }
-    # else {
-    #     # something went wrong
-    # }
+        try {
 
-    # p($backend_result);
+            my $new_attributes = {};
 
-    if ( ( $stage eq 'InsertAndPrint' || $stage eq 'UpdateAndMaybePrint' || $stage eq 'PrintOnly' || $stage eq 'commit' )
-        && !$params->{other}->{'sendingIllLibraryBorrowernumber'} ) {
-        $stage = 'errorNoSendingIllLibraryInfo';
-    }
-    $backend_result->{illrequest_id}                         = $params->{request}->illrequest_id;
-    $backend_result->{value}->{other}->{illdeliveryslipcode} = C4::Context->preference("ILLDeliverySlipCode");
-    $backend_result->{value}->{request}->{illrequest_id}     = $params->{request}->illrequest_id;
-    $backend_result->{value}->{request}->{orderid}           = $params->{request}->orderid();
-    $backend_result->{value}->{request}->{biblio_id}         = $params->{request}->biblio_id();
-    $backend_result->{value}->{request}->{borrowernumber}    = $params->{request}->borrowernumber();
-    if ( !$stage || $stage eq 'init' ) {
-        $backend_result->{value}->{other}->{type} = $params->{request}->medium();
-    } else {
-        $backend_result->{value}->{other}->{type} = $params->{other}->{type};
-    }
+            $new_attributes->{received_on_date} = dt_from_string($params->{other}->{received_on_date})
+            if $params->{other}->{received_on_date};
 
-    # illItemtypes (not destroying original sequence of syspref IllItemtypes)
-    my @illItemtypes     = split( /\|/, C4::Context->preference("IllItemtypes") );
-    my $kohaIllItemtypes = [];
-    foreach my $it (@illItemtypes) {
-        my $rs = Koha::ItemTypes->search( { itemtype => $it } );
-        if ( my $itres = $rs->next ) {
-            push @$kohaIllItemtypes, { itemtype => $itres->itemtype, description => $itres->description, translated_description => $itres->translated_description };
-        }
-    }
-    $backend_result->{value}->{other}->{kohaIllItemtypes} = $kohaIllItemtypes;
+            $new_attributes->{due_date} = dt_from_string($params->{other}->{due_date})
+            if $params->{other}->{due_date};
 
-    # illPatronCategories (using categories for pop up window that enables search for sending library):
-    my @illPatronCategories     = split( /\|/, C4::Context->preference("IllPatronCategories") );
-    my $kohaIllPatronCategories = [];
-    foreach my $catcode (@illPatronCategories) {
-        my $rs = Koha::Patron::Categories->search( { categorycode => $catcode } );
-        if ( my $categoryres = $rs->next ) {
-            push @$kohaIllPatronCategories, { categorycode => $categoryres->categorycode, description => $categoryres->description };
-        }
-    }
-    $backend_result->{value}->{other}->{kohaIllPatronCategories} = $kohaIllPatronCategories;
+            $new_attributes->{request_charges} = $params->{other}->{request_charges}
+            if $params->{other}->{request_charges};
 
-    # letter code of Notices for ordering borrower (not destroying original sequence of syspref ILLNoticesLetterCodes)
-    my @illNoticesLetterCodes = split( /\|/, C4::Context->preference("ILLNoticesLetterCodes") );
-    my $kohaILLNoticesLetters = [];
-    foreach my $code (@illNoticesLetterCodes) {
-        my $letterhits = C4::Letters::GetLetters( { code => $code } );
-        foreach my $letterhit (@$letterhits) {
-            push @$kohaILLNoticesLetters, $letterhit;    # { code => $letterres->code, module => $letterres->module, name => $letterres->name };
-        }
-    }
-    $backend_result->{value}->{other}->{kohaIllPatronLetters} = $kohaILLNoticesLetters;
-
-    if ( !$stage || $stage eq 'init' || $stage eq 'errorNoSendingIllLibraryInfo' ) {
-        # if ( $params->{request}->status eq 'REQ' ) {
-        #     $backend_result->{stage} = 'deliveryInsert';
-        # } else {
-        #     $backend_result->{stage} = 'deliveryUpdate';
-        # }
-
-        # data of ordering patron
-        $backend_result->{value}->{other}->{borrowerBorrowernumber} = $params->{request}->borrowernumber();
-        my $rs = Koha::Patrons->search( { 'borrowernumber' => $params->{request}->borrowernumber() } );
-        if ( my $borrower = $rs->next ) {
-            $backend_result->{value}->{other}->{borrowerCardnumber} = $borrower->cardnumber();
-            $backend_result->{value}->{other}->{borrowerFirstname}  = $borrower->firstname();
-            $backend_result->{value}->{other}->{borrowerSurname}    = $borrower->surname();
-        }
-
-        if ( $stage eq 'errorNoSendingIllLibraryInfo' ) {
-            $backend_result->{error}  = 1;
-            $backend_result->{status} = "missing_sendingIllLibraryInfo";
-
-            $backend_result->{value}->{other}->{itemnumber}            = $params->{other}->{itemnumber};
-            $backend_result->{value}->{other}->{noncirccollection}     = $params->{other}->{noncirccollection};
-            $backend_result->{value}->{other}->{kohaitemtype}          = $params->{other}->{kohaitemtype};
-            $backend_result->{value}->{other}->{deliverydate}          = output_pref( { str => $params->{other}->{deliverydate}, dateonly => 1, dateformat => 'sql' } );
-            $backend_result->{value}->{other}->{volumescount}          = $params->{other}->{volumescount};
-            $backend_result->{value}->{other}->{billedillrequestcosts} = format_to_dbmoneyfloat( $params->{other}->{billedillrequestcosts} );
-            $backend_result->{value}->{other}->{duedate}               = output_pref( { str => $params->{other}->{duedate}, dateonly => 1, dateformat => 'sql' } );
-            $backend_result->{value}->{other}->{illdeliverylettercode} = $params->{other}->{illdeliverylettercode};
-            $backend_result->{value}->{other}->{illdeliveryslipprint}  = $params->{other}->{illdeliveryslipprint};
-
-        } else {
-            $backend_result->{value}->{other}->{volumescount}          = 1;
-            $backend_result->{value}->{other}->{billedillrequestcosts} = $params->{request}->cost();
-            $backend_result->{value}->{other}->{illdeliveryslipprint}  = 1;
-
-            $backend_result->{value}->{other}->{sendingIllLibraryBorrowernumber} = '';
-            $backend_result->{value}->{other}->{sendingIllLibraryIsil}           = '';
-            $backend_result->{value}->{other}->{sendingIllLibrarySurname}        = '';
-            $backend_result->{value}->{other}->{sendingIllLibraryCity}           = '';
-
-            my @interesting_fields = ();
-
-            # search interesting illrequestattributes and store in hash of $backend_result
-            if ( $params->{request}->status eq 'REQ' ) {
-                @interesting_fields = ( 'isbn', 'issn', 'itemnumber', 'shelfmark', 'author', 'title', 'zflorderid' );
-            } else {    # status eq 'RECVD' / 'CHKDOUT' / 'CHKDIN' / ...
-                @interesting_fields = (
-                    'deliverydate', 'duedate', 'illdeliverylettercode', 'illdeliveryslipprint', 'isbn', 'issn', 'itemnumber', 'kohaitemtype', 'noncirccollection',
-                    'sendingIllLibraryBorrowernumber',
-                    'sendingIllLibraryIsil', 'shelfmark', 'author', 'title', 'volumescount', 'zflorderid'
+            if ( $params->{other}->{request_charges} ) {
+                my $debit = $request->patron->account->add_debit(
+                    {
+                        amount => $params->{other}->{request_charges},
+                        type   => $self->{configuration}->{fee_debit_type}
+                          // 'ILL',
+                        interface => 'intranet',
+                    }
                 );
+
+                $new_attributes->{debit_id} = $debit->id;
             }
 
-            my $fieldResults = $params->{request}->illrequestattributes->search( { type => { '-in' => \@interesting_fields } } );
-            my $illreqattr   = { map { ( $_->type => $_->value ) } ( $fieldResults->as_list ) };
-            foreach my $type ( keys %{$illreqattr} ) {
-                $backend_result->{value}->{other}->{$type} = $illreqattr->{$type};
-            }
+            $new_attributes->{circulation_notes} =
+              $params->{other}->{circulation_notes}
+              if $params->{other}->{circulation_notes};
 
-            if ( $params->{request}->status ne 'REQ' ) {
+            while ( my ( $type, $value ) = each %{$new_attributes} ) {
 
-                # read record of sending library
-                my $borrowers_rs = Koha::Patrons->search( { borrowernumber => $backend_result->{value}->{other}->{sendingIllLibraryBorrowernumber} } );
-                if ( my $sendinglib = $borrowers_rs->next ) {
-                    $backend_result->{value}->{other}->{sendingIllLibraryBorrowernumber} = $sendinglib->borrowernumber();
-                    $backend_result->{value}->{other}->{sendingIllLibrarySurname}        = $sendinglib->surname();
-                    $backend_result->{value}->{other}->{sendingIllLibraryCity}           = $sendinglib->city();
+                my $attr = $request->illrequestattributes->find(
+                    {
+                        type => $type
+                    }
+                );
 
-                    my $borrower_attributes_rs = Koha::Patron::Attributes->search(
-                        {   borrowernumber => $sendinglib->borrowernumber(),
-                            code           => 'SIGEL'
+                if ($attr) {    # update
+                    if ( $attr->value ne $value ) {
+                        $attr->update( { value => $value, } );
+                    }
+                }
+                else {          # new
+                    $attr = Koha::Illrequestattribute->new(
+                        {
+                            illrequest_id => $request->id,
+                            type          => $type,
+                            value         => $value,
                         }
-                    );
-                    if ( my $borrower_attribute_res = $borrower_attributes_rs->next ) {
-                        $backend_result->{value}->{other}->{sendingIllLibraryIsil} = $borrower_attribute_res->attribute();
-                    }
+                    )->store;
                 }
             }
+
+            # item information
+            $item->itype( $params->{other}->{item_type} )
+              if $params->{other}->{item_type};
+
+            $item->restricted( $params->{other}->{item_usage_restrictions} )
+              if defined $params->{other}->{item_usage_restrictions};
+
+            $item->itemcallnumber( $params->{other}->{item_callnumber} )
+              if $params->{other}->{item_callnumber};
+
+            $item->damaged ( $params->{other}->{item_damaged} )
+              if $params->{other}->{item_damaged};
+
+            $item->itemnotes_nonpublic( $params->{other}->{item_internal_note} )
+              if $params->{other}->{item_internal_note};
+
+            $item->materials( $params->{other}->{item_number_of_parts} )
+              if $params->{other}->{item_number_of_parts};
+
+            $item->store;
+
+            $request->status('RECVD')->store;
+
+            $backend_result->{stage} = 'commit';
         }
-
-    } elsif ( $stage eq 'InsertAndPrint' || $stage eq 'UpdateAndMaybePrint' || $stage eq 'PrintOnly' || $stage eq 'commit' ) {
-
-# 'InsertAndPrint': we insert illrequestattributes records, update the illrequest record, print a letter (the delivery slip is printed in a separate tab, if checked) and return.
-# 'UpdateAndMaybePrint': we update illrequestattributes records, update the illrequest record, maybe print a letter (the delivery slip is printed in a separate tab, if checked) and return.
-# 'PrintOnly': we do not update illrequestattributes records or the illrequest record, but print a letter and return.
-
-        if ( $stage eq 'InsertAndPrint' || $stage eq 'UpdateAndMaybePrint' )
-        {    # 'InsertAndPrint'/'UpdateAndMaybePrint' precede 'commit'; $stage eq 'commit' is used only for closing the dialog
-            my $illreq_attributes = {};
-
-            # volume count of the received medium is stored in illattributes and in analog form in items.materials
-            my $itemrs    = Koha::Items->find( { itemnumber => $params->{other}->{itemnumber} } );
-            my $materials = "Anzahl B\N{U+e4}nde " . $params->{other}->{volumescount};
-
-            # selected koha item type of the received medium is stored in illattributes and items.itype
-            my $itype = $params->{other}->{kohaitemtype};
-
-            # non-circulation collection of the received medium is stored in illattributes and in analog form in items.notforloan
-            my $notforloan = $itemrs->notforloan();
-            if ( !defined( $params->{other}->{noncirccollection} ) || $params->{other}->{noncirccollection} + 0 == 0 ) {
-                $notforloan = -1;    # 'ordered'
-            } else {
-                $notforloan = -127;    # defined authorised value for ILL non circulation collection
-            }
-            if ( $itemrs->materials() ne $materials || $itemrs->itype() ne $itype || $itemrs->notforloan() ne $notforloan ) {
-                $itemrs->update(
-                    {   materials  => $materials,
-                        itype      => $itype,
-                        notforloan => $notforloan
-                    }
-                );
-            }
-
-            # ill type is stored in illrequests record (field 'medium')
-            my $oldmedium = $params->{request}->medium();
-            my $newmedium = $params->{other}->{type};
-            if ( $newmedium ne $oldmedium ) {
-                $params->{request}->update( { medium => $newmedium } );
-            }
-
-            # costs billed by the sending library is stored in illrequests record
-            my $oldcosts = $params->{request}->cost();
-            my $newcosts = format_to_dbmoneyfloat( $params->{other}->{billedillrequestcosts} );
-            if ( $newcosts ne $oldcosts ) {
-                $params->{request}->update( { cost => $newcosts } );
-            }
-
-            # and these fields are stored in illrequestattributes
-
-            # non-circulation collection
-            if ( !defined( $params->{other}->{noncirccollection} ) || $params->{other}->{noncirccollection} + 0 == 0 ) {
-                $illreq_attributes->{noncirccollection} = '0';
-            } else {
-                $illreq_attributes->{noncirccollection} = '1';
-            }
-
-            # selected koha item type
-            $illreq_attributes->{kohaitemtype} = $params->{other}->{kohaitemtype};
-
-            # date the ILL medium was received in this library
-            $illreq_attributes->{deliverydate} = output_pref( { str => $params->{other}->{deliverydate}, dateonly => 1, dateformat => 'sql' } );
-
-            # borrowernumber of the sending library
-            $illreq_attributes->{sendingIllLibraryBorrowernumber} = $params->{other}->{sendingIllLibraryBorrowernumber};
-
-            # isil of the sending library
-            $illreq_attributes->{sendingIllLibraryIsil} = $params->{other}->{sendingIllLibraryIsil};
-
-            # date the ordering patron has to return the medium
-            $illreq_attributes->{duedate} = output_pref( { str => $params->{other}->{duedate}, dateonly => 1, dateformat => 'sql' } );
-
-            # type of letter choosen for informing the ordering patron on the medium receipt
-            $illreq_attributes->{illdeliverylettercode} = $params->{other}->{illdeliverylettercode};
-
-            # flag for printing the Ill delivery slip
-            if ( !defined( $params->{other}->{illdeliveryslipprint} ) || $params->{other}->{illdeliveryslipprint} + 0 == 0 ) {
-                $illreq_attributes->{illdeliveryslipprint} = '0';
-            } else {
-                $illreq_attributes->{illdeliveryslipprint} = '1';
-            }
-
-            # volume count of the received medium
-            $illreq_attributes->{volumescount} = $params->{other}->{volumescount};
-
-            if ( $params->{request}->status eq 'REQ' ) {
-                while ( my ( $type, $value ) = each %{$illreq_attributes} ) {
-                    try {
-                        Koha::Illrequestattribute->new(
-                            {   illrequest_id => $params->{request}->id,
-                                type          => $type,
-                                value         => $value,
-                            }
-                        )->store;
-                    }
-                }
-
-                $params->{request}->status('RECVD')->store;
-
-                # additionally create a standard Koha reserve
-                my $reserve_id = C4::Reserves::AddReserve(
-                    $params->{request}->branchcode(),
-                    $params->{request}->borrowernumber(),
-                    $params->{request}->biblio_id(),
-                    [ $params->{request}->biblio_id() ],
-                    0,                                 # priority
-                    '',                                # reservedate today
-                    $illreq_attributes->{duedate},     # expirationdate
-                    '',                                # notes
-                    '',                                # biblio title for fee
-                    $params->{other}->{itemnumber},    # itemnumber
-                    'W',                               # field 'found'
-                    undef                              # itemtype
-                );
-
-            } else {
-                while ( my ( $type, $value ) = each %{$illreq_attributes} ) {
-                    my $res = Koha::Illrequestattributes->find_or_create(
-                        {   illrequest_id => $params->{request}->id,
-                            type          => $type
-                        }
-                    );
-                    if ( $res->value() ne $value ) {
-                        $res->update( { value => $value, } );
-                    }
-                }
-            }
-        }
-
-        # the fields are already stored, so check only if to generate a new borrower notice
-        if ( $params->{other}->{illdeliverylettercode} )
-        {    # either (Deliveryinsert->InsertAndPrint submit) or (DeliveryUpdate->UpdateAndMaybePrint submit) or (DeliveryUpdate->PrintOnly submit for letter (not slip))
-
-            my $fieldResults = $params->{request}->illrequestattributes->search();
-            my $illreqattr   = { map { ( $_->type => $_->value ) } ( $fieldResults->as_list ) };
-            &printIllNoticeSlnp(
-                $params->{request}->branchcode(),
-                $params->{request}->borrowernumber(),
-                $params->{request}->biblio_id(),
-                $params->{other}->{itemnumber},
-                $params->{request}->illrequest_id(),
-                $illreqattr,
-                $params->{other}->{sendingIllLibraryBorrowernumber},
-                $params->{other}->{illdeliverylettercode}
-            );
-
-            $backend_result->{value}->{other}->{illdeliverylettercode} = $params->{other}->{illdeliverylettercode};
-        }
-
-        $backend_result->{stage} = $stage;
-
-        $backend_result->{value}->{other}->{billedillrequestcosts}           = format_to_dbmoneyfloat( $params->{other}->{billedillrequestcosts} );
-        $backend_result->{value}->{other}->{borrowerBorrowernumber}          = $params->{other}->{borrowerBorrowernumber};
-        $backend_result->{value}->{other}->{borrowerCardnumber}              = $params->{other}->{borrowerCardnumber};
-        $backend_result->{value}->{other}->{borrowerFirstname}               = $params->{other}->{borrowerFirstname};
-        $backend_result->{value}->{other}->{borrowerSurname}                 = $params->{other}->{borrowerSurname};
-        $backend_result->{value}->{other}->{deliverydate}                    = output_pref( { str => $params->{other}->{deliverydate}, dateonly => 1, dateformat => 'sql' } );
-        $backend_result->{value}->{other}->{duedate}                         = output_pref( { str => $params->{other}->{duedate},      dateonly => 1, dateformat => 'sql' } );
-        $backend_result->{value}->{other}->{illdeliverylettercode}           = $params->{other}->{illdeliverylettercode};
-        $backend_result->{value}->{other}->{illdeliveryslipprint}            = $params->{other}->{illdeliveryslipprint};
-        $backend_result->{value}->{other}->{itemnumber}                      = $params->{other}->{itemnumber};
-        $backend_result->{value}->{other}->{kohaitemtype}                    = $params->{other}->{kohaitemtype};
-        $backend_result->{value}->{other}->{noncirccollection}               = $params->{other}->{noncirccollection};
-        $backend_result->{value}->{other}->{sendingIllLibraryBorrowernumber} = $params->{other}->{sendingIllLibraryBorrowernumber};
-        $backend_result->{value}->{other}->{sendingIllLibraryIsil}           = $params->{other}->{sendingIllLibraryIsil};
-        $backend_result->{value}->{other}->{sendingIllLibrarySurname}        = $params->{other}->{sendingIllLibrarySurname};
-        $backend_result->{value}->{other}->{sendingIllLibraryCity}           = $params->{other}->{sendingIllLibraryCity};
-        $backend_result->{value}->{other}->{type}                            = $params->{other}->{type};
-        $backend_result->{value}->{other}->{volumescount}                    = $params->{other}->{volumescount};
-        $backend_result->{value}->{other}->{zflorderid}                      = $params->{other}->{zflorderid};
-    } else {
-
-        # in case of faulty or testing stage, we just return the standard $backend_result with original stage
+        catch {
+            warn "$_";
+            $backend_result->{stage} = 'commit';
+        };
+    }
+    else {
         $backend_result->{stage} = $stage;
     }
 

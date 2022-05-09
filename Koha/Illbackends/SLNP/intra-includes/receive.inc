@@ -17,9 +17,9 @@
 [% END %]
 
 [% IF whole.stage == "update" %]
-  <h2>Edit delivery ([% whole.value.request.orderid %])</h2>
+  <h2>Edit delivery ([% whole.illrequest_id %])</h2>
 [% ELSIF whole.stage == 'init' %]
-  <h2>Process delivery ([% whole.value.request.orderid %])</h2>
+  <h2>Process delivery ([% whole.illrequest_id %])</h2>
 
   <form id="SLNP_delivery" name="SLNP_delivery" method="POST" action=[% here %]>
 
@@ -44,8 +44,8 @@
         </li>
 
         <li>
-          <label class="required" for="delivery_date">Received on:</label>
-          <input type="text" class="datepicker" name="delivery_date" id="delivery_date" size="10" maxlength="10" value="[% whole.value.deliverydate | $KohaDates %]" required="required" />
+          <label class="required" for="received_on_date">Received on:</label>
+          <input type="text" class="datepicker" name="received_on_date" id="received_on_date" size="10" maxlength="10" value="[% whole.value.received_on_date | $KohaDates %]" required="required" />
           <span class="hint">[% INCLUDE 'date-format.inc' %]</span>
         </li>
 
@@ -113,8 +113,8 @@
         </li>
 
         <li>
-          <label for="duedate">Due date:</label>
-          <input type="text" class="datepicker" name="duedate" id="duedate" size="10" maxlength="10" value="[% whole.value.other.duedate | $KohaDates %]" />
+          <label for="due_date">Due date:</label>
+          <input type="text" class="datepicker" name="due_date" id="due_date" size="10" maxlength="10" value="[% whole.value.other.due_date | $KohaDates %]" />
          <span class="hint">[% INCLUDE 'date-format.inc' %]</span>
         </li>
 
@@ -135,17 +135,13 @@
       <input type="hidden" name="illrequest_id" id="illrequest_id" value="[% whole.illrequest_id %]" />
       <input type="hidden" name="backend" id="backend" value="[% request.backend %]" />
       <input type="hidden" name="method" id="method" value="[% whole.method %]" />
-      <input type="hidden" name="stage" id="stage" value="[% whole.stage %]" />
+      <input type="hidden" name="stage" id="stage" value="commit" />
       <input type="hidden" name="itemnumber" id="itemnumber" value="[% whole.value.other.itemnumber %]" />
 
-      [% IF ( whole.stage == "deliveryInsert" ) %]
-        <input type="submit" id="submitbutton" name="submitbutton" value="Save" onclick="stage.value='InsertAndPrint';" />
-      [% ELSE %]    <!-- whole.stage == "deliveryUpdate" -->
-        <input type="submit" id="submitbutton" name="submitbutton" value="Save changes" onclick="stage.value='UpdateAndMaybePrint';" />
-        <input type="submit" id="printButton"  name="printButton"  value="Print" disabled onclick="stage.value='PrintOnly';" />
-      [% END %]
+      <input type="submit" id="submitbutton" name="submitbutton" value="Receive" />
 
       <a class="cancel" id="cancelbutton" name="cancelbutton" href="/cgi-bin/koha/ill/ill-requests.pl?method=illview&amp;illrequest_id=[% request.illrequest_id %]">Cancel</a>
+
     </fieldset>
   </form>
 
