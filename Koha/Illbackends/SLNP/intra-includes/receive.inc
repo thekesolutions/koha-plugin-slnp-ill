@@ -128,7 +128,7 @@
           <label for="the_patron">Requesting patron:</label>
           <div name="the_patron" id="the_patron">
             <a target="_blank" href="/cgi-bin/koha/members/moremember.pl?borrowernumber=[% whole.value.patron.borrowernumber %]">
-            <input disabled type="text" name="borrowerinfo" id="borrowerinfo" size="80" value="[% whole.value.patron.firstname | html %] [% whole.value.patron.surname | html %] ([% whole.value.patron.cardnumber | html %])" /></a>
+            [% whole.value.patron.firstname | html %] [% whole.value.patron.surname | html %] ([% whole.value.patron.cardnumber | html %])</a>
           </div>
         </li>
         <li>
