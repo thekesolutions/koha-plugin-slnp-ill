@@ -123,5 +123,33 @@ sub configuration {
     return $configuration;
 }
 
+=head3 api_routes
+
+Method that returns the API routes to be merged into Koha's
+
+=cut
+
+sub api_routes {
+    my ( $self, $args ) = @_;
+
+    my $spec_str = $self->mbf_read('openapi.json');
+    my $spec     = decode_json($spec_str);
+
+    return $spec;
+}
+
+=head3 api_namespace
+
+Method that returns the namespace for the plugin API to be put on
+
+=cut
+
+sub api_namespace {
+    my ( $self ) = @_;
+
+    return 'slnp';
+}
+
+
 1;
 
