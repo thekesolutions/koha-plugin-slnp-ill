@@ -109,7 +109,7 @@
 
         <li>
           <label for="item_internal_note">Internal note:</label>
-          <input type="text" size="50" name="item_internal_note" id="item_internal_note" value="[% whole.value.other.item_internal_note | html %]" />
+          <input type="text" size="50" name="item_internal_note" id="item_internal_note" value="[% whole.value.item.itemnotes_nonpublic | html %]" />
         </li>
 
         <li>
@@ -125,8 +125,15 @@
     <legend>Notification</legend>
       <ol>
         <li>
-          <label for="the_patron">Patron:</label>
-          <div name="the_patron" id="the_patron">[% whole.value.patron.firstname | html %] [% whole.value.patron.surname | html %] ([% whole.value.patron.cardnumber | html %])</div>
+          <label for="the_patron">Requesting patron:</label>
+          <div name="the_patron" id="the_patron">
+            <a target="_blank" href="/cgi-bin/koha/members/moremember.pl?borrowernumber=[% whole.value.patron.borrowernumber %]">
+            <input disabled type="text" name="borrowerinfo" id="borrowerinfo" size="80" value="[% whole.value.patron.firstname | html %] [% whole.value.patron.surname | html %] ([% whole.value.patron.cardnumber | html %])" /></a>
+          </div>
+        </li>
+        <li>
+          <label for="notify_patron">Notify:</label>
+          <input type="checkbox" id="notify_patron" name="notify_patron" />
         </li>
       </ol>
     </fieldset>

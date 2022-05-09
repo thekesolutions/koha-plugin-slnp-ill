@@ -126,6 +126,15 @@ sub _config {
 
 sub status_graph {
     return {
+        REQ => {
+            prev_actions   => [],
+            id             => 'REQ',
+            name           => 'Bestellt',
+            ui_method_name => undef,
+            method         => undef,
+            next_actions   => ['RECVD'],
+            ui_method_icon => '',
+        },
         # status 'Received' (This action is used when the ordered ILL item is received in the library of the ordering borrower.)
         RECVD => {
             prev_actions   => [ 'REQ', ],
