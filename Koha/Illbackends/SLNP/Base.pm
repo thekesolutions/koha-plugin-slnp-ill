@@ -294,25 +294,25 @@ capability is not implemented.
 
 =cut
 
-sub capabilities {
-    my ( $self, $name ) = @_;
-    my ($query) = @_;
-    my $capabilities = {
+# sub capabilities {
+#     my ( $self, $name ) = @_;
+#     my ($query) = @_;
+#     my $capabilities = {
 
-        # experimental, general access, not used yet (usage: my $duedate = $illrequest->_backend_capability( "getIllrequestattributes", [$illrequest,["duedate"]] );)
-        getIllrequestattributes => sub { $self->getIllrequestattributes(@_); },
+# # experimental, general access, not used yet (usage: my $duedate = $illrequest->_backend_capability( "getIllrequestattributes", [$illrequest,["duedate"]] );)
+#         getIllrequestattributes => sub { $self->getIllrequestattributes(@_); },
 
-        # used capabilities:
-        getIllrequestDateDue   => sub { $self->getIllrequestDateDue(@_); },
-        isShippingBackRequired => sub { $self->isShippingBackRequired(@_); },
-        itemCheckedOut         => sub { $self->itemCheckedOut(@_); },
-        itemCheckedIn          => sub { $self->itemCheckedIn(@_); },
-        itemLost               => sub { $self->itemLost(@_); },
-        isReserveFeeAcceptable => sub { $self->isReserveFeeAcceptable(@_); },
-        sortAction             => sub { $self->sortAction(@_); }
-    };
-    return $capabilities->{$name};
-}
+#         # used capabilities:
+#         getIllrequestDateDue   => sub { $self->getIllrequestDateDue(@_); },
+#         isShippingBackRequired => sub { $self->isShippingBackRequired(@_); },
+#         itemCheckedOut         => sub { $self->itemCheckedOut(@_); },
+#         itemCheckedIn          => sub { $self->itemCheckedIn(@_); },
+#         itemLost               => sub { $self->itemLost(@_); },
+#         isReserveFeeAcceptable => sub { $self->isReserveFeeAcceptable(@_); },
+#         sortAction             => sub { $self->sortAction(@_); }
+#     };
+#     return $capabilities->{$name};
+# }
 
 =head3 metadata
 
@@ -556,7 +556,8 @@ sub receive {
             $new_attributes->{request_charges} = $params->{other}->{request_charges}
             if $params->{other}->{request_charges};
 
-            if ( $params->{other}->{request_charges} ) {
+            if ( $params->{other}->{request_charges} and
+                 $params->{other}->{request_charges} > 0 ) {
                 my $debit = $request->patron->account->add_debit(
                     {
                         amount => $params->{other}->{request_charges},

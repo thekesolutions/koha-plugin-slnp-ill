@@ -145,9 +145,15 @@
       <input type="hidden" name="stage" id="stage" value="commit" />
       <input type="hidden" name="itemnumber" id="itemnumber" value="[% whole.value.other.itemnumber %]" />
 
-      <input type="submit" id="submitbutton" name="submitbutton" value="Receive" />
+      <button type="submit" class="btn btn-default approve">
+        <i class="fa fa-check"></i> Receive
+      </button>
 
-      <a class="cancel" id="cancelbutton" name="cancelbutton" href="/cgi-bin/koha/ill/ill-requests.pl?method=illview&amp;illrequest_id=[% request.illrequest_id %]">Cancel</a>
+      <button type="submit" class="btn btn-default openWin" data-url="/api/v1/contrib/slnp/ill_requests/[% whole.illrequest_id | uri %]/print_slips/ILL_SLNP_RECEIIVE_SLIP" data-prevent-default="yes">
+        <i class="fa fa-print"></i> Print slip
+      </button>
+
+      <a class="cancel" id="cancelbutton" name="cancelbutton" href="/cgi-bin/koha/ill/ill-requests.pl?method=illview&amp;illrequest_id=[% request.illrequest_id | uri %]">Cancel</a>
 
     </fieldset>
   </form>
@@ -159,5 +165,17 @@
 <script>
     document.addEventListener('DOMContentLoaded', function() {
         $('#lending_library').select2();
+
+        function Dopop(link) {
+            var newin = window.open(link, 'popup', 'width=600,height=400,resizable=1,toolbar=0,scrollbars=1,top');
+        }
+
+        $('.openWin').on("click",function(e){
+            Dopop( $(this).data("url") );
+
+            if ( $(this).data("prevent-default" === 'yes' ) ) {
+                e.preventDefault();
+            }
+        });
     });
 </script>
