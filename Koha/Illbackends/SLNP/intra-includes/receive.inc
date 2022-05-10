@@ -149,7 +149,7 @@
         <i class="fa fa-check"></i> Receive
       </button>
 
-      <button type="submit" class="btn btn-default openWin" data-url="/api/v1/contrib/slnp/ill_requests/[% whole.illrequest_id | uri %]/print_slips/ILL_SLNP_RECEIIVE_SLIP" data-prevent-default="yes">
+      <button type="submit" class="btn btn-default openWin" data-url="/api/v1/contrib/slnp/ill_requests/[% whole.illrequest_id | uri %]/print_slips/ILL_RECEIVE_SLIP" data-prevent-default="yes">
         <i class="fa fa-print"></i> Print slip and receive
       </button>
 
