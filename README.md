@@ -55,7 +55,6 @@ category_fee:
 partner_category_code: IL
 default_framework: FA
 default_ill_itype: BK
-default_hold_note: Placed by ILL
 pfl_number_prefix: "PREFIX "
 default_ill_branch: CPL
 item_types:
