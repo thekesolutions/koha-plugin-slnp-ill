@@ -95,7 +95,7 @@ sub get_print_slip {
                 # illrequests => $req->illrequest_id, # FIXME: should be used in 20.11+
                 borrowers   => $req->borrowernumber,
                 biblio      => $req->biblio_id,
-                item        => $item_id,
+                items       => $item_id,
                 branches    => $req->branchcode,
             },
             substitute  => {
