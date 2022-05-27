@@ -52,6 +52,7 @@
         <li>
           <label class="required" for="lending_library">Lending library:</label>
             <select name="lending_library" id="lending_library" required="required" class="select2" style="width: 45%">
+                <option value="">&nbsp;</option>
             [% FOREACH library IN whole.value.lending_libraries %]
                 <option value="[% library.borrowernumber | html %]">[% library.surname | html %][% IF library.othernames %] ([% library.othernames | html %])[% END %]</option>
             [% END %]
