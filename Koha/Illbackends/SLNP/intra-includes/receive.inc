@@ -133,7 +133,11 @@
         </li>
         <li>
           <label for="notify_patron">Notify:</label>
+        [% IF whole.value.notify %]
+          <input type="checkbox" id="notify_patron" name="notify_patron" checked />
+        [% ELSE %]
           <input type="checkbox" id="notify_patron" name="notify_patron" />
+        [% END %]
         </li>
       </ol>
     </fieldset>
@@ -141,7 +145,7 @@
     <fieldset class="action">
       <input type="hidden" name="illrequest_id" id="illrequest_id" value="[% whole.illrequest_id %]" />
       <input type="hidden" name="backend" id="backend" value="[% request.backend %]" />
-      <input type="hidden" name="method" id="method" value="[% whole.method %]" />
+      <input type="hidden" name="method" id="method" value="receive" />
       <input type="hidden" name="stage" id="stage" value="commit" />
       <input type="hidden" name="itemnumber" id="itemnumber" value="[% whole.value.other.itemnumber %]" />
 

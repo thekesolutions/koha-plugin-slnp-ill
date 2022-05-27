@@ -33,6 +33,7 @@ use YAML;
 use C4::Biblio qw( AddBiblio );
 use C4::Context;
 use C4::Letters qw(GetPreparedLetter);
+use C4::Members::Messaging;
 use C4::Reserves qw(AddReserve);
 
 use Koha::Biblios;
@@ -533,6 +534,15 @@ sub receive {
         $template_params->{item}              = $item;
         $template_params->{patron}            = $request->patron;
 
+        my $patron_preferences = C4::Members::Messaging::GetMessagingPreferences({
+            borrowernumber => $template_params->{patron}->borrowernumber,
+            message_name   => 'Ill_ready',
+        });
+
+        if ( exists $patron_preferences->{transports}->{email} ) {
+            $template_params->{notify} = 1;
+        }
+
         $template_params->{item_types} = [
             { value => $self->get_item_type( 'copy' ), selected => ( $request->medium eq 'copy' ) ? 1 : 0 },
             { value => $self->get_item_type( 'loan' ), selected => ( $request->medium eq 'loan' ) ? 1 : 0 },
@@ -618,6 +628,20 @@ sub receive {
               if $params->{other}->{item_number_of_parts};
 
             $item->store;
+
+            if ( $params->{other}->{notify_patron} eq 'on' ) {
+                my $letter = $request->get_notice(
+                    { notice_code => 'ILL_PICKUP_READY', transport => 'email' }
+                );
+
+                my $result = C4::Letters::EnqueueLetter(
+                    {
+                        letter                 => $letter,
+                        borrowernumber         => $request->borrowernumber,
+                        message_transport_type => 'email',
+                    }
+                );
+            }
 
             $request->status('RECVD')->store;
 
