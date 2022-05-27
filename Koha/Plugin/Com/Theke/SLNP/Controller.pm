@@ -86,7 +86,7 @@ sub get_print_slip {
         my $item_id = ($item_id_attr) ? $item_id_attr->value : '';
 
         my $slip = C4::Letters::GetPreparedLetter(
-            module                 => 'circulation', # FIXME: should be 'ill' in 20.11+
+            module                 => 'ill',
             letter_code            => $print_slip_id,
             branchcode             => $req->branchcode,
             message_transport_type => 'print',
