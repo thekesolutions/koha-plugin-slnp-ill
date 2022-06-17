@@ -82,7 +82,7 @@ sub get_print_slip {
 
         my $metastring = join("\n", @metaarray);
 
-        my $item_id_attr = $req->illrequestattributes->find({ type => 'itemId' });
+        my $item_id_attr = $req->illrequestattributes->find({ type => 'item_id' });
         my $item_id = ($item_id_attr) ? $item_id_attr->value : '';
 
         my $slip = C4::Letters::GetPreparedLetter(
@@ -95,7 +95,6 @@ sub get_print_slip {
                 # illrequests => $req->illrequest_id, # FIXME: should be used in 20.11+
                 borrowers   => $req->borrowernumber,
                 biblio      => $req->biblio_id,
-                items       => $item_id,
                 branches    => $req->branchcode,
             },
             substitute  => {
@@ -103,7 +102,8 @@ sub get_print_slip {
                 illrequest           => $req->unblessed, # FIXME: should be removed in 20.11+
                 ill_bib_title        => $title ? $title->value : '',
                 ill_bib_author       => $author ? $author->value : '',
-                ill_full_metadata    => $metastring
+                ill_full_metadata    => $metastring,
+                item                 => $item_id ? Koha::Items->find($item_id) : undef,
             }
         );
         # / Koha::Illrequest->get_notice
