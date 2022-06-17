@@ -47,6 +47,8 @@ server:
   log_level: 3
 fee_debit_type: ILL
 default_fee: 2
+charge_extra_fee_by_default: true
+extra_fee_debit_type: ILL
 category_fee:
   ST: null # no charge
   PT: 2

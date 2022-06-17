@@ -62,6 +62,12 @@
         <li>
           <label for="request_charges">Cost:</label>
           <input type="text" size="10" name="request_charges" id="request_charges" value="[% whole.value.request_charges | $Price %]" />
+        [% IF whole.value.charge_extra_fee_by_default %]
+          <input type="checkbox" id="charge_extra_fee" name="charge_extra_fee" checked />
+        [% ELSE %]
+          <input type="checkbox" id="charge_extra_fee" name="charge_extra_fee" />
+        [% END %]
+          <span>Charge patron</span>
         </li>
 
         <li>

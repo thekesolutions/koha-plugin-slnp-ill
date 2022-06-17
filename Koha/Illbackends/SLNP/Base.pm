@@ -534,6 +534,8 @@ sub receive {
         $template_params->{item}              = $item;
         $template_params->{patron}            = $request->patron;
 
+        $template_params->{charge_extra_fee_by_default} = $self->{configuration}->{charge_extra_fee_by_default};
+
         my $patron_preferences = C4::Members::Messaging::GetMessagingPreferences({
             borrowernumber => $template_params->{patron}->borrowernumber,
             message_name   => 'Ill_ready',
@@ -566,12 +568,13 @@ sub receive {
             $new_attributes->{request_charges} = $params->{other}->{request_charges}
             if $params->{other}->{request_charges};
 
-            if ( $params->{other}->{request_charges} and
+            if ( $params->{other}->{charge_extra_fee} and
+                 $params->{other}->{request_charges} and
                  $params->{other}->{request_charges} > 0 ) {
                 my $debit = $request->patron->account->add_debit(
                     {
                         amount => $params->{other}->{request_charges},
-                        type   => $self->{configuration}->{fee_debit_type}
+                        type   => $self->{configuration}->{extra_fee_debit_type}
                           // 'ILL',
                         interface => 'intranet',
                     }
