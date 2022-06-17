@@ -568,6 +568,9 @@ sub receive {
             $new_attributes->{request_charges} = $params->{other}->{request_charges}
             if $params->{other}->{request_charges};
 
+            $new_attributes->{lending_library} = $params->{other}->{lending_library}
+            if $params->{other}->{lending_library};
+
             if ( $params->{other}->{charge_extra_fee} and
                  $params->{other}->{request_charges} and
                  $params->{other}->{request_charges} > 0 ) {
