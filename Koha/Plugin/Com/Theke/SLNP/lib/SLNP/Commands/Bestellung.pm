@@ -58,9 +58,11 @@ sub doSLNPFLBestellung {
                 && length( $params->{AufsatzTitel} ) )
           )
         {
+            # FIXME: We shouldn't use 'medium' https://bugs.koha-community.org/bugzilla3/show_bug.cgi?id=21833#c4
             $args->{medium} = 'copy';
         }
         else {
+            # FIXME: We shouldn't use 'medium' https://bugs.koha-community.org/bugzilla3/show_bug.cgi?id=21833#c4
             $args->{medium} = 'loan';
         }
         $args->{orderid} = $params->{BestellId};
@@ -75,6 +77,8 @@ sub doSLNPFLBestellung {
                   $params->{$attribute};
             }
         }
+
+        $args->{attributes}->{type} = ( $args->{medium} eq 'copy' ) ? 'Kopie' : 'Leihe';
 
         my $backend_result;
 
