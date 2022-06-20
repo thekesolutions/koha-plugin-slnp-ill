@@ -153,9 +153,9 @@ sub status_graph {
             id             => 'RECVDUPD',
             name           => 'Eingangsverbucht',
             ui_method_name => 'Eingang bearbeiten',
-            method         => 'receive',
-            next_actions   => [],                                 # in reality: status stays unchanged
-            ui_method_icon => 'fa-check',
+            method         => 'update',
+            next_actions   => [],
+            ui_method_icon => 'fa-pencil',
         },
 
         # status 'Checkedout' (not for GUI, now internally handled by itemCheckedOut(), called by C4::Circulation::AddIssue() )
@@ -650,6 +650,199 @@ sub receive {
             }
 
             $request->status('RECVD')->store;
+
+            $backend_result->{stage} = 'commit';
+        }
+        catch {
+            warn "$_";
+            $backend_result->{stage} = 'commit';
+        };
+    }
+    else {
+        $backend_result->{stage} = $stage;
+    }
+
+    return $backend_result;
+}
+
+=head3 update
+
+    $backend->update;
+
+Handle updating the request.
+
+=cut
+
+sub update {
+    my ( $self, $params ) = @_;
+
+    my $request = $params->{request};
+    my $method  = $params->{other}->{method};
+    my $stage   = $params->{other}->{stage};
+
+    my $item = $self->get_item_from_request({ request => $request });
+
+    my $template_params = {};
+
+    my $backend_result = {
+        backend => $self->name,
+        method  => "update",
+        stage   => $stage, # default for testing the template
+        error   => 0,
+        status  => "",
+        message => "",
+        value   => $template_params,
+        next    => "illview",
+        illrequest_id => $request->id,
+    };
+
+    if ( !defined $stage ) { # init, show information
+
+        $template_params->{medium} = $request->medium;
+
+        my $partner_category_code = $self->{configuration}->{partner_category_code} // 'IL';
+
+        my $lending_libraries = Koha::Patrons->search(
+            { categorycode => $partner_category_code },
+            { order_by     => [ 'surname', 'othernames' ] }
+        );
+
+        $template_params->{lending_libraries} = $lending_libraries;
+        my $selected_lending_library = $request->illrequestattributes->search({ type => 'lending_library' })->next;
+        $template_params->{selected_lending_library_id} = $selected_lending_library->value
+          if $selected_lending_library;
+
+        my $request_charges = $request->illrequestattributes->search({ type => 'request_charges' })->next;
+        $template_params->{request_charges} = $request_charges->value
+          if $request_charges;
+
+        my $circulation_notes = $request->illrequestattributes->search({ type => 'circulation_notes' })->next;
+        $template_params->{circulation_notes} = $circulation_notes->value
+          if $circulation_notes;
+
+        my $received_on_date = $request->illrequestattributes->search({ type => 'received_on_date' })->next;
+        $template_params->{received_on_date} = dt_from_string($received_on_date->value)
+          if $received_on_date;
+
+        my $due_date = $request->illrequestattributes->search({ type => 'due_date' })->next;
+        $template_params->{due_date} = dt_from_string($due_date->value)
+          if $due_date;
+
+        $template_params->{item}   = $item;
+        $template_params->{patron} = $request->patron;
+
+        my $patron_preferences = C4::Members::Messaging::GetMessagingPreferences({
+            borrowernumber => $template_params->{patron}->borrowernumber,
+            message_name   => 'Ill_ready',
+        });
+
+        if ( exists $patron_preferences->{transports}->{email} ) {
+            $template_params->{notify} = 1;
+        }
+
+        $template_params->{item_types} = [
+            { value => $self->get_item_type( 'copy' ), selected => ( $request->medium eq 'copy' ) ? 1 : 0 },
+            { value => $self->get_item_type( 'loan' ), selected => ( $request->medium eq 'loan' ) ? 1 : 0 },
+        ];
+
+        $backend_result->{stage} = 'init';
+    }
+    elsif ( $stage eq 'commit' ) {
+        # process the receiving parameters
+
+        try {
+
+            my $new_attributes = {};
+
+            $new_attributes->{received_on_date} = dt_from_string($params->{other}->{received_on_date})
+            if $params->{other}->{received_on_date};
+
+            $new_attributes->{due_date} = dt_from_string($params->{other}->{due_date})
+            if $params->{other}->{due_date};
+
+            $new_attributes->{request_charges} = $params->{other}->{request_charges}
+            if $params->{other}->{request_charges};
+
+            $new_attributes->{lending_library} = $params->{other}->{lending_library}
+            if $params->{other}->{lending_library};
+
+            if ( $params->{other}->{charge_extra_fee} and
+                 $params->{other}->{request_charges} and
+                 $params->{other}->{request_charges} > 0 ) {
+                my $debit = $request->patron->account->add_debit(
+                    {
+                        amount => $params->{other}->{request_charges},
+                        type   => $self->{configuration}->{extra_fee_debit_type}
+                          // 'ILL',
+                        interface => 'intranet',
+                    }
+                );
+
+                $new_attributes->{debit_id} = $debit->id;
+            }
+
+            $new_attributes->{circulation_notes} =
+              $params->{other}->{circulation_notes}
+              if $params->{other}->{circulation_notes};
+
+            while ( my ( $type, $value ) = each %{$new_attributes} ) {
+
+                my $attr = $request->illrequestattributes->find(
+                    {
+                        type => $type
+                    }
+                );
+
+                if ($attr) {    # update
+                    if ( $attr->value ne $value ) {
+                        $attr->update( { value => $value, } );
+                    }
+                }
+                else {          # new
+                    $attr = Koha::Illrequestattribute->new(
+                        {
+                            illrequest_id => $request->id,
+                            type          => $type,
+                            value         => $value,
+                        }
+                    )->store;
+                }
+            }
+
+            # item information
+            $item->itype( $params->{other}->{item_type} )
+              if $params->{other}->{item_type};
+
+            $item->restricted( $params->{other}->{item_usage_restrictions} )
+              if defined $params->{other}->{item_usage_restrictions};
+
+            $item->itemcallnumber( $params->{other}->{item_callnumber} )
+              if $params->{other}->{item_callnumber};
+
+            $item->damaged ( $params->{other}->{item_damaged} )
+              if $params->{other}->{item_damaged};
+
+            $item->itemnotes_nonpublic( $params->{other}->{item_internal_note} )
+              if $params->{other}->{item_internal_note};
+
+            $item->materials( $params->{other}->{item_number_of_parts} )
+              if $params->{other}->{item_number_of_parts};
+
+            $item->store;
+
+            if ( $params->{other}->{notify_patron} eq 'on' ) {
+                my $letter = $request->get_notice(
+                    { notice_code => 'ILL_PICKUP_READY', transport => 'email' }
+                );
+
+                my $result = C4::Letters::EnqueueLetter(
+                    {
+                        letter                 => $letter,
+                        borrowernumber         => $request->borrowernumber,
+                        message_transport_type => 'email',
+                    }
+                );
+            }
 
             $backend_result->{stage} = 'commit';
         }
