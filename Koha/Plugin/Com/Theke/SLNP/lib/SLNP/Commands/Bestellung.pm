@@ -47,8 +47,6 @@ sub doSLNPFLBestellung {
         my $args;
         $args->{stage} = 'commit';
 
-        # fields for table illrequests
-        $args->{branchcode} = $configuration->{default_ill_branch} // 'CPL';
         if (
             (
                 defined $params->{AufsatzAutor}
@@ -79,6 +77,15 @@ sub doSLNPFLBestellung {
         }
 
         $args->{attributes}->{type} = ( $args->{medium} eq 'copy' ) ? 'Kopie' : 'Leihe';
+        # Deal with AusgabeOrt => pickup_location translation
+        my $pickup_location_description = $args->{attributes}->{pickup_location_description};
+        my $pickup_location = $pickup_location_description and $configuration->{pickup_location_mapping}->{$pickup_location_description}
+                            ? $configuration->{pickup_location_mapping}->{$pickup_location_description}
+                            : $configuration->{default_ill_branch} // 'CPL';
+
+        # fields for table illrequests
+        $args->{branchcode} = $pickup_location;
+        $args->{attributes}->{pickup_location} = $pickup_location;
 
         my $backend_result;
 
@@ -173,7 +180,7 @@ sub attribute_mapping {
         Bemerkung      => 'notes',
         Heft           => 'issue',            # FIXME: duplicate mapping
         Seitenangabe   => 'article_pages',
-        AusgabeOrt     => 'pickUpLocation',
+        AusgabeOrt     => 'pickup_location_description',
         Issn           => 'issn',
         BestellId      => 'zflorderid',
         BenutzerNummer => 'cardnumber',

@@ -57,6 +57,9 @@ default_framework: FA
 default_ill_itype: BK
 pfl_number_prefix: "PREFIX "
 default_ill_branch: CPL
+pickup_location_mapping:
+  Campus Nord: MPL
+  Campus Süden: FPL
 item_types:
   loan: BK
   copy: CR
