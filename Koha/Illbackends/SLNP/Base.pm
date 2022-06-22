@@ -571,15 +571,17 @@ sub receive {
             $new_attributes->{lending_library} = $params->{other}->{lending_library}
             if $params->{other}->{lending_library};
 
+            my $item_id = $request->illrequestattributes->find({ type => 'item_id' })->value;
+
             if ( $params->{other}->{charge_extra_fee} and
                  $params->{other}->{request_charges} and
                  $params->{other}->{request_charges} > 0 ) {
                 my $debit = $request->patron->account->add_debit(
                     {
-                        amount => $params->{other}->{request_charges},
-                        type   => $self->{configuration}->{extra_fee_debit_type}
-                          // 'ILL',
+                        amount    => $params->{other}->{request_charges},
+                        item_id   => $item_id,
                         interface => 'intranet',
+                        type      => $self->{configuration}->{extra_fee_debit_type} // 'ILL',
                     }
                 );
 
