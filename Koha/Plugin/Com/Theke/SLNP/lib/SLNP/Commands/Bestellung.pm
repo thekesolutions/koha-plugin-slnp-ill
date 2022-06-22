@@ -78,10 +78,11 @@ sub doSLNPFLBestellung {
 
         $args->{attributes}->{type} = ( $args->{medium} eq 'copy' ) ? 'Kopie' : 'Leihe';
         # Deal with AusgabeOrt => pickup_location translation
+        my $default_pickup_location = $configuration->{default_ill_branch} // 'CPL';
         my $pickup_location_description = $args->{attributes}->{pickup_location_description};
-        my $pickup_location = $pickup_location_description and $configuration->{pickup_location_mapping}->{$pickup_location_description}
+        my $pickup_location = ( $pickup_location_description and $configuration->{pickup_location_mapping}->{$pickup_location_description} )
                             ? $configuration->{pickup_location_mapping}->{$pickup_location_description}
-                            : $configuration->{default_ill_branch} // 'CPL';
+                            : $default_pickup_location;
 
         # fields for table illrequests
         $args->{branchcode} = $pickup_location;
