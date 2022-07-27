@@ -16,9 +16,8 @@
   [% END %]
 [% END %]
 
-[%# IF whole.stage == 'init' #%]
+[% IF whole.stage == 'init' %]
   <h2>Process delivery ([% request.orderid %])</h2>
-[%# END #%]
 
   <form id="SLNP_delivery" name="SLNP_delivery" method="POST" action=[% here %]>
 
