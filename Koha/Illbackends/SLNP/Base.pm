@@ -561,6 +561,8 @@ sub receive {
 
         try {
 
+            my $type = $params->{other}->{type} // 'loan';
+
             my $new_attributes = {};
 
             $new_attributes->{received_on_date} = dt_from_string($params->{other}->{received_on_date})
@@ -642,8 +644,8 @@ sub receive {
             }
 
             # item information
-            $item->itype( $params->{other}->{item_type} )
-              if $params->{other}->{item_type};
+            my $item_type = $self->{configuration}->{$type};
+            $item->itype($item_type);
 
             $item->restricted( $params->{other}->{item_usage_restrictions} )
               if defined $params->{other}->{item_usage_restrictions};
@@ -676,6 +678,7 @@ sub receive {
                 );
             }
 
+            $request->type($type);
             $request->status('RECVD')->store;
 
             $backend_result->{stage} = 'commit';
