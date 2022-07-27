@@ -1355,6 +1355,8 @@ sub add_biblio {
         my $isbn   = $other->{attributes}->{isbn};
         my $issn   = $other->{attributes}->{issn};
 
+        my $configuration = $self->{configuration};
+
         # Create the MARC::Record object and populate it
         my $marcrecord = MARC::Record->new();
         $marcrecord->MARC::Record::encoding('UTF-8');
@@ -1373,7 +1375,9 @@ sub add_biblio {
         }
         my $marc_field245;
         if ( defined($title) && length($title) > 0 ) {
-            $marc_field245 = MARC::Field->new( '245', '0', '0', 'a' => $title );
+            my $prefix = $configuration->{title_prefix} // '';
+            my $suffix = $configuration->{title_suffix} // '';
+            $marc_field245 = MARC::Field->new( '245', '0', '0', 'a' => $prefix . $title . $suffix );
         }
         if ( defined($author) && length($author) > 0 ) {
             if ( !defined($marc_field245) ) {
