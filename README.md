@@ -53,6 +53,7 @@ category_fee:
   ST: null # no charge
   PT: 2
 partner_category_code: IL
+default_hold_note: Placed by ILL
 default_framework: FA
 default_ill_itype: BK
 pfl_number_prefix: "PREFIX "

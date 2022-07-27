@@ -596,6 +596,27 @@ sub receive {
               $params->{other}->{circulation_notes}
               if $params->{other}->{circulation_notes};
 
+            # place a hold on behalf of the patron
+            # FIXME: Should call CanItemBeReserved first?
+            my $biblio = $request->biblio;
+            my $hold_id = C4::Reserves::AddReserve(
+                {
+                    branchcode       => $request->branchcode,
+                    borrowernumber   => $patron->borrowernumber,
+                    biblionumber     => $request->biblio_id,
+                    priority         => 1,
+                    reservation_date => undef,
+                    expiration_date  => undef,
+                    notes            => $self->{configuration}->{default_hold_note} // 'Placed by ILL',
+                    title            => $biblio->title,
+                    itemnumber       => $itemnumber,
+                    found            => undef,
+                    itemtype         => undef
+                }
+            );
+
+            $new_attributes->{hold_id} = $hold_id;
+
             while ( my ( $type, $value ) = each %{$new_attributes} ) {
 
                 my $attr = $request->illrequestattributes->find(
