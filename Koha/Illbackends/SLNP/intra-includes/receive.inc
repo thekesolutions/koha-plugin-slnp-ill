@@ -16,10 +16,9 @@
   [% END %]
 [% END %]
 
-[% IF whole.stage == "update" %]
-  <h2>Edit delivery ([% request.orderid %])</h2>
-[% ELSIF whole.stage == 'init' %]
+[%# IF whole.stage == 'init' #%]
   <h2>Process delivery ([% request.orderid %])</h2>
+[%# END #%]
 
   <form id="SLNP_delivery" name="SLNP_delivery" method="POST" action=[% here %]>
 
@@ -81,19 +80,6 @@
     <fieldset class="rows">
     <legend>Item</legend>
       <ol>
-        <li>
-          <label class="required" for="item_type">Item type:</label>
-            <select name="item_type" id="item_type" required="required">
-            [% FOREACH it IN whole.value.item_types %]
-              [% IF it.selected %]
-                <option value="[% it.value | html %]" selected="selected">[% ItemTypes.GetDescription(it.value) | html %]</option>
-              [% ELSE %]
-                <option value="[% it.value | html %]">[% ItemTypes.GetDescription(it.value) | html %]</option>
-              [% END %]
-            [% END %]
-          </select>
-        </li>
-
         <li>
           <label for="item_callnumber">Callnumber:</label>
           <input type="text" size="50" name="item_callnumber" id="item_callnumber" value="[% whole.value.item.itemcallnumber | html %]" />
