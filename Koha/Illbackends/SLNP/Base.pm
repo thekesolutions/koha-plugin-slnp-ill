@@ -600,18 +600,19 @@ sub receive {
 
             # place a hold on behalf of the patron
             # FIXME: Should call CanItemBeReserved first?
-            my $biblio = $request->biblio;
+            my $biblio  = $request->biblio;
+            my $item_id = $request->illrequestattributes->search({ type => 'item_id' })->next->value;
             my $hold_id = C4::Reserves::AddReserve(
                 {
                     branchcode       => $request->branchcode,
-                    borrowernumber   => $patron->borrowernumber,
+                    borrowernumber   => $request->borrowernumber,
                     biblionumber     => $request->biblio_id,
                     priority         => 1,
                     reservation_date => undef,
                     expiration_date  => undef,
                     notes            => $self->{configuration}->{default_hold_note} // 'Placed by ILL',
                     title            => $biblio->title,
-                    itemnumber       => $itemnumber,
+                    itemnumber       => $item_id,
                     found            => undef,
                     itemtype         => undef
                 }
