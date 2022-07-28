@@ -56,6 +56,7 @@ partner_category_code: IL
 default_hold_note: Placed by ILL
 default_framework: FA
 default_ill_itype: BK
+barcode_prefix: FL
 pfl_number_prefix: "PREFIX "
 title_prefix: "PREFIX "
 title_suffix: " (SUFFIX)"
