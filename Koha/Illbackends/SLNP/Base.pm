@@ -25,6 +25,7 @@ use Data::Dumper;
 use File::Basename qw( dirname );
 use JSON qw( to_json );
 use MARC::Record;
+use Scalar::Util qw(blessed);
 use Try::Tiny;
 use URI::Escape;
 use XML::LibXML;
@@ -37,6 +38,7 @@ use C4::Members::Messaging;
 use C4::Reserves qw(AddReserve);
 
 use Koha::Biblios;
+use Koha::Database;
 use Koha::DateUtils qw(dt_from_string output_pref);
 use Koha::Illrequest::Config;
 use Koha::Items;
@@ -560,118 +562,117 @@ sub receive {
         # process the receiving parameters
 
         try {
+            Koha::Database->new->schema->txn_do(
+                sub {
 
-            my $type = $params->{other}->{type} // 'loan';
+                my $type = $params->{other}->{type} // 'loan';
 
-            my $new_attributes = {};
+                my $new_attributes = {};
 
-            $new_attributes->{received_on_date} = dt_from_string($params->{other}->{received_on_date})
-            if $params->{other}->{received_on_date};
+                $new_attributes->{received_on_date} = dt_from_string($params->{other}->{received_on_date})
+                if $params->{other}->{received_on_date};
 
-            $new_attributes->{due_date} = dt_from_string($params->{other}->{due_date})
-            if $params->{other}->{due_date};
+                $new_attributes->{due_date} = dt_from_string($params->{other}->{due_date})
+                if $params->{other}->{due_date};
 
-            $new_attributes->{request_charges} = $params->{other}->{request_charges}
-            if $params->{other}->{request_charges};
+                $new_attributes->{request_charges} = $params->{other}->{request_charges}
+                if $params->{other}->{request_charges};
 
-            $new_attributes->{lending_library} = $params->{other}->{lending_library}
-            if $params->{other}->{lending_library};
+                $new_attributes->{lending_library} = $params->{other}->{lending_library}
+                if $params->{other}->{lending_library};
 
-            my $item_id = $request->illrequestattributes->find({ type => 'item_id' })->value;
-
-            if ( $params->{other}->{charge_extra_fee} and
-                 $params->{other}->{request_charges} and
-                 $params->{other}->{request_charges} > 0 ) {
-                my $debit = $request->patron->account->add_debit(
-                    {
-                        amount    => $params->{other}->{request_charges},
-                        item_id   => $item_id,
-                        interface => 'intranet',
-                        type      => $self->{configuration}->{extra_fee_debit_type} // 'ILL',
-                    }
-                );
-
-                $new_attributes->{debit_id} = $debit->id;
-            }
-
-            $new_attributes->{circulation_notes} =
-              $params->{other}->{circulation_notes}
-              if $params->{other}->{circulation_notes};
-
-            # place a hold on behalf of the patron
-            # FIXME: Should call CanItemBeReserved first?
-            my $biblio  = $request->biblio;
-            my $item_id = $request->illrequestattributes->search({ type => 'item_id' })->next->value;
-            my $hold_id = C4::Reserves::AddReserve(
-                {
-                    branchcode       => $request->branchcode,
-                    borrowernumber   => $request->borrowernumber,
-                    biblionumber     => $request->biblio_id,
-                    priority         => 1,
-                    reservation_date => undef,
-                    expiration_date  => undef,
-                    notes            => $self->{configuration}->{default_hold_note} // 'Placed by ILL',
-                    title            => $biblio->title,
-                    itemnumber       => $item_id,
-                    found            => undef,
-                    itemtype         => undef
-                }
-            );
-
-            $new_attributes->{hold_id} = $hold_id;
-
-            while ( my ( $type, $value ) = each %{$new_attributes} ) {
-
-                my $attr = $request->illrequestattributes->find(
-                    {
-                        type => $type
-                    }
-                );
-
-                if ($attr) {    # update
-                    if ( $attr->value ne $value ) {
-                        $attr->update( { value => $value, } );
-                    }
-                }
-                else {          # new
-                    $attr = Koha::Illrequestattribute->new(
+                if ( $params->{other}->{charge_extra_fee} and
+                    $params->{other}->{request_charges} and
+                    $params->{other}->{request_charges} > 0 ) {
+                    my $debit = $request->patron->account->add_debit(
                         {
-                            illrequest_id => $request->id,
-                            type          => $type,
-                            value         => $value,
+                            amount    => $params->{other}->{request_charges},
+                            item_id   => $item->id,
+                            interface => 'intranet',
+                            type      => $self->{configuration}->{extra_fee_debit_type} // 'ILL',
                         }
-                    )->store;
+                    );
+
+                    $new_attributes->{debit_id} = $debit->id;
                 }
-            }
 
-            # item information
-            my $item_type = $self->{configuration}->{$type};
-            $item->itype($item_type);
+                $new_attributes->{circulation_notes} =
+                $params->{other}->{circulation_notes}
+                if $params->{other}->{circulation_notes};
 
-            $item->restricted( $params->{other}->{item_usage_restrictions} )
-              if defined $params->{other}->{item_usage_restrictions};
+                # place a hold on behalf of the patron
+                # FIXME: Should call CanItemBeReserved first?
+                my $biblio  = $request->biblio;
+                my $hold_id = C4::Reserves::AddReserve(
+                    {
+                        branchcode       => $request->branchcode,
+                        borrowernumber   => $request->borrowernumber,
+                        biblionumber     => $request->biblio_id,
+                        priority         => 1,
+                        reservation_date => undef,
+                        expiration_date  => undef,
+                        notes            => $self->{configuration}->{default_hold_note} // 'Placed by ILL',
+                        title            => $biblio->title,
+                        itemnumber       => $item->id,
+                        found            => undef,
+                        itemtype         => undef
+                    }
+                );
 
-            $item->itemcallnumber( $params->{other}->{item_callnumber} )
-              if $params->{other}->{item_callnumber};
+                $new_attributes->{hold_id} = $hold_id;
 
-            $item->damaged ( $params->{other}->{item_damaged} )
-              if $params->{other}->{item_damaged};
+                while ( my ( $type, $value ) = each %{$new_attributes} ) {
 
-            $item->itemnotes_nonpublic( $params->{other}->{item_internal_note} )
-              if $params->{other}->{item_internal_note};
+                    my $attr = $request->illrequestattributes->find(
+                        {
+                            type => $type
+                        }
+                    );
 
-            $item->materials( $params->{other}->{item_number_of_parts} )
-              if $params->{other}->{item_number_of_parts};
+                    if ($attr) {    # update
+                        if ( $attr->value ne $value ) {
+                            $attr->update( { value => $value, } );
+                        }
+                    }
+                    else {          # new
+                        $attr = Koha::Illrequestattribute->new(
+                            {
+                                illrequest_id => $request->id,
+                                type          => $type,
+                                value         => $value,
+                            }
+                        )->store;
+                    }
+                }
 
-            $item->store;
+                # item information
+                my $item_type = $self->{configuration}->{$type};
+                $item->set(
+                    {   itype               => $item_type,
+                        restricted          => $params->{other}->{item_usage_restrictions},
+                        itemcallnumber      => $params->{other}->{item_callnumber},
+                        damaged             => $params->{other}->{item_damaged},
+                        itemnotes_nonpublic => $params->{other}->{item_internal_note},
+                        materials           => $params->{other}->{item_number_of_parts},
+                    }
+                )->store;
 
-            $request->type($type);
-            $request->status('RECVD')->store;
+                $request->medium($type);
+                $request->status('RECVD')->store;
 
-            $backend_result->{stage} = 'commit';
+                $backend_result->{stage} = 'commit';
+            });
         }
         catch {
             warn "$_";
+            if ( blessed($_) and $_->isa('Koha::Exceptions::Account::UnrecognisedType') ) {
+                $backend_result->{status} = 'invalid_debit_type';
+            }
+            else {
+                $backend_result->{status} = 'unknown';
+            }
+
+            $backend_result->{error}  = 1;
             $backend_result->{stage} = 'commit';
         };
     }
@@ -1696,6 +1697,23 @@ sub get_item_from_request {
       unless $item;
 
     return $item;
+}
+
+=head3 capabilities
+    $capability = $backend->capabilities($name);
+Return the sub implementing a capability selected by NAME, or 0 if that
+capability is not implemented.
+=cut
+
+sub capabilities {
+    my ( $self, $name ) = @_;
+    my ($query) = @_;
+    my $capabilities = {
+
+        # Perform the receive workflow
+        receive => sub { receive(@_); },
+    };
+    return $capabilities->{$name};
 }
 
 1;

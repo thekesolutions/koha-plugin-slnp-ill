@@ -9,8 +9,8 @@
 [% USE Price %]
 
 [% IF whole.error %]
-  [% IF whole.status == 'missing_sendingIllLibraryInfo' %]
-    <p><em>Note:</em> The mandatory field 'Lending library' is empty.</p>
+  [% IF whole.status == 'invalid_debit_type' %]
+    <p><em>Note:</em> The configured debit type doesn't exist.</p>
   [% ELSE %]
     <p>Unknown error</p>
   [% END %]
