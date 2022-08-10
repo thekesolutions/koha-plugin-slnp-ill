@@ -15,11 +15,10 @@ services:
         depends_on:
             - db
             - memcached
-            - es
         cap_add:
             - ALL
         volumes:
-            - /home/tcohen/git/koha-20.11:/kohadevbox/koha
+            - ${SYNC_REPO}:/kohadevbox/koha
             - ${PLUGIN_REPO}:/kohadevbox/koha_plugin
         tmpfs:
             - /cover_db
@@ -47,19 +46,6 @@ services:
     memcached:
         image: memcached
         command: memcached -m 64m
-        networks:
-            - kohanet
-    es:
-        image: koha/elasticsearch-icu:6.x
-        environment:
-            - cluster.name=docker-cluster
-            - bootstrap.memory_lock=true
-            - xpack.security.enabled=false
-            - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
-        ulimits:
-            memlock:
-                soft: -1
-                hard: -1
         networks:
             - kohanet
 
