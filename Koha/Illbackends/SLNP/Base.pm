@@ -646,7 +646,7 @@ sub receive {
                 }
 
                 # item information
-                my $item_type = $self->{configuration}->{$type};
+                my $item_type = $self->{configuration}->{item_types}->{$type};
                 $item->set(
                     {   itype               => $item_type,
                         restricted          => $params->{other}->{item_usage_restrictions},
