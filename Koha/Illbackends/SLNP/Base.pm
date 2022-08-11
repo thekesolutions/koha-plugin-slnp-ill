@@ -420,13 +420,26 @@ sub create {
         SLNP::Exception::BadConfig->throw( param => 'default_ill_branch', value => $library_id )
           unless Koha::Libraries->find($library_id);
 
-        my $biblionumber = $self->add_biblio( $params->{other} );
+        my $biblio_id = $self->add_biblio( $params->{other} );
+        my $item_id   = $self->add_item(
+            {
+                biblio_id       => $biblio_id,
+                medium          => $params->{other}->{medium},
+                request         => $params->{request},
+                callnumber      => $params->{other}->{attributes}->{shelfmark},
+                notes           => undef,
+                notes_nonpublic => $params->{other}->{attributes}->{notes},
+                orderid         => $params->{other}->{orderid},                   # zflorderid
+            }
+        )->id;
 
         my $now = dt_from_string();
+        my $fee = $self->charge_ill_fee( { patron => $patron, item_id => $item_id } );
+
         $params->{request}->set(
             {
                 borrowernumber => $patron->borrowernumber,
-                biblio_id      => $biblionumber,
+                biblio_id      => $biblio_id,
                 branchcode     => $library_id,
                 status         => 'REQ',
                 placed         => $now,
@@ -434,20 +447,9 @@ sub create {
                 medium         => $params->{other}->{medium},
                 orderid        => $params->{other}->{orderid},
                 backend        => $self->name,
+                price_paid     => "$fee", # FIXME: varchar => formatting?
             }
         )->store;
-
-        my $item_id = $self->add_item(
-            {
-                biblio_id       => $biblionumber,
-                medium          => $params->{other}->{medium},
-                request         => $params->{request},
-                callnumber      => $params->{other}->{attributes}->{shelfmark},
-                notes           => undef,
-                notes_nonpublic => $params->{other}->{attributes}->{notes},
-                orderid         => $params->{other}->{orderid}, # zflorderid
-            }
-        )->id;
 
         # populate table illrequestattributes
         $params->{other}->{attributes}->{item_id} = $item_id;
@@ -462,8 +464,6 @@ sub create {
                 )->store;
             };
         }
-
-        $self->charge_ill_fee( { patron => $patron, item_id => $item_id } );
 
         $backend_result->{stage} = "commit";
         $backend_result->{value} = $params;
@@ -1668,7 +1668,7 @@ sub charge_ill_fee {
         };
     }
 
-    return $self;
+    return $fee;
 }
 
 =head3 get_item_from_request
