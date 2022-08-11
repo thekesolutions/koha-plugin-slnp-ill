@@ -151,7 +151,7 @@ sub status_graph {
 
         # Pseudo status, not stored in illrequests. Sole purpose: displaying 'Eingang bearbeiten' dialog for update (status stays unchanged)
         RECVDUPD => {
-            prev_actions   => [ 'RECVD', 'CHK', 'CHKDIN' ],
+            prev_actions   => [ 'RECVD', 'CHK', 'RET' ],
             id             => 'RECVDUPD',
             name           => 'Eingangsverbucht',
             ui_method_name => 'Eingang bearbeiten',
@@ -167,14 +167,14 @@ sub status_graph {
             name           => 'Ausgeliehen',
             ui_method_name => 'Aufruf_durch_Koha_Ausleihe',       # not used in GUI
             method         => 'leiheAus',
-            next_actions   => [],                                 # in reality: ['CHKDIN', 'LOSTACO']
+            next_actions   => [],                                 # in reality: ['RET', 'LOSTACO']
             ui_method_icon => 'fa-check',
         },
 
         # status 'Checkedin' (not for GUI, now internally handled by itemCheckedIn(), called by C4::Circulation::AddReturn() )
-        CHKDIN => {
+        RET => {
             prev_actions   => [],                                 # Officially empty, so not used in GUI. in reality: ['CHK']
-            id             => 'CHKDIN',
+            id             => 'RET',
             name           => "R\N{U+fc}ckgegeben",
             ui_method_name => 'Aufruf_durch_Koha_Rueckgabe',      # not used in GUI
             method         => 'gebeRueck',
@@ -184,7 +184,7 @@ sub status_graph {
 
         # Pseudo status, not stored in illrequests. Sole purpose: displaying "Rueckversenden" dialog (status becomes 'COMP')
         SNTBCK => {                                               # medium is sent back, mark this ILL request as COMP
-            prev_actions   => [ 'RECVD', 'CNCLDFU', 'CHKDIN' ],
+            prev_actions   => [ 'RECVD', 'CNCLDFU', 'RET' ],
             id             => 'SNTBCK',
             name           => "Zur\N{U+fc}ckversandt",
             ui_method_name => "R\N{U+fc}ckversenden",
@@ -195,7 +195,7 @@ sub status_graph {
 
         # Pseudo status, not stored in illrequests. Sole purpose: displaying 'Verlust buchen' dialog (status stays unchanged)
         LOSTHOWTO => {
-            prev_actions   => [ 'RECVD', 'CHK', 'CHKDIN' ],
+            prev_actions   => [ 'RECVD', 'CHK', 'RET' ],
             id             => 'LOSTHOWTO',
             name           => 'Verlust HowTo',
             ui_method_name => 'Verlust buchen',
@@ -217,7 +217,7 @@ sub status_graph {
 
         # status 'LostAfterCheckOut' (not for GUI, now internally handled by itemLost(), called by cataloguing::additem.pl and catalogue::updateitem.pl )
         LOSTACO => {                                                  # lost by user After CheckOut or by library after CheckIn
-            prev_actions   => [],                                     # Officially empty, so not used in GUI. in reality: ['CHK', 'CHKDIN']
+            prev_actions   => [],                                     # Officially empty, so not used in GUI. in reality: ['CHK', 'RET']
             id             => 'LOSTACO',
             name           => 'Verlust',
             ui_method_name => 'Aufruf_durch_Koha_Verlust-Buchung',    # not used in GUI
@@ -1489,7 +1489,7 @@ sub itemCheckedOut {
 
 sub itemCheckedIn {
     my ( $self, $request ) = @_;
-    $request->status('CHKDIN')->store;
+    $request->status('RET')->store;
 
     # if it is an article, then use this action to transfer the status to completed
     if ( $request->medium() eq 'copy' ) {
@@ -1536,7 +1536,7 @@ sub sortAction {
         'RECVD'     => 2,
         'RECVDUPD'  => 3,
         'CHK'       => 4,
-        'CHKDIN'    => 5,
+        'RET'       => 5,
         'SNTBCK'    => 6,
         'NEGFLAG'   => 7,
         'CNCLDFU'   => 8,

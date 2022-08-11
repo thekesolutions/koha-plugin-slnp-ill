@@ -18,7 +18,7 @@
             </strong>
         </p>
     [% ELSE %]
-        [% IF ! ( request.status == 'CHKDIN' || request.status == 'CNCLDFU' ) %]
+        [% IF ! ( request.status == 'RET' || request.status == 'CNCLDFU' ) %]
             <p>
                 <strong>
                     The current status ([% request.status %]) of the ILL request doesn't allow for this action.<br>
@@ -70,7 +70,7 @@
 <script type= "text/javascript">
 
     $(document).ready(function() {
-        [% IF ! ( request.status == 'RECVD' || request.status == 'CHKDIN' || request.status == 'CNCLDFU' ) %]
+        [% IF ! ( request.status == 'RECVD' || request.status == 'RET' || request.status == 'CNCLDFU' ) %]
             submitbutton.disabled = true;
         [% END %]
 
