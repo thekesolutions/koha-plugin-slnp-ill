@@ -463,7 +463,7 @@ sub create {
             };
         }
 
-        $self->charge_ill_fee( { patron => $patron } );
+        $self->charge_ill_fee( { patron => $patron, item_id => $item_id } );
 
         $backend_result->{stage} = "commit";
         $backend_result->{value} = $params;
@@ -1651,6 +1651,7 @@ sub charge_ill_fee {
                 {   amount    => $fee,
                     interface => 'intranet',
                     type      => $debit_type,
+                  ( $args->{item_id} ? ( item_id => $args->{item_id} ) : () )
                 }
             );
         }
