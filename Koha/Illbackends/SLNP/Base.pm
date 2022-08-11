@@ -593,6 +593,7 @@ sub receive {
                         }
                     );
 
+                    $request->cost($params->{other}->{request_charges});
                     $new_attributes->{debit_id} = $debit->id;
                 }
 
