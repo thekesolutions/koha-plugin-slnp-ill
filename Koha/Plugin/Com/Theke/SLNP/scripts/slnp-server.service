@@ -1,0 +1,8 @@
+[Unit]
+Description=SLNP server.
+
+[Service]
+ExecStart=/usr/sbin/slnp-server.sh $(koha-list)
+
+[Install]
+WantedBy=multi-user.target

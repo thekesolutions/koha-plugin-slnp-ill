@@ -21,14 +21,6 @@ The remaining features of this ILL backend are accessible via the standard ILL f
 <backend_directory>/var/lib/koha/<instance>/Koha/Illbackends</backend_directory>
 ```
 
-```shell
-export KOHA_INSTANCE=<the_name_of_your_Koha_instance>
-export KOHA_CONF=/etc/koha/sites/$KOHA_INSTANCE/koha-conf.xml
-export PERL5LIB=/usr/share/koha/lib
-cd $PERL5LIB/Koha/Illbackends/SLNP/install
-./install.pl
-```
-
 * Activate the Koha ILL framwork and ILL backends by enabling the 'ILLModule' system preference.
 * Check the <interlibrary_loans> division in your koha-conf.xml.
 
@@ -75,6 +67,25 @@ The plugin bundles an SLNP server. The server code belongs to a specific Koha in
 
 ```shell
 /path/to/the/plugins/dir/Koha/Plugin/Com/Theke/SLNP/scripts/slnp-server.sh --start kohadev
+```
+
+### Running at startup
+
+In order to run the service at startup time, a _systemd unit file_ is provided.
+
+```shell
+export INSTANCE=kohadev
+# Add a symlink for the startup script
+ln -s \
+    /var/lib/koha/$INSTANCE/plugins/Koha/Plugin/Com/Theke/SLNP/scripts/slnp-server.sh \
+    /usr/sbin/slnp-server.sh
+# Add a symlink for the unit file
+ln -s \
+    /var/lib/koha/$INSTANCE/plugins/Koha/Plugin/Com/Theke/SLNP/scripts/slnp-server.service \
+    /etc/systemd/system/slnp-server.service
+# Tell systemctl about it
+systemctl daemon-reload
+systemctl enable slnp-server.service
 ```
 
 ## Development
