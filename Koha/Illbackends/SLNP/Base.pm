@@ -425,7 +425,7 @@ sub create {
             {
                 biblio_id       => $biblio_id,
                 medium          => $params->{other}->{medium},
-                request         => $params->{request},
+                library_id      => $library_id,
                 callnumber      => $params->{other}->{attributes}->{shelfmark},
                 notes           => undef,
                 notes_nonpublic => $params->{other}->{attributes}->{notes},
@@ -1392,7 +1392,7 @@ sub add_biblio {
         {
             biblio_id       => $biblio->id,
             medium          => 'Book' / 'Article',
-            request         => $ill_request,
+            library_id      => $library_id,
             callnumber      => $callnumber,
             notes           => $item_notes,
             notes_nonpublic => $item_notes_nonpublic,
@@ -1407,7 +1407,7 @@ sub add_item {
     my ( $self, $params ) = @_;
 
     my @mandatory = (
-        'biblio_id', 'medium', 'request', 'orderid'
+        'biblio_id', 'medium', 'library_id', 'orderid'
     );
     for my $param (@mandatory) {
         unless ( defined( $params->{$param} ) ) {
@@ -1429,13 +1429,13 @@ sub add_item {
 
     return Koha::Item->new(
         {
-            homebranch          => $request->branchcode(),
+            homebranch          => $params->{library_id},
             barcode             => $barcode,
             notforloan          => undef,
             itemcallnumber      => undef,
             itemnotes           => $params->{notes},
             itemnotes_nonpublic => $params->{notes_nonpublic},
-            holdingbranch       => $request->branchcode(),
+            holdingbranch       => $params->{library_id},
             itype               => $item_type,
             biblionumber        => $biblio->biblionumber,
             biblioitemnumber    => $biblio->biblioitem->biblioitemnumber,
