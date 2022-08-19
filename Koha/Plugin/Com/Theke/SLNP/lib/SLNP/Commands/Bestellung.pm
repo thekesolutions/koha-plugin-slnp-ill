@@ -178,21 +178,22 @@ sub attribute_mapping {
     return {
         AufsatzAutor   => 'article_author',
         AufsatzTitel   => 'article_title',
-        Bemerkung      => 'notes',
-        Heft           => 'issue',            # FIXME: duplicate mapping
-        Seitenangabe   => 'article_pages',
         AusgabeOrt     => 'pickup_location_description',
-        Issn           => 'issn',
-        BestellId      => 'zflorderid',
+        Band           => 'volume',
+        Bemerkung      => 'notes',
         BenutzerNummer => 'cardnumber',
-        Verfasser      => 'author',
-        Titel          => 'title',
-        Isbn           => 'isbn',
-        Verlag         => 'publisher',
-        EJahr          => 'publyear',
-        Auflage        => 'issue',
-        Signatur       => 'shelfmark',
+        BestellId      => 'zflorderid',
+        EJahr          => 'year',
         Info           => 'info',
+        Isbn           => 'isbn',
+        Issn           => 'issn',
+        Seitenangabe   => 'pages',
+        Signatur       => 'shelfmark',
+        Titel          => 'title',
+        Verfasser      => 'author',
+        Verlag         => 'publisher',
+        Auflage        => 'issue', # copy case
+        Heft           => 'issue', # loan case
     };
 }
 
