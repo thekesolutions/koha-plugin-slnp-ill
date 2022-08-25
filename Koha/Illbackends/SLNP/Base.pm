@@ -766,6 +766,12 @@ sub update {
 
             my $new_attributes = {};
 
+            my $request_type = $params->{other}->{type} // 'loan';
+
+            my $new_attributes = {};
+
+            $new_attributes->{type} = $request_type eq 'loan' ? 'Leihe' : 'Kopie';
+
             $new_attributes->{received_on_date} = dt_from_string($params->{other}->{received_on_date})
             if $params->{other}->{received_on_date};
 
@@ -855,6 +861,21 @@ sub update {
                     }
                 );
             }
+
+            # item information
+            my $item_type = $self->{configuration}->{item_types}->{$request_type};
+            $item->set(
+                {   itype               => $item_type,
+                    restricted          => $params->{other}->{item_usage_restrictions},
+                    itemcallnumber      => $params->{other}->{item_callnumber},
+                    damaged             => $params->{other}->{item_damaged},
+                    itemnotes_nonpublic => $params->{other}->{item_internal_note},
+                    materials           => $params->{other}->{item_number_of_parts},
+                }
+            )->store;
+
+            $request->medium($request_type);
+            $request->store;
 
             $backend_result->{stage} = 'commit';
         }
