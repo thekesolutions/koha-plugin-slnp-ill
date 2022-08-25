@@ -116,7 +116,7 @@
     </fieldset>
 
     <fieldset class="rows">
-    <legend>Notification</legend>
+    <legend>Patron details</legend>
       <ol>
         <li>
           <label for="the_patron">Requesting patron:</label>
@@ -124,14 +124,6 @@
             <a target="_blank" href="/cgi-bin/koha/members/moremember.pl?borrowernumber=[% whole.value.patron.borrowernumber %]">
             [% whole.value.patron.firstname | html %] [% whole.value.patron.surname | html %] ([% whole.value.patron.cardnumber | html %])</a>
           </div>
-        </li>
-        <li>
-          <label for="notify_patron">Notify:</label>
-        [% IF whole.value.notify %]
-          <input type="checkbox" id="notify_patron" name="notify_patron" checked />
-        [% ELSE %]
-          <input type="checkbox" id="notify_patron" name="notify_patron" />
-        [% END %]
         </li>
       </ol>
     </fieldset>
