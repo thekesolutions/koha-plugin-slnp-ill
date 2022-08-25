@@ -565,9 +565,11 @@ sub receive {
             Koha::Database->new->schema->txn_do(
                 sub {
 
-                my $type = $params->{other}->{type} // 'loan';
+                my $request_type = $params->{other}->{type} // 'loan';
 
                 my $new_attributes = {};
+
+                $new_attributes->{type} = $request_type eq 'loan' ? 'Leihe' : 'Kopie';
 
                 $new_attributes->{received_on_date} = dt_from_string($params->{other}->{received_on_date})
                 if $params->{other}->{received_on_date};
@@ -647,7 +649,7 @@ sub receive {
                 }
 
                 # item information
-                my $item_type = $self->{configuration}->{item_types}->{$type};
+                my $item_type = $self->{configuration}->{item_types}->{$request_type};
                 $item->set(
                     {   itype               => $item_type,
                         restricted          => $params->{other}->{item_usage_restrictions},
@@ -658,7 +660,7 @@ sub receive {
                     }
                 )->store;
 
-                $request->medium($type);
+                $request->medium($request_type);
                 $request->status('RECVD')->store;
 
                 $backend_result->{stage} = 'commit';
