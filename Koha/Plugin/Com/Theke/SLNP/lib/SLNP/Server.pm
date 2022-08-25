@@ -118,6 +118,12 @@ my $SLNPCmds = {
                 'regex' => '^\s*(.+)$',
             },
 
+            # <Band>
+            'Band' => {
+                'level' => 1,
+                'regex' => '^\s*(.+)$',
+            },
+
             # <BestellTyp>
             'BsTyp' => {
                 'level' => 1,
@@ -964,6 +970,7 @@ sub cmdFLBestellung {
         'Auflage',        'Seitenangabe',
         'Signatur',       'Info',
         'Bemerkung',      'AusgabeOrt',
+        'Band',
     );
 
     foreach my $field (@fields) {
