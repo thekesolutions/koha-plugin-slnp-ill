@@ -118,6 +118,21 @@
     </fieldset>
 
     <fieldset class="rows">
+    <legend>Request</legend>
+      <ol>
+        <li>
+          <label for="opac_note">OPAC note:</label>
+          <textarea id="opac_note" name="opac_note" rows="4" cols="50">[% whole.value.opac_note | html %]</textarea>
+        </li>
+
+        <li>
+          <label for="staff_note">Staff note:</label>
+          <textarea id="staff_note" name="staff_note" rows="4" cols="50">[% whole.value.staff_note | html %]</textarea>
+        </li>
+      </ol>
+    </fieldset>
+
+    <fieldset class="rows">
     <legend>Patron details</legend>
       <ol>
         <li>

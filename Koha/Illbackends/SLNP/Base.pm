@@ -527,6 +527,9 @@ sub receive {
             $template_params->{notify} = 1;
         }
 
+        $template_params->{opac_note}  = $request->notesopac;
+        $template_params->{staff_note} = $request->notesstaff;
+
         $template_params->{item_types} = [
             { value => $self->get_item_type( 'copy' ), selected => ( $request->medium eq 'copy' ) ? 1 : 0 },
             { value => $self->get_item_type( 'loan' ), selected => ( $request->medium eq 'loan' ) ? 1 : 0 },
@@ -636,8 +639,13 @@ sub receive {
                     }
                 )->store;
 
-                $request->medium($request_type);
-                $request->status('RECVD')->store;
+                $request->set(
+                    {   medium     => $request_type,
+                        notesopac  => $params->{other}->{opac_note},
+                        notesstaff => $params->{other}->{staff_note},
+                        status     => 'RECVD',
+                    }
+                )->store;
 
                 $backend_result->{stage} = 'commit';
             });
