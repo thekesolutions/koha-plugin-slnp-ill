@@ -722,6 +722,9 @@ sub update {
         $template_params->{item}   = $item;
         $template_params->{patron} = $request->patron;
 
+        $template_params->{opac_note}  = $request->notesopac;
+        $template_params->{staff_note} = $request->notesstaff;
+
         $template_params->{item_types} = [
             { value => $self->get_item_type( 'copy' ), selected => ( $request->medium eq 'copy' ) ? 1 : 0 },
             { value => $self->get_item_type( 'loan' ), selected => ( $request->medium eq 'loan' ) ? 1 : 0 },
@@ -844,8 +847,12 @@ sub update {
                 }
             )->store;
 
-            $request->medium($request_type);
-            $request->store;
+            $request->set(
+                {   medium     => $request_type,
+                    notesopac  => $params->{other}->{opac_note},
+                    notesstaff => $params->{other}->{staff_note},
+                }
+            )->store;
 
             $backend_result->{stage} = 'commit';
         }

@@ -150,6 +150,23 @@ sub api_namespace {
     return 'slnp';
 }
 
+=head3 intranet_js
+
+Method that returns JS to be injected to the staff interface.
+
+=cut
+
+sub intranet_head {
+    my ( $self ) = @_;
+
+    return q{
+        <script>
+            $(document).ready(function(){
+               $('#ill-toolbar-btn-edit-action').hide();
+            });
+        </script>
+    };
+}
 
 1;
 

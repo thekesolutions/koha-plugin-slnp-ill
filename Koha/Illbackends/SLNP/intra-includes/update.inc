@@ -120,6 +120,21 @@
     </fieldset>
 
     <fieldset class="rows">
+    <legend>Request</legend>
+      <ol>
+        <li>
+          <label for="opac_note">OPAC note:</label>
+          <input type="text" size="50" name="opac_note" id="opac_note" value="[% whole.value.opac_note | html %]" />
+        </li>
+
+        <li>
+          <label for="staff_note">Staff note:</label>
+          <input type="text" size="50" name="staff_note" id="staff_note" value="[% whole.value.staff_note | html %]" />
+        </li>
+      </ol>
+    </fieldset>
+
+    <fieldset class="rows">
     <legend>Patron details</legend>
       <ol>
         <li>
