@@ -48,10 +48,11 @@
         </li>
 
         <li>
-          <label class="required" for="lending_library">Lending library:</label>
           [% IF whole.value.mandatory_lending_library %]
+            <label class="required" for="lending_library">Lending library:</label>
             <select name="lending_library" id="lending_library" required="required" class="select2" style="width: 45%">
           [% ELSE %]
+            <label for="lending_library">Lending library:</label>
             <select name="lending_library" id="lending_library" class="select2" style="width: 45%">
           [% END %]
                 <option value="">&nbsp;</option>
