@@ -135,12 +135,12 @@ sub status_graph {
             name           => 'Bestellt',
             ui_method_name => undef,
             method         => undef,
-            next_actions   => ['RECVD'],
+            next_actions   => [ 'RECVD', 'NEGFLAG' ],
             ui_method_icon => '',
         },
         # status 'Received' (This action is used when the ordered ILL item is received in the library of the ordering borrower.)
         RECVD => {
-            prev_actions   => [ 'REQ', ],
+            prev_actions   => [ 'REQ' ],
             id             => 'RECVD',
             name           => 'Eingangsverbucht',
             ui_method_name => 'Eingang verbuchen',
@@ -151,7 +151,7 @@ sub status_graph {
 
         # Pseudo status, not stored in illrequests. Sole purpose: displaying 'Eingang bearbeiten' dialog for update (status stays unchanged)
         RECVDUPD => {
-            prev_actions   => [ 'RECVD', 'CHK', 'RET' ],
+            prev_actions   => [ 'RECVD' ],
             id             => 'RECVDUPD',
             name           => 'Eingangsverbucht',
             ui_method_name => 'Eingang bearbeiten',
@@ -182,75 +182,64 @@ sub status_graph {
             ui_method_icon => 'fa-check',
         },
 
-        # Pseudo status, not stored in illrequests. Sole purpose: displaying "Rueckversenden" dialog (status becomes 'COMP')
-        SNTBCK => {                                               # medium is sent back, mark this ILL request as COMP
-            prev_actions   => [ 'RECVD', 'CNCLDFU', 'RET' ],
-            id             => 'SNTBCK',
-            name           => "Zur\N{U+fc}ckversandt",
-            ui_method_name => "R\N{U+fc}ckversenden",
-            method         => 'sendeZurueck',
-            next_actions   => [],                                 # in reality: ['COMP']
-            ui_method_icon => 'fa-check',
-        },
+        # # Pseudo status, not stored in illrequests. Sole purpose: displaying "Rueckversenden" dialog (status becomes 'COMP')
+        # SNTBCK => {                                               # medium is sent back, mark this ILL request as COMP
+        #     prev_actions   => [ 'RECVD', 'CNCLDFU', 'RET' ],
+        #     id             => 'SNTBCK',
+        #     name           => "Zur\N{U+fc}ckversandt",
+        #     ui_method_name => "R\N{U+fc}ckversenden",
+        #     method         => 'sendeZurueck',
+        #     next_actions   => [],                                 # in reality: ['COMP']
+        #     ui_method_icon => 'fa-check',
+        # },
 
-        # Pseudo status, not stored in illrequests. Sole purpose: displaying 'Verlust buchen' dialog (status stays unchanged)
-        LOSTHOWTO => {
-            prev_actions   => [ 'RECVD', 'CHK', 'RET' ],
-            id             => 'LOSTHOWTO',
-            name           => 'Verlust HowTo',
-            ui_method_name => 'Verlust buchen',
-            method         => 'bucheVerlust',
-            next_actions   => [],                                 # in reality: status stays unchanged
-            ui_method_icon => 'fa-times',
-        },
+        # # Pseudo status, not stored in illrequests. Sole purpose: displaying 'Verlust buchen' dialog (status stays unchanged)
+        # LOSTHOWTO => {
+        #     prev_actions   => [ 'RECVD', 'CHK', 'RET' ],
+        #     id             => 'LOSTHOWTO',
+        #     name           => 'Verlust HowTo',
+        #     ui_method_name => 'Verlust buchen',
+        #     method         => 'bucheVerlust',
+        #     next_actions   => [],                                 # in reality: status stays unchanged
+        #     ui_method_icon => 'fa-times',
+        # },
 
-        # status 'LostBeforeCheckOut' (not for GUI, now internally handled by itemLost(), called by cataloguing::additem.pl and catalogue::updateitem.pl )
-        LOSTBCO => {                                              # lost by library Before CheckOut
-            prev_actions   => [],                                     # Officially empty, so not used in GUI. in reality: ['RECVD']
-            id             => 'LOSTBCO',
-            name           => 'Verlust vor Ausleihe',
-            ui_method_name => 'Aufruf_durch_Koha_Verlust-Buchung',    # not used in GUI
-            method         => 'itemLost',
-            next_actions   => [],                                     # in reality: ['COMP']
-            ui_method_icon => 'fa-times',
-        },
+        # # status 'LostBeforeCheckOut' (not for GUI, now internally handled by itemLost(), called by cataloguing::additem.pl and catalogue::updateitem.pl )
+        # LOSTBCO => {                                              # lost by library Before CheckOut
+        #     prev_actions   => [],                                     # Officially empty, so not used in GUI. in reality: ['RECVD']
+        #     id             => 'LOSTBCO',
+        #     name           => 'Verlust vor Ausleihe',
+        #     ui_method_name => 'Aufruf_durch_Koha_Verlust-Buchung',    # not used in GUI
+        #     method         => 'itemLost',
+        #     next_actions   => [],                                     # in reality: ['COMP']
+        #     ui_method_icon => 'fa-times',
+        # },
 
-        # status 'LostAfterCheckOut' (not for GUI, now internally handled by itemLost(), called by cataloguing::additem.pl and catalogue::updateitem.pl )
-        LOSTACO => {                                                  # lost by user After CheckOut or by library after CheckIn
-            prev_actions   => [],                                     # Officially empty, so not used in GUI. in reality: ['CHK', 'RET']
-            id             => 'LOSTACO',
-            name           => 'Verlust',
-            ui_method_name => 'Aufruf_durch_Koha_Verlust-Buchung',    # not used in GUI
-            method         => 'itemLost',
-            next_actions   => [],                                     # in reality: ['COMP']
-            ui_method_icon => 'fa-times',
-        },
+        # # status 'LostAfterCheckOut' (not for GUI, now internally handled by itemLost(), called by cataloguing::additem.pl and catalogue::updateitem.pl )
+        # LOSTACO => {                                                  # lost by user After CheckOut or by library after CheckIn
+        #     prev_actions   => [],                                     # Officially empty, so not used in GUI. in reality: ['CHK', 'RET']
+        #     id             => 'LOSTACO',
+        #     name           => 'Verlust',
+        #     ui_method_name => 'Aufruf_durch_Koha_Verlust-Buchung',    # not used in GUI
+        #     method         => 'itemLost',
+        #     next_actions   => [],                                     # in reality: ['COMP']
+        #     ui_method_icon => 'fa-times',
+        # },
 
-        # Pseudo status, not stored in illrequests. Sole purpose: displaying 'Verlust melden' dialog (status becomes 'COMP')
-        LOST => {
-            prev_actions   => [ 'LOSTBCO', 'LOSTACO' ],
-            id             => 'LOST',
-            name           => 'Verlustgebucht',
-            ui_method_name => 'Verlust melden',
-            method         => 'meldeVerlust',
-            next_actions   => ['COMP'],
-            ui_method_icon => 'fa-times',
-        },
-
-        # status 'CancelledForUser'
-        CNCLDFU => {
-            prev_actions   => ['REQ'],
-            id             => 'CNCLDFU',
-            name           => 'Storniert',
-            ui_method_name => 'Bestellung stornieren',
-            method         => 'storniereFuerBenutzer',
-            next_actions   => [],                        # in reality: ['COMP']
-            ui_method_icon => 'fa-times',
-        },
+        # # Pseudo status, not stored in illrequests. Sole purpose: displaying 'Verlust melden' dialog (status becomes 'COMP')
+        # LOST => {
+        #     prev_actions   => [ 'LOSTBCO', 'LOSTACO' ],
+        #     id             => 'LOST',
+        #     name           => 'Verlustgebucht',
+        #     ui_method_name => 'Verlust melden',
+        #     method         => 'meldeVerlust',
+        #     next_actions   => ['COMP'],
+        #     ui_method_icon => 'fa-times',
+        # },
 
         # Pseudo status, not stored in illrequests. Sole purpose: displaying 'Negativ-Kennzeichen' dialog (status becomes 'COMP')
         NEGFLAG => {
-            prev_actions => [ 'REQ', 'CNCLDFU' ],
+            prev_actions => [ 'REQ' ],
             id           => 'NEGFLAG',
             name         => "Negativ/gel\N{U+f6}scht",
 
@@ -260,27 +249,6 @@ sub status_graph {
             next_actions   => [],                      # in reality: ['COMP']
             ui_method_icon => 'fa-times',
         },
-
-        REQREV => {
-            prev_actions   => [],
-            id             => 'REQREV',
-            name           => 'Request reverted',
-            ui_method_name => 'Revert Request',
-            method         => 'cancel',
-            next_actions   => [],
-            ui_method_icon => 'fa-times',
-        },
-
-        # this leads to the frameworks confirm_delete and delete actions, that are too crude for SLNP, so it is not activated.
-        #    KILL => {
-        #        prev_actions   => [ 'REQ', 'CNCLDFU' ],
-        #        id             => 'KILL',
-        #        name           => 'Negativ-Kennzeichen',
-        #        ui_method_name => "L\N{U+f6}schung / Negativ-Kennzeichen",
-        #        method         => 'delete',
-        #        next_actions   => [  ],
-        #        ui_method_icon => 'fa-times',
-        #    },
     };
 }
 
@@ -1722,23 +1690,6 @@ sub get_item_from_request {
       unless $item;
 
     return $item;
-}
-
-=head3 capabilities
-    $capability = $backend->capabilities($name);
-Return the sub implementing a capability selected by NAME, or 0 if that
-capability is not implemented.
-=cut
-
-sub capabilities {
-    my ( $self, $name ) = @_;
-    my ($query) = @_;
-    my $capabilities = {
-
-        # Perform the receive workflow
-        receive => sub { receive(@_); },
-    };
-    return $capabilities->{$name};
 }
 
 1;
