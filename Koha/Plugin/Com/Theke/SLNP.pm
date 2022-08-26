@@ -21,6 +21,7 @@ use Modern::Perl;
 
 use base qw(Koha::Plugins::Base);
 
+use Encode qw(decode_utf8);
 use List::MoreUtils qw(any);
 use Module::Metadata;
 use Mojo::JSON qw(decode_json encode_json);
@@ -156,17 +157,15 @@ Method that returns JS to be injected to the staff interface.
 
 =cut
 
-sub intranet_head {
+sub intranet_js {
     my ( $self ) = @_;
 
-    return q{
-        <script>
-            $(document).ready(function(){
-               $('#ill-toolbar-btn-edit-action').hide();
-            });
-        </script>
-    };
-}
+    unless ( $self->{_intranet_js} ) {
+        my $js = decode_utf8($self->mbf_read('intranet.js'));
+        $self->{_intranet_js} =  '<script>' . $js . '</script>}';
+    }
 
+    return $self->{_intranet_js};
+}
 1;
 
