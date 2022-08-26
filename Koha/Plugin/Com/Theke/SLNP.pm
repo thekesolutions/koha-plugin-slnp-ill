@@ -191,7 +191,7 @@ sub after_circ_action {
         if ( $req ) { # Yay
 
             $req->status('CHK')->store; # TODO: Koha could do better
-            my $type = $req->illrequestattributes->search({ type => 'type' });
+            my $type = $req->illrequestattributes->search({ type => 'type' })->next;
             my $THE_type = ($type) ? $type->value : 'Leihe';
 
             unless ( $THE_type eq 'Leihe' ) {
