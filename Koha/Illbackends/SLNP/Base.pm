@@ -138,18 +138,17 @@ sub status_graph {
             next_actions   => [ 'RECVD', 'NEGFLAG' ],
             ui_method_icon => '',
         },
-        # status 'Received' (This action is used when the ordered ILL item is received in the library of the ordering borrower.)
+
         RECVD => {
             prev_actions   => [ 'REQ' ],
             id             => 'RECVD',
             name           => 'Eingangsverbucht',
             ui_method_name => 'Eingang verbuchen',
             method         => 'receive',
-            next_actions   => [ 'RECVDUPD' ],                    # in reality: ['CHK', 'LOSTBCO']
+            next_actions   => [ 'RECVDUPD' ],                    # in reality: ['CHK']
             ui_method_icon => 'fa-download',
         },
 
-        # Pseudo status, not stored in illrequests. Sole purpose: displaying 'Eingang bearbeiten' dialog for update (status stays unchanged)
         RECVDUPD => {
             prev_actions   => [ 'RECVD' ],
             id             => 'RECVDUPD',
@@ -160,25 +159,33 @@ sub status_graph {
             ui_method_icon => 'fa-pencil',
         },
 
-        # status 'Checkedout' (not for GUI, now internally handled by itemCheckedOut(), called by C4::Circulation::AddIssue() )
         CHK => {
-            prev_actions   => [],                                 # Officially empty, so not used in GUI. in reality: ['RECVD']
+            prev_actions   => [],
             id             => 'CHK',
             name           => 'Ausgeliehen',
-            ui_method_name => 'Aufruf_durch_Koha_Ausleihe',       # not used in GUI
-            method         => 'leiheAus',
-            next_actions   => [],                                 # in reality: ['RET', 'LOSTACO']
+            ui_method_name => '',
+            method         => '',
+            next_actions   => [],
             ui_method_icon => 'fa-check',
         },
 
-        # status 'Checkedin' (not for GUI, now internally handled by itemCheckedIn(), called by C4::Circulation::AddReturn() )
         RET => {
-            prev_actions   => [],                                 # Officially empty, so not used in GUI. in reality: ['CHK']
+            prev_actions   => [],
             id             => 'RET',
             name           => "R\N{U+fc}ckgegeben",
-            ui_method_name => 'Aufruf_durch_Koha_Rueckgabe',      # not used in GUI
-            method         => 'gebeRueck',
-            next_actions   => [],                                 # in reality: ['COMP', 'LOSTACO']
+            ui_method_name => '',
+            method         => '',
+            next_actions   => ['COMP'],
+            ui_method_icon => 'fa-check',
+        },
+
+        COMP => {
+            prev_actions   => [ 'RET' ],
+            id             => 'COMP',
+            name           => 'Completed',
+            ui_method_name => 'Mark completed',
+            method         => 'mark_completed',
+            next_actions   => [],
             ui_method_icon => 'fa-check',
         },
 
@@ -736,8 +743,6 @@ sub update {
         # process the receiving parameters
 
         try {
-
-            my $new_attributes = {};
 
             my $request_type = $params->{other}->{type} // 'loan';
 

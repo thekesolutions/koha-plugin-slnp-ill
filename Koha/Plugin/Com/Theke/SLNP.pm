@@ -25,9 +25,12 @@ use Encode qw(decode_utf8);
 use List::MoreUtils qw(any);
 use Module::Metadata;
 use Mojo::JSON qw(decode_json encode_json);
+use Try::Tiny;
 use YAML;
 
-use Koha::Biblioitems;
+use C4::Circulation qw(AddReturn);
+
+use Koha::Illrequests;
 use Koha::Items;
 
 BEGIN {
@@ -167,5 +170,77 @@ sub intranet_js {
 
     return $self->{_intranet_js};
 }
-1;
 
+=head3 after_circ_action
+
+After circulation hook.
+
+=cut
+
+sub after_circ_action {
+    my ($self, $params) = @_;
+
+    if ( $params->{action} eq 'checkout' ) {
+        my $checkout  = $params->{payload}->{checkout};
+
+        my $biblio_id = $checkout->item->biblionumber;
+        my $patron_id = $checkout->borrowernumber;
+
+        my $req = $self->get_recvd_ill_req({ biblio_id => $biblio_id, patron_id => $patron_id });
+
+        if ( $req ) { # Yay
+
+            $req->status('CHK')->store; # TODO: Koha could do better
+            my $type = $req->illrequestattributes->search({ type => 'type' });
+            my $THE_type = ($type) ? $type->value : 'Leihe';
+
+            unless ( $THE_type eq 'Leihe' ) {
+                # This is Kopie
+                try {
+                    AddReturn( $checkout->item->barcode );
+                    $req->status('RET')->store; # TODO: Koha could do better
+                    $req->status('COMP')->store; # TODO: Koha could do better
+                }
+                catch {
+                    warn "Error attempting to return: $_";
+                }
+            }
+        }
+    }
+}
+
+=head2 Internal methods
+
+=head3 get_recvd_ill_req
+
+    my $req = $self->get_recvd_ill_req({ biblio_id => $biblio_id, patron_id => $patron_id });
+
+Returns the related I<Koha::Illrequest> object if found.
+
+=cut
+
+sub get_recvd_ill_req {
+    my ( $self, $params ) = @_;
+
+    my $biblio_id = $params->{biblio_id};
+    my $patron_id = $params->{patron_id};
+
+    my $reqs = Koha::Illrequests->search(
+        {   biblio_id      => $biblio_id,
+            borrowernumber => $patron_id,
+            status         => 'RECVD'
+        }
+    );
+
+    if ( $reqs->count > 1 ) {
+        warn "slnp_plugin_warn: more than one RECVD ILL request for biblio_id ($biblio_id) and patron_id ($patron_id) <.<";
+    }
+
+    return unless $reqs->count > 0;
+
+    my $req = $reqs->next;
+
+    return $req;
+}
+
+1;
