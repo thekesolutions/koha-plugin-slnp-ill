@@ -124,12 +124,12 @@
       <ol>
         <li>
           <label for="opac_note">OPAC note:</label>
-          <input type="text" size="50" name="opac_note" id="opac_note" value="[% whole.value.opac_note | html %]" />
+          <textarea id="opac_note" name="opac_note" rows="4" cols="50">[% whole.value.opac_note | html %]</textarea>
         </li>
 
         <li>
           <label for="staff_note">Staff note:</label>
-          <input type="text" size="50" name="staff_note" id="staff_note" value="[% whole.value.staff_note | html %]" />
+          <textarea id="staff_note" name="staff_note" rows="4" cols="50">[% whole.value.staff_note | html %]</textarea>
         </li>
       </ol>
     </fieldset>
