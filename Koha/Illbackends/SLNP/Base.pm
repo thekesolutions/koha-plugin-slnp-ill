@@ -490,6 +490,7 @@ sub receive {
         $template_params->{medium} = $request->medium;
 
         my $partner_category_code = $self->{configuration}->{partner_category_code} // 'IL';
+        $template_params->{mandatory_lending_library} = $self->{configuration}->{mandatory_lending_library} // 1;
 
         my $lending_libraries = Koha::Patrons->search(
             { categorycode => $partner_category_code },
@@ -690,6 +691,7 @@ sub update {
         $template_params->{medium} = $request->medium;
 
         my $partner_category_code = $self->{configuration}->{partner_category_code} // 'IL';
+        $template_params->{mandatory_lending_library} = $self->{configuration}->{mandatory_lending_library} // 1;
 
         my $lending_libraries = Koha::Patrons->search(
             { categorycode => $partner_category_code },

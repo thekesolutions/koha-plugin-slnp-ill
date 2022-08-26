@@ -44,6 +44,7 @@ extra_fee_debit_type: ILL
 category_fee:
   ST: null # no charge
   PT: 2
+mandatory_lending_library: true
 partner_category_code: IL
 default_hold_note: Placed by ILL
 default_framework: FA

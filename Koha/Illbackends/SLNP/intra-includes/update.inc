@@ -50,8 +50,12 @@
         </li>
 
         <li>
-          <label class="required" for="lending_library">Lending library:</label>
+            <label class="required" for="lending_library">Lending library:</label>
+        [% IF whole.value.mandatory_lending_library %]
             <select name="lending_library" id="lending_library" required="required" class="select2" style="width: 45%">
+        [% ELSE %]
+            <select name="lending_library" id="lending_library" class="select2" style="width: 45%">
+        [% END %]
                 <option value="">&nbsp;</option>
         [% FOREACH library IN whole.value.lending_libraries %]
             [% IF whole.value.selected_lending_library_id and whole.value.selected_lending_library_id == library.id %]
@@ -60,7 +64,7 @@
                 <option value="[% library.borrowernumber | html %]">[% library.surname | html %][% IF library.othernames %] ([% library.othernames | html %])[% END %]</option>
             [% END %]
         [% END %]
-          </select>
+            </select>
         </li>
 
         <li>
