@@ -200,6 +200,10 @@ sub after_circ_action {
                     AddReturn( $checkout->item->barcode );
                     $req->status('RET')->store; # TODO: Koha could do better
                     $req->status('COMP')->store; # TODO: Koha could do better
+                    # cleanup
+                    my $biblio = $item->biblio;
+                    $biblio->items->delete;
+                    $biblio->delete;
                 }
                 catch {
                     warn "Error attempting to return: $_";
