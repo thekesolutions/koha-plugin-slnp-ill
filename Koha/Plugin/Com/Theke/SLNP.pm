@@ -223,6 +223,7 @@ sub after_circ_action {
                     $req->status('COMP')->store; # TODO: Koha could do better
                     # cleanup
                     my $biblio = $item->biblio;
+                    my $items  = $biblio->items;
                     # delete the items using safe_delete
                     while ( my $item = $items->next ) {
                         $item->safe_delete;
