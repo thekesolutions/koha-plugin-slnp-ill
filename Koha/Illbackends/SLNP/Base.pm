@@ -145,7 +145,7 @@ sub status_graph {
             name           => 'Eingangsverbucht',
             ui_method_name => 'Eingang verbuchen',
             method         => 'receive',
-            next_actions   => [ 'RECVDUPD' ],                    # in reality: ['CHK']
+            next_actions   => [ 'RECVDUPD', 'SLNP_COMP' ],                    # in reality: ['CHK']
             ui_method_icon => 'fa-download',
         },
 
@@ -175,16 +175,16 @@ sub status_graph {
             name           => "R\N{U+fc}ckgegeben",
             ui_method_name => '',
             method         => '',
-            next_actions   => ['COMP'],
+            next_actions   => ['SLNP_COMP'],
             ui_method_icon => 'fa-check',
         },
 
-        COMP => {
+        SLNP_COMP => {
             prev_actions   => [ 'RET' ],
-            id             => 'COMP',
+            id             => 'SLNP_COMP',
             name           => 'Completed',
             ui_method_name => 'Mark completed',
-            method         => 'mark_completed',
+            method         => 'slnp_mark_completed',
             next_actions   => [],
             ui_method_icon => 'fa-check',
         },
@@ -973,27 +973,17 @@ sub cancel_unavailable {
     return $backend_result;
 }
 
-=head3 mark_completed
+=head3 slnp_mark_completed
 
-    $request->mark_completed;
+    $request->slnp_mark_completed;
+
+FIXME: I didn't find a way for I<mark_completed> to override the one from
+Koha::Illrequest. So...
 
 =cut
 
-sub mark_completed {
+sub slnp_mark_completed {
     my ( $self, $params ) = @_;
-
-    my $template_params = {};
-
-    my $backend_result = {
-        backend => $self->name,
-        method  => q{},
-        stage   => q{},
-        error   => 0,
-        status  => q{},
-        message => q{},
-        value   => $template_params,
-        next    => "illview",
-    };
 
     my $request = $params->{request};
 
@@ -1019,7 +1009,15 @@ sub mark_completed {
         $backend_result->{stage}   = undef;
     };
 
-    return $backend_result;
+    return {
+        error   => 0,
+        status  => '',
+        message => '',
+        method  => 'slnp_mark_completed',
+        stage   => 'commit',
+        next    => 'illview',
+        value   => '',
+    };
 }
 
 # shipping back the ILL item to the owning library
@@ -1695,7 +1693,7 @@ sub biblio_cleanup {
             }
         );
     } catch {
-        warn "$_";
+        warn "$_ " . ref($_);
     };
 
     return $self,;
