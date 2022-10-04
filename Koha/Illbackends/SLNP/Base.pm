@@ -884,104 +884,142 @@ sub update {
     return $backend_result;
 }
 
-sub format_to_dbmoneyfloat {
-    my ($floatstr) = @_;
-    my $ret = $floatstr;
+=head3 cancel_unavailable
 
-# The float value in $floatstr has been formatted by javascript for display in the HTML page, but we need it in database form again (i.e without thousands separator, with decimal separator '.').
-    my $thousands_sep = ' ';                      # default, correct if Koha.Preference("CurrencyFormat") == 'FR'  (i.e. european format like "1 234 567,89")
-    if ( substr( $floatstr, -3, 1 ) eq '.' ) {    # american format, like "1,234,567.89"
-        $thousands_sep = ',';
-    }
-    $ret =~ s/$thousands_sep//g;                  # get rid of the thousands separator
-    $ret =~ tr/,/./;                              # decimal separator in DB is '.'
-    return $ret;
-}
+    $request->cancel_unavailable;
 
-sub printIllNoticeSlnp {
-    my ( $branchcode, $borrowernumber, $biblionumber, $itemnumber, $illrequest_id, $illreqattr_hashptr, $accountBorrowernumber, $letter_code ) = @_;
-    #my $noticeFees          = C4::NoticeFees->new();
-    my $patron              = Koha::Patrons->find($borrowernumber);
-    my $library             = Koha::Libraries->find($branchcode)->unblessed;
-    my $admin_email_address = $library->{branchemail} || C4::Context->preference('KohaAdminEmailAddress');
+=cut
 
-    # Try to get the borrower's email address
-    my $to_address = $patron->notice_email_address;
+sub cancel_unavailable {
+    my ( $self, $params ) = @_;
 
-    my %letter_params = (
-        module     => 'circulation',
-        branchcode => $branchcode,
-        lang       => $patron->lang,
-        tables     => {
-            'branches'             => $library,
-            'borrowers'            => $patron->unblessed,
-            'biblio'               => $biblionumber,
-            'biblioitems'          => $biblionumber,
-            'items'                => $itemnumber,
-            'account'              => $accountBorrowernumber,    # if $borrowernumber marks sending library, this marks the orderer, and vice versa (or 0)
-            'illrequests'          => $illrequest_id,
-            'illrequestattributes' => $illreqattr_hashptr,
-        },
-    );
+    my $stage = $params->{other}->{stage};
+    my $template_params = {};
 
-    my $send_notification = sub {
-        my ( $mtt, $borrowernumber, $letter_code ) = (@_);
-        return unless defined $letter_code;
-        $letter_params{letter_code}            = $letter_code;
-        $letter_params{message_transport_type} = $mtt;
-        my $letter = C4::Letters::GetPreparedLetter(%letter_params);
-        unless ($letter) {
-            warn "Could not find a letter called '$letter_params{'letter_code'}' for $mtt in the '$letter_params{'module'}' module";
-            return;
-        }
-
-        C4::Letters::EnqueueLetter(
-            {   letter                 => $letter,
-                borrowernumber         => $borrowernumber,
-                from_address           => $admin_email_address,
-                message_transport_type => $mtt,
-                branchcode             => $branchcode
-            }
-        );
-
-        # # check whether there are notice fee rules defined
-        # if ( $noticeFees->checkForNoticeFeeRules() == 1 ) {
-
-        #     #check whether there is a matching notice fee rule
-        #     my $noticeFeeRule = $noticeFees->getNoticeFeeRule( $letter_params{branchcode}, $patron->categorycode, $mtt, $letter_code );
-
-        #     if ($noticeFeeRule) {
-        #         my $fee = $noticeFeeRule->notice_fee();
-
-        #         if ( $fee && $fee > 0.0 ) {
-
-        #             # Bad for the patron, staff has assigned a notice fee for sending the notification
-        #             $noticeFees->AddNoticeFee(
-        #                 {   borrowernumber => $borrowernumber,
-        #                     amount         => $fee,
-        #                     letter_code    => $letter_code,
-        #                     letter_date    => output_pref( { dt => dt_from_string, dateonly => 1 } ),
-
-        #                     # these are parameters that we need for fancy message printing
-        #                     branchcode => $letter_params{branchcode},
-        #                     substitute => {
-        #                         bib     => $library->{branchname},
-        #                         'count' => 1,
-        #                     },
-        #                     tables => $letter_params{tables}
-
-        #                 }
-        #             );
-        #         }
-        #     }
-        # }
+    my $backend_result = {
+        backend => $self->name,
+        method  => "cancel_unavailable",
+        stage   => $stage,                 # default for testing the template
+        error   => 0,
+        status  => "",
+        message => "",
+        value   => $template_params,
+        next    => "illview",
     };
 
-    if ($to_address) {
-        &$send_notification( 'email', $borrowernumber, $letter_code );
+    my $request = $params->{request};
+
+    $backend_result->{illrequest_id}  = $request->illrequest_id;
+    $template_params->{other}->{type} = $request->medium;
+    $template_params->{request}       = $request;
+
+    if ( !$stage ) {
+
+        my $patron_preferences = C4::Members::Messaging::GetMessagingPreferences({
+            borrowernumber => $request->borrowernumber,
+            message_name   => 'Ill_unavailable',
+        });
+
+        if ( exists $patron_preferences->{transports}->{email} ) {
+            $template_params->{notify} = 1;
+        }
+
+        $backend_result->{stage} = "init";
+
+    } elsif ( $stage eq 'commit' ) {
+
+        try {
+            Koha::Database->new->schema->txn_do(
+                sub {
+                    $self->biblio_cleanup( $request );
+
+                    # mark as complete
+                    $request->set(
+                        {
+                            completed => \'NOW()',
+                            status    => 'COMP',
+                        }
+                    )->store;
+
+                    # send message
+                    if ( $params->{other}->{notify_patron} eq 'on' ) {
+                        my $letter = $request->get_notice(
+                            { notice_code => 'ILL_REQUEST_UNAVAIL', transport => 'email' }
+                        );
+                        my $result = C4::Letters::EnqueueLetter(
+                            {
+                                letter                 => $letter,
+                                borrowernumber         => $request->borrowernumber,
+                                message_transport_type => 'email',
+                            }
+                        );
+                    }
+                }
+            )
+        }
+        catch {
+            warn "$_";
+            $backend_result->{error}   = 1;
+            $backend_result->{message} = "$_";
+            $backend_result->{stage}   = undef;
+        };
+
     } else {
-        &$send_notification( 'print', $borrowernumber, $letter_code );
+
+        # in case of faulty or testing stage, we just return the standard $backend_result with original stage
+        $backend_result->{stage} = $stage;
     }
+
+    return $backend_result;
+}
+
+=head3 mark_completed
+
+    $request->mark_completed;
+
+=cut
+
+sub mark_completed {
+    my ( $self, $params ) = @_;
+
+    my $template_params = {};
+
+    my $backend_result = {
+        backend => $self->name,
+        method  => q{},
+        stage   => q{},
+        error   => 0,
+        status  => q{},
+        message => q{},
+        value   => $template_params,
+        next    => "illview",
+    };
+
+    my $request = $params->{request};
+
+    try {
+        Koha::Database->new->schema->txn_do(
+            sub {
+                $self->biblio_cleanup( $request );
+
+                # mark as complete
+                $request->set(
+                    {
+                        completed => \'NOW()',
+                        status    => 'COMP',
+                    }
+                )->store;
+            }
+        )
+    }
+    catch {
+        warn "$_";
+        $backend_result->{error}   = 1;
+        $backend_result->{message} = "$_";
+        $backend_result->{stage}   = undef;
+    };
+
+    return $backend_result;
 }
 
 # shipping back the ILL item to the owning library
@@ -1239,122 +1277,125 @@ sub storniereFuerBenutzer {
     return $backend_result;
 }
 
-=head3 cancel_unavailable
+# methods that are called by the Koha application via the ILL framework, but not exclusively by the framework
 
-    $request->cancel_unavailable;
+sub isShippingBackRequired {
+    my ( $self, $request ) = @_;
+    my $shippingBackRequired = 1;
 
-=cut
+    if ( $request->medium() eq 'copy' ) {
+        $shippingBackRequired = 0;
+    }
+    return $shippingBackRequired;
+}
 
-sub cancel_unavailable {
-    my ( $self, $params ) = @_;
+# e.g. my $$illreqattr = $illrequest->_backend_capability( "getIllrequestattributes", [ $illrequest, ["", ""]] );
+sub getIllrequestattributes {    # does work
+    my ( $self, $args ) = @_;
+    my $result;
+    my ( $request, $interesting_fields ) = ( $args->[0], $args->[1] );
 
-    my $stage = $params->{other}->{stage};
-    my $template_params = {};
+    my $fieldResults = $request->illrequestattributes->search( { type => { '-in' => $interesting_fields } } );
+    my $illreqattr   = { map { ( $_->type => $_->value ) } ( $fieldResults->as_list ) };
+    foreach my $type ( keys %{$illreqattr} ) {
+        $result->{$type} = $illreqattr->{$type};
+    }
+    return $result;
+}
 
-    my $backend_result = {
-        backend => $self->name,
-        method  => "cancel_unavailable",
-        stage   => $stage,                 # default for testing the template
-        error   => 0,
-        status  => "",
-        message => "",
-        value   => $template_params,
-        next    => "illview",
+sub getIllrequestDateDue {
+    my ( $self, $request ) = @_;
+    my $result;
+
+    my $fieldResults = $request->illrequestattributes->search( { type => "duedate" } );
+    my $illreqattr   = { map { ( $_->type => $_->value ) } ( $fieldResults->as_list ) };
+    foreach my $type ( keys %{$illreqattr} ) {
+        $result->{$type} = $illreqattr->{$type};
+    }
+    return $result->{duedate};
+}
+
+sub itemCheckedOut {
+    my ( $self, $request ) = @_;
+    $request->status('CHK')->store;
+}
+
+sub itemCheckedIn {
+    my ( $self, $request ) = @_;
+    $request->status('RET')->store;
+
+    # if it is an article, then use this action to transfer the status to completed
+    if ( $request->medium() eq 'copy' ) {
+        my $params = {};
+        $params->{request}        = $request;
+        $params->{other}          = {};
+        $params->{other}->{stage} = 'commit';
+        $self->sendeZurueck($params);
+    }
+}
+
+sub itemLost {
+    my ( $self, $request ) = @_;
+    if ( $request->status() eq 'REQ' ) {    # ILL receipt booking required before item can be set to lost
+        my $illrequest_id = $request->illrequest_id();
+        my $orderid       = $request->orderid();
+        warn "ERROR when setting lost status of an ILL item. The receipt of the ILL request having order ID:$orderid has to be executed by you before this can be done.";
+        print
+"Content-Type: text/html\n\n<html><body><h4>ERROR when setting lost status of an ILL item. Please execute the receipt of the ILL request having order ID <a href=\"/cgi-bin/koha/ill/ill-requests.pl?method=illview&amp;illrequest_id=$illrequest_id\" target=\"_blank\" >$orderid</a> prior to this item update.</h4></body></html>";
+        exit;
+    } elsif ( $request->status() eq 'RECVD' || $request->status() eq 'RECVDUPD' ) {
+        $request->status('LOSTBCO')->store;    # item lost after receipt but before checkout
+    } else {
+        $request->status('LOSTACO')->store;    # item lost after checkout
+    }
+}
+
+sub isReserveFeeAcceptable {
+    my ( $self, $request ) = @_;
+    my $ret = 0;                               # an additional hold fee is not acceptable for the SLNP backend (maybe configurable in the future)
+
+    return $ret;
+}
+
+# function that defines for the backend the sequence of action buttons in the GUI
+# e.g. my $sortActionIsImplemented = $illrequest->_backend_capability( "sortAction", ["", ""] );
+# e.g. foreach my $actionId (sort { $illrequest->_backend_capability( "sortAction", [$a, $b] )} keys %available_actions_hash) { ...
+sub sortAction {
+    my ( $self, $statusId_A_B ) = @_;
+    my $ret = 0;
+
+    my $statusPrio = {
+        'REQ'       => 1,
+        'RECVD'     => 2,
+        'RECVDUPD'  => 3,
+        'CHK'       => 4,
+        'RET'       => 5,
+        'SNTBCK'    => 6,
+        'NEGFLAG'   => 7,
+        'CNCLDFU'   => 8,
+        'LOSTHOWTO' => 9,
+        'LOSTBCO'   => 10,
+        'LOSTACO'   => 11,
+        'LOST'      => 12,
+        'COMP'      => 13,
     };
 
-    my $request = $params->{request};
+    if ( defined $statusId_A_B && defined $statusId_A_B->[0] && defined $statusId_A_B->[1] ) {
 
-    $backend_result->{illrequest_id}  = $request->illrequest_id;
-    $template_params->{other}->{type} = $request->medium;
-    $template_params->{request}       = $request;
-
-    if ( !$stage ) {
-
-        my $patron_preferences = C4::Members::Messaging::GetMessagingPreferences({
-            borrowernumber => $request->borrowernumber,
-            message_name   => 'Ill_unavailable',
-        });
-
-        if ( exists $patron_preferences->{transports}->{email} ) {
-            $template_params->{notify} = 1;
+        # pseudo arguments '' for checking if this backend function is implemented
+        if ( $statusId_A_B->[0] eq '' && $statusId_A_B->[1] eq '' ) {
+            $ret = 1;
+        } else {
+            my $statusPrioA = defined $statusPrio->{ $statusId_A_B->[0] } ? $statusPrio->{ $statusId_A_B->[0] } : 0;
+            my $statusPrioB = defined $statusPrio->{ $statusId_A_B->[1] } ? $statusPrio->{ $statusId_A_B->[1] } : 0;
+            $ret = ( $statusPrioA == $statusPrioB ? 0 : ( $statusPrioA + 0 < $statusPrioB + 0 ? -1 : 1 ) );
         }
-
-        $backend_result->{stage} = "init";
-
-    } elsif ( $stage eq 'commit' ) {
-
-        try {
-            Koha::Database->new->schema->txn_do(
-                sub {
-                    # delete biblio and item
-                    my $biblio = Koha::Biblios->find( $request->biblio_id );
-                    my $items  = $biblio->items;
-                    # delete the items using safe_delete
-                    while ( my $item = $items->next ) {
-                        $item->safe_delete;
-                    }
-                    # delete the biblio
-                    DelBiblio( $biblio->id );
-
-                    # mark as complete
-                    $request->set(
-                        {
-                            completed => \'NOW()',
-                            status    => 'COMP',
-                        }
-                    )->store;
-
-                    # send message
-                    if ( $params->{other}->{notify_patron} eq 'on' ) {
-                        my $letter = $request->get_notice(
-                            { notice_code => 'ILL_REQUEST_UNAVAIL', transport => 'email' }
-                        );
-                        my $result = C4::Letters::EnqueueLetter(
-                            {
-                                letter                 => $letter,
-                                borrowernumber         => $request->borrowernumber,
-                                message_transport_type => 'email',
-                            }
-                        );
-                    }
-                }
-            )
-        }
-        catch {
-            warn "$_";
-            $backend_result->{error}   = 1;
-            $backend_result->{message} = "$_";
-            $backend_result->{stage}   = undef;
-        };
-
-    } else {
-
-        # in case of faulty or testing stage, we just return the standard $backend_result with original stage
-        $backend_result->{stage} = $stage;
     }
 
-    return $backend_result;
+    return $ret;
 }
 
-# deletes biblio and item data of the ILL item from the database, normally if illrequests.status is set to 'COMP'
-sub delBiblioAndItem {
-    my ( $biblionumber, $itemnumber ) = @_;
-    my $holds = Koha::Holds->search( { itemnumber => $itemnumber } );
-    if ($holds) {
-        $holds->delete();
-    }
-    my $res = C4::Items::DelItemCheck( $biblionumber, $itemnumber );
-    my $error;
-    if ( $res eq '1' ) {
-        $error = &DelBiblio($biblionumber);
-    }
-    if ( $res ne '1' || $error ) {
-        warn "ERROR when deleting ILL title $biblionumber ($error) or ILL item $itemnumber ($res)";
-        print
-"Content-Type: text/html\n\n<html><body><h4>ERROR when deleting ILL title $biblionumber (error:$error) <br />or when deleting ILL item $itemnumber (res:$res)</h4></body></html>";
-        exit;
-    }
-}
+=head2 Internal methods
 
 =head3 add_biblio
 
@@ -1480,122 +1521,32 @@ sub add_item {
     )->store;
 }
 
-# methods that are called by the Koha application via the ILL framework, but not exclusively by the framework
+=head3 get_fee
 
-sub isShippingBackRequired {
-    my ( $self, $request ) = @_;
-    my $shippingBackRequired = 1;
+    my $fee = $self->get_fee({ patron => $patron });
 
-    if ( $request->medium() eq 'copy' ) {
-        $shippingBackRequired = 0;
-    }
-    return $shippingBackRequired;
-}
+Given a I<Koha::Patron> object, it returns the configured request fee.
 
-# e.g. my $$illreqattr = $illrequest->_backend_capability( "getIllrequestattributes", [ $illrequest, ["", ""]] );
-sub getIllrequestattributes {    # does work
+=cut
+
+sub get_fee {
     my ( $self, $args ) = @_;
-    my $result;
-    my ( $request, $interesting_fields ) = ( $args->[0], $args->[1] );
 
-    my $fieldResults = $request->illrequestattributes->search( { type => { '-in' => $interesting_fields } } );
-    my $illreqattr   = { map { ( $_->type => $_->value ) } ( $fieldResults->as_list ) };
-    foreach my $type ( keys %{$illreqattr} ) {
-        $result->{$type} = $illreqattr->{$type};
-    }
-    return $result;
-}
+    my $patron = $args->{patron};
+    SLNP::Exception::BadParameter->throw( param => 'patron', value => $patron )
+      unless $patron and ref($patron) eq 'Koha::Patron';
 
-sub getIllrequestDateDue {
-    my ( $self, $request ) = @_;
-    my $result;
+    my $configuration = $self->{configuration};
 
-    my $fieldResults = $request->illrequestattributes->search( { type => "duedate" } );
-    my $illreqattr   = { map { ( $_->type => $_->value ) } ( $fieldResults->as_list ) };
-    foreach my $type ( keys %{$illreqattr} ) {
-        $result->{$type} = $illreqattr->{$type};
-    }
-    return $result->{duedate};
-}
+    my $default_fee = ( exists $configuration->{default_fee} )
+      ? $configuration->{default_fee} // 0    # explicit undef means 'no charge'
+      : 0;
 
-sub itemCheckedOut {
-    my ( $self, $request ) = @_;
-    $request->status('CHK')->store;
-}
+    my $fee = ( exists $configuration->{category_fee} and exists $configuration->{category_fee}->{ $patron->categorycode } )
+      ? $configuration->{category_fee}->{ $patron->categorycode } // 0    # explicit undef means 'no charge'
+      : $default_fee;
 
-sub itemCheckedIn {
-    my ( $self, $request ) = @_;
-    $request->status('RET')->store;
-
-    # if it is an article, then use this action to transfer the status to completed
-    if ( $request->medium() eq 'copy' ) {
-        my $params = {};
-        $params->{request}        = $request;
-        $params->{other}          = {};
-        $params->{other}->{stage} = 'commit';
-        $self->sendeZurueck($params);
-    }
-}
-
-sub itemLost {
-    my ( $self, $request ) = @_;
-    if ( $request->status() eq 'REQ' ) {    # ILL receipt booking required before item can be set to lost
-        my $illrequest_id = $request->illrequest_id();
-        my $orderid       = $request->orderid();
-        warn "ERROR when setting lost status of an ILL item. The receipt of the ILL request having order ID:$orderid has to be executed by you before this can be done.";
-        print
-"Content-Type: text/html\n\n<html><body><h4>ERROR when setting lost status of an ILL item. Please execute the receipt of the ILL request having order ID <a href=\"/cgi-bin/koha/ill/ill-requests.pl?method=illview&amp;illrequest_id=$illrequest_id\" target=\"_blank\" >$orderid</a> prior to this item update.</h4></body></html>";
-        exit;
-    } elsif ( $request->status() eq 'RECVD' || $request->status() eq 'RECVDUPD' ) {
-        $request->status('LOSTBCO')->store;    # item lost after receipt but before checkout
-    } else {
-        $request->status('LOSTACO')->store;    # item lost after checkout
-    }
-}
-
-sub isReserveFeeAcceptable {
-    my ( $self, $request ) = @_;
-    my $ret = 0;                               # an additional hold fee is not acceptable for the SLNP backend (maybe configurable in the future)
-
-    return $ret;
-}
-
-# function that defines for the backend the sequence of action buttons in the GUI
-# e.g. my $sortActionIsImplemented = $illrequest->_backend_capability( "sortAction", ["", ""] );
-# e.g. foreach my $actionId (sort { $illrequest->_backend_capability( "sortAction", [$a, $b] )} keys %available_actions_hash) { ...
-sub sortAction {
-    my ( $self, $statusId_A_B ) = @_;
-    my $ret = 0;
-
-    my $statusPrio = {
-        'REQ'       => 1,
-        'RECVD'     => 2,
-        'RECVDUPD'  => 3,
-        'CHK'       => 4,
-        'RET'       => 5,
-        'SNTBCK'    => 6,
-        'NEGFLAG'   => 7,
-        'CNCLDFU'   => 8,
-        'LOSTHOWTO' => 9,
-        'LOSTBCO'   => 10,
-        'LOSTACO'   => 11,
-        'LOST'      => 12,
-        'COMP'      => 13,
-    };
-
-    if ( defined $statusId_A_B && defined $statusId_A_B->[0] && defined $statusId_A_B->[1] ) {
-
-        # pseudo arguments '' for checking if this backend function is implemented
-        if ( $statusId_A_B->[0] eq '' && $statusId_A_B->[1] eq '' ) {
-            $ret = 1;
-        } else {
-            my $statusPrioA = defined $statusPrio->{ $statusId_A_B->[0] } ? $statusPrio->{ $statusId_A_B->[0] } : 0;
-            my $statusPrioB = defined $statusPrio->{ $statusId_A_B->[1] } ? $statusPrio->{ $statusId_A_B->[1] } : 0;
-            $ret = ( $statusPrioA == $statusPrioB ? 0 : ( $statusPrioA + 0 < $statusPrioB + 0 ? -1 : 1 ) );
-        }
-    }
-
-    return $ret;
+    return $fee;
 }
 
 =head3 get_item_type
@@ -1634,34 +1585,6 @@ sub get_item_type {
       unless Koha::ItemTypes->find($item_type);
 
     return $item_type;
-}
-
-=head3 get_fee
-
-    my $fee = $self->get_fee({ patron => $patron });
-
-Given a I<Koha::Patron> object, it returns the configured request fee.
-
-=cut
-
-sub get_fee {
-    my ( $self, $args ) = @_;
-
-    my $patron = $args->{patron};
-    SLNP::Exception::BadParameter->throw( param => 'patron', value => $patron )
-      unless $patron and ref($patron) eq 'Koha::Patron';
-
-    my $configuration = $self->{configuration};
-
-    my $default_fee = ( exists $configuration->{default_fee} )
-      ? $configuration->{default_fee} // 0    # explicit undef means 'no charge'
-      : 0;
-
-    my $fee = ( exists $configuration->{category_fee} and exists $configuration->{category_fee}->{ $patron->categorycode } )
-      ? $configuration->{category_fee}->{ $patron->categorycode } // 0    # explicit undef means 'no charge'
-      : $default_fee;
-
-    return $fee;
 }
 
 =head3 charge_ill_fee
@@ -1735,6 +1658,47 @@ sub get_item_from_request {
       unless $item;
 
     return $item;
+}
+
+=head3 biblio_cleanup
+
+    $request->biblio_cleanup;
+
+Removes the associated biblio and item.
+
+=cut
+
+sub biblio_cleanup {
+    my ( $self, $request ) = @_;
+
+    try {
+        Koha::Database->new->schema->txn_do(
+            sub {
+                SLNP::Exception::MissingParameter->throw( param => 'biblio_id' )
+                  unless $request->biblio_id;
+
+                my $biblio = Koha::Biblios->find( $request->biblio_id );
+                SLNP::Exception::UnknownBiblioId->throw( biblio_id => $request->biblio_id )
+                  unless $biblio;
+
+                my $holds  = $biblio->holds;
+                while ( my $hold = $holds->next ) {
+                    $hold->cancel( { skip_holds_queue => 1 } ); # skip_holds_queue used in 22.05+
+                }
+
+                my $items  = $biblio->items;
+                while ( my $item = $items->next ) {
+                    $item->safe_delete;
+                }
+
+                DelBiblio( $biblio->id );
+            }
+        );
+    } catch {
+        warn "$_";
+    };
+
+    return $self,;
 }
 
 1;
