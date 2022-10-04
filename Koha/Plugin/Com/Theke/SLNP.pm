@@ -28,6 +28,7 @@ use Mojo::JSON qw(decode_json encode_json);
 use Try::Tiny;
 use YAML;
 
+use C4::Biblio qw(DelBiblio);
 use C4::Circulation qw(AddReturn);
 
 use Koha::Illrequests;
@@ -222,8 +223,12 @@ sub after_circ_action {
                     $req->status('COMP')->store; # TODO: Koha could do better
                     # cleanup
                     my $biblio = $item->biblio;
-                    $biblio->items->delete;
-                    $biblio->delete;
+                    # delete the items using safe_delete
+                    while ( my $item = $items->next ) {
+                        $item->safe_delete;
+                    }
+                    # delete the biblio
+                    DelBiblio( $biblio->id );
                 }
                 catch {
                     warn "Error attempting to return: $_";
