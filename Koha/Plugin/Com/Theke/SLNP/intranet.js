@@ -1,4 +1,5 @@
 $(document).ready(function(){
-    $('#ill-toolbar-btn-edit-action').hide();
+    $('#illrequests #ill-toolbar-btn-edit-action').hide();
+    $('#illrequests #ill-notice-dropdown').hide();
 });
     
