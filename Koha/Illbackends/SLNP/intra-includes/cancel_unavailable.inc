@@ -20,7 +20,7 @@
 
         <form id="SLNP_cancel_unavailable" name="SLNP_cancel_unavailable" method="POST" action=[% here %]>
             <fieldset class="rows">
-                <legend>Delivery</legend>
+                <legend>Cancellation</legend>
                 <ol>
                     <li>
                         <label for="notify_patron">Notify:</label>
@@ -35,12 +35,15 @@
                 <input name="illrequest_id" id="illrequest_id" value="[% whole.illrequest_id %]" type="hidden" />
                 <input name="backend" id="backend" value="SLNP" type="hidden" />
                 <input name="method" id="method" value="cancel_unavailable" type="hidden" />
-                <input name="stage" id="stage" value="[% whole.stage %]" type="hidden" />
-                <input name="itemnumber" id="itemnumber" value="[% whole.value.other.itemnumber %]" type="hidden" />
+                <input name="stage" id="stage" value="commit" type="hidden" />
+            </fieldset>
 
-                <input id="submitbutton" name="submitbutton" type="submit" value="Confirm" onclick="stage.value='commit'" />
+            <fieldset class="action">
+                <button type="submit" class="btn btn-default approve">
+                    <i class="fa fa-check"></i> Cancel request
+                </button>
 
-                <a class="cancel" href="/cgi-bin/koha/ill/ill-requests.pl?method=illview&amp;illrequest_id=[% request.illrequest_id %]">Cancel</a>
+                <a class="cancel" id="cancelbutton" name="cancelbutton" href="/cgi-bin/koha/ill/ill-requests.pl?method=illview&amp;illrequest_id=[% request.illrequest_id | uri %]">Cancel</a>
             </fieldset>
         </form>
     [% END %]

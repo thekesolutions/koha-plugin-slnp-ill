@@ -1284,7 +1284,7 @@ sub cancel_unavailable {
     } elsif ( $stage eq 'commit' ) {
 
         # delete biblio and item
-        my $biblio = Koha::Biblios->find( $request->biblionumber );
+        my $biblio = Koha::Biblios->find( $request->biblio_id );
         my $items  = $biblio->items;
         # delete the items using safe_delete
         while ( my $item = $items->next ) {
