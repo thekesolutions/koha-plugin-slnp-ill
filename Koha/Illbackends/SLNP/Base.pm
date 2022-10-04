@@ -1283,37 +1283,49 @@ sub cancel_unavailable {
 
     } elsif ( $stage eq 'commit' ) {
 
-        # delete biblio and item
-        my $biblio = Koha::Biblios->find( $request->biblio_id );
-        my $items  = $biblio->items;
-        # delete the items using safe_delete
-        while ( my $item = $items->next ) {
-            $item->safe_delete;
-        }
-        # delete the biblio
-        DelBiblio( $biblio->id );
+        try {
+            Koha::Database->new->schema->txn_do(
+                sub {
+                    # delete biblio and item
+                    my $biblio = Koha::Biblios->find( $request->biblio_id );
+                    my $items  = $biblio->items;
+                    # delete the items using safe_delete
+                    while ( my $item = $items->next ) {
+                        $item->safe_delete;
+                    }
+                    # delete the biblio
+                    DelBiblio( $biblio->id );
 
-        # mark as complete
-        $request->set(
-            {
-                completed => \'NOW()',
-                status    => 'COMP',
-            }
-        )->store;
+                    # mark as complete
+                    $request->set(
+                        {
+                            completed => \'NOW()',
+                            status    => 'COMP',
+                        }
+                    )->store;
 
-        # send message
-        if ( $params->{other}->{notify_patron} eq 'on' ) {
-            my $letter = $request->get_notice(
-                { notice_code => 'ILL_REQUEST_UNAVAIL', transport => 'email' }
-            );
-            my $result = C4::Letters::EnqueueLetter(
-                {
-                    letter                 => $letter,
-                    borrowernumber         => $request->borrowernumber,
-                    message_transport_type => 'email',
+                    # send message
+                    if ( $params->{other}->{notify_patron} eq 'on' ) {
+                        my $letter = $request->get_notice(
+                            { notice_code => 'ILL_REQUEST_UNAVAIL', transport => 'email' }
+                        );
+                        my $result = C4::Letters::EnqueueLetter(
+                            {
+                                letter                 => $letter,
+                                borrowernumber         => $request->borrowernumber,
+                                message_transport_type => 'email',
+                            }
+                        );
+                    }
                 }
-            );
+            )
         }
+        catch {
+            warn "$_";
+            $backend_result->{error}   = 1;
+            $backend_result->{message} = "$_";
+            $backend_result->{stage}   = undef;
+        };
 
     } else {
 

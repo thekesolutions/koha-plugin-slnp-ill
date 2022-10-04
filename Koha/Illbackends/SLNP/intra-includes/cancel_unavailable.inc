@@ -4,21 +4,25 @@
 
 
 [% IF whole.error %]
+    [% IF whole.message %]
+    <div class="dialog message">There was an error processing your request: [%- whole.message | html -%].</div>
+    [% ELSE %]
     <p>Unknown error</p>
+    [% END %]
 [% END %]
 
 [% IF ( whole.stage == "init" ) %]
-    <h2>Mark as unavailable ([% request.orderid %])</h2>
+    <h2>Mark as unavailable ([% request.orderid | html %])</h2>
 
     [% IF ! ( request.status == 'REQ' ) %]
-        <p>The current status ([% request.status %]) of the ILL request doesn't allow to mark this request as not available.</p>
+        <p>The current status ([% request.status | html %]) of the ILL request doesn't allow to mark this request as not available.</p>
         <p>This action is only possible until the item has been received.</p>
 
-        <a class="cancel" href="/cgi-bin/koha/ill/ill-requests.pl?method=illview&amp;illrequest_id=[% request.illrequest_id %]">Cancel</a>
+        <a class="cancel" href="/cgi-bin/koha/ill/ill-requests.pl?method=illview&amp;illrequest_id=[% request.illrequest_id | uri %]">Cancel</a>
 
     [% ELSE %]
 
-        <form id="SLNP_cancel_unavailable" name="SLNP_cancel_unavailable" method="POST" action=[% here %]>
+        <form id="SLNP_cancel_unavailable" name="SLNP_cancel_unavailable" method="POST" action=[% here | url %]>
             <fieldset class="rows">
                 <legend>Cancellation</legend>
                 <ol>
@@ -32,7 +36,7 @@
                     </li>
                 </ol>
 
-                <input name="illrequest_id" id="illrequest_id" value="[% whole.illrequest_id %]" type="hidden" />
+                <input name="illrequest_id" id="illrequest_id" value="[% whole.illrequest_id | html%]" type="hidden" />
                 <input name="backend" id="backend" value="SLNP" type="hidden" />
                 <input name="method" id="method" value="cancel_unavailable" type="hidden" />
                 <input name="stage" id="stage" value="commit" type="hidden" />
