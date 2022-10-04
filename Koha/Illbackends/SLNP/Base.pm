@@ -31,7 +31,7 @@ use URI::Escape;
 use XML::LibXML;
 use YAML;
 
-use C4::Biblio qw( AddBiblio );
+use C4::Biblio qw( AddBiblio DelBiblio );
 use C4::Context;
 use C4::Letters qw(GetPreparedLetter);
 use C4::Members::Messaging;
@@ -252,7 +252,7 @@ sub status_graph {
 
             #ui_method_name => "Negativ-Kennzeichen / l\N{U+f6}schen",
             ui_method_name => 'Negativ-Kennzeichen',
-            method         => 'kennzeichneNegativ',
+            method         => 'cancel_unavailable',
             next_actions   => [],                      # in reality: ['COMP']
             ui_method_icon => 'fa-times',
         },
@@ -1239,73 +1239,81 @@ sub storniereFuerBenutzer {
     return $backend_result;
 }
 
-# This method is used when the owning library denies the delivery of the ILL item
-sub kennzeichneNegativ {
+=head3 cancel_unavailable
+
+    $request->cancel_unavailable;
+
+=cut
+
+sub cancel_unavailable {
     my ( $self, $params ) = @_;
-    my $stage          = $params->{other}->{stage};
+
+    my $stage = $params->{other}->{stage};
+    my $template_params = {};
+
     my $backend_result = {
         backend => $self->name,
-        method  => "kennzeichneNegativ",
+        method  => "cancel_unavailable",
         stage   => $stage,                 # default for testing the template
         error   => 0,
         status  => "",
         message => "",
-        value   => {},
+        value   => $template_params,
         next    => "illview",
     };
 
-    my $illNotDeliveredLetterCode = C4::Context->preference("ILLNotDeliveredLettercode");
-    $backend_result->{value}->{other}->{illnotdeliveredlettercode} = $illNotDeliveredLetterCode;
-    if ( $backend_result->{value}->{other}->{illnotdeliveredlettercode} && $params->{request}->status() ne 'CNCLDFU' ) {
-        $backend_result->{value}->{other}->{illnotdeliveredletterprint} = 1;
-    } else {
-        $backend_result->{value}->{other}->{illnotdeliveredletterprint} = 0;
-    }
+    my $request = $params->{request};
 
-    $backend_result->{illrequest_id}                      = $params->{request}->illrequest_id;
-    $backend_result->{value}->{request}->{illrequest_id}  = $params->{request}->illrequest_id;
-    $backend_result->{value}->{request}->{biblio_id}      = $params->{request}->biblio_id();
-    $backend_result->{value}->{request}->{borrowernumber} = $params->{request}->borrowernumber();
-    $backend_result->{value}->{other}->{type}             = $params->{request}->medium();
+    $backend_result->{illrequest_id}  = $request->illrequest_id;
+    $template_params->{other}->{type} = $request->medium;
+    $template_params->{request}       = $request;
 
-    if ( !$stage || $stage eq 'init' ) {
-        $backend_result->{stage} = "confirmcommit";
+    if ( !$stage ) {
 
-    } elsif ( $stage eq 'commit' || $stage eq 'confirmcommit' ) {
-        $backend_result->{value}->{other}->{illnotdeliveredletterprint} = $params->{other}->{illnotdeliveredletterprint};
+        my $patron_preferences = C4::Members::Messaging::GetMessagingPreferences({
+            borrowernumber => $request->borrowernumber,
+            message_name   => 'Ill_unavailable',
+        });
 
-        # read relevant data from illrequestatributes
-        my @interesting_fields = ( 'itemnumber', 'author', 'title' );
-
-        my $fieldResults = $params->{request}->illrequestattributes->search( { type => { '-in' => \@interesting_fields } } );
-        my $illreqattr   = { map { ( $_->type => $_->value ) } ( $fieldResults->as_list ) };
-        foreach my $type ( keys %{$illreqattr} ) {
-            $backend_result->{value}->{other}->{$type} = $illreqattr->{$type};
+        if ( exists $patron_preferences->{transports}->{email} ) {
+            $template_params->{notify} = 1;
         }
 
-        if ( $params->{request}->borrowernumber() && $params->{other}->{illnotdeliveredletterprint} eq '1' ) {
+        $backend_result->{stage} = "init";
 
-# send information to the borrower about the denied delivery of the ordered ILL medium (e.g. with letter.code ILLSLNP_NOT_DELIVERED) if configured (syspref ILLNotDeliveredLettercode)
-            if ( $illNotDeliveredLetterCode && length($illNotDeliveredLetterCode) ) {
-                my $fieldResults = $params->{request}->illrequestattributes->search();
-                my $illreqattr   = { map { ( $_->type => $_->value ) } ( $fieldResults->as_list ) };
-                &printIllNoticeSlnp(
-                    $params->{request}->branchcode(),
-                    $params->{request}->borrowernumber(),
-                    undef,       undef, $params->{request}->illrequest_id(),
-                    $illreqattr, 0,     $illNotDeliveredLetterCode
-                );
+    } elsif ( $stage eq 'commit' ) {
+
+        # delete biblio and item
+        my $biblio = Koha::Biblios->find( $request->biblionumber );
+        my $items  = $biblio->items;
+        # delete the items using safe_delete
+        while ( my $item = $items->next ) {
+            $item->safe_delete;
+        }
+        # delete the biblio
+        DelBiblio( $biblio->id );
+
+        # mark as complete
+        $request->set(
+            {
+                completed => \'NOW()',
+                status    => 'COMP',
             }
+        )->store;
+
+        # send message
+        if ( $params->{other}->{notify_patron} eq 'on' ) {
+            my $letter = $request->get_notice(
+                { notice_code => 'ILL_REQUEST_UNAVAIL', transport => 'email' }
+            );
+            my $result = C4::Letters::EnqueueLetter(
+                {
+                    letter                 => $letter,
+                    borrowernumber         => $request->borrowernumber,
+                    message_transport_type => 'email',
+                }
+            );
         }
-
-        # finally delete biblio and items data
-        delBiblioAndItem( scalar $params->{request}->biblio_id(), $backend_result->{value}->{other}->{itemnumber} );
-
-        # set illrequest.completed date to today
-        $params->{request}->completed( output_pref( { dt => dt_from_string, dateformat => 'iso' } ) );
-        $params->{request}->status('COMP')->store;
-
-        $backend_result->{value}->{request} = $params->{request};
 
     } else {
 
