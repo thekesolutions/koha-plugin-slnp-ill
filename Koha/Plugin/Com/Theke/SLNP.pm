@@ -197,7 +197,8 @@ sub after_circ_action {
             unless ( $THE_type eq 'Leihe' ) {
                 # This is Kopie
                 try {
-                    AddReturn( $checkout->item->barcode );
+                    my $item = $checkout->item;
+                    AddReturn( $item->barcode );
                     $req->status('RET')->store; # TODO: Koha could do better
                     $req->status('COMP')->store; # TODO: Koha could do better
                     # cleanup
