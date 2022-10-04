@@ -171,6 +171,25 @@ sub intranet_js {
     return $self->{_intranet_js};
 }
 
+=head3 opac_js
+
+Method that returns JS to be injected to the OPAC interface.
+
+=cut
+
+sub opac_js {
+    my ( $self ) = @_;
+
+    unless ( $self->{_opac_js} ) {
+        my $js = decode_utf8($self->mbf_read('opac.js'));
+        my $portal_url = $self->configuration->{portal_url} // 'https://your.portal.url';
+        $js =~ s/\{\{portal_url\}\}/$portal_url/eg;
+        $self->{_opac_js} =  '<script>' . $js . '</script>}';
+    }
+
+    return $self->{_opac_js};
+}
+
 =head3 after_circ_action
 
 After circulation hook.
