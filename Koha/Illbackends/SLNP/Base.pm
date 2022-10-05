@@ -1004,9 +1004,9 @@ sub slnp_mark_completed {
     }
     catch {
         warn "$_";
-        $backend_result->{error}   = 1;
-        $backend_result->{message} = "$_";
-        $backend_result->{stage}   = undef;
+#$backend_result->{error}   = 1;
+#$backend_result->{message} = "$_";
+#$backend_result->{stage}   = undef;
     };
 
     return {
