@@ -222,14 +222,7 @@ sub after_circ_action {
                     $req->status('RET')->store; # TODO: Koha could do better
                     $req->status('COMP')->store; # TODO: Koha could do better
                     # cleanup
-                    my $biblio = $item->biblio;
-                    my $items  = $biblio->items;
-                    # delete the items using safe_delete
-                    while ( my $item = $items->next ) {
-                        $item->safe_delete;
-                    }
-                    # delete the biblio
-                    DelBiblio( $biblio->id );
+                    $req->_backend->biblio_cleanup($req);
                 }
                 catch {
                     warn "Error attempting to return: $_";
