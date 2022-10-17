@@ -75,18 +75,20 @@ The plugin bundles an SLNP server. The server code belongs to a specific Koha in
 In order to run the service at startup time, a _systemd unit file_ is provided.
 
 ```shell
-export INSTANCE=kohadev
-# Add a symlink for the startup script
-ln -s \
-    /var/lib/koha/$INSTANCE/plugins/Koha/Plugin/Com/Theke/SLNP/scripts/slnp-server.sh \
-    /usr/sbin/slnp-server.sh
-# Add a symlink for the unit file
-ln -s \
-    /var/lib/koha/$INSTANCE/plugins/Koha/Plugin/Com/Theke/SLNP/scripts/slnp-server.service \
-    /etc/systemd/system/slnp-server.service
-# Tell systemctl about it
-systemctl daemon-reload
-systemctl enable slnp-server.service
+$ export KOHA_INSTANCE=kohadev
+# copy unit file
+$ cp /var/lib/koha/${KOHA_INSTANCE}/plugins/Koha/Plugin/Com/Theke/SLNP/scripts/slnp-server.service \
+     /etc/systemd/system/innreach_task_queue.service
+# set KOHA_INSTANCE to match what you need (default: kohadev)
+$ vim /etc/systemd/system/slnp-server.service
+# reload unit files, including the new one
+$ systemctl daemon-reload
+# enable service
+$ systemctl enable slnp-server.service
+Created symlink /etc/systemd/system/multi-user.target.wants/slnp-server.service → /etc/systemd/system/slnp-server.service
+# check the logs :-D
+$ journalctl -u slnp-server.service -f
+
 ```
 
 ## Development
