@@ -3,7 +3,7 @@ Description=SLNP server.
 
 [Service]
 Environment=KOHA_INSTANCE=kohadev
-ExecStart=koha-shell ${KOHA_INSTANCE} -c "PERL5LIB=$PERL5LIB:/var/lib/koha/${KOHA_INSTANCE}/plugins:/var/lib/koha/${KOHA_INSTANCE}/plugins/Koha/Plugin/Com/Theke/SLNP/lib/ perl /var/lib/koha/${KOHA_INSTANCE}/plugins/Koha/Plugin/Com/Theke/SLNP/scripts/slnp-server.pl ${KOHA_INSTANCE}"
+ExecStart=/usr/sbin/koha-shell ${KOHA_INSTANCE} -c "PERL5LIB=$PERL5LIB:/var/lib/koha/${KOHA_INSTANCE}/plugins:/var/lib/koha/${KOHA_INSTANCE}/plugins/Koha/Plugin/Com/Theke/SLNP/lib/ perl /var/lib/koha/${KOHA_INSTANCE}/plugins/Koha/Plugin/Com/Theke/SLNP/scripts/slnp-server.pl ${KOHA_INSTANCE}"
 
 [Install]
 WantedBy=multi-user.target
