@@ -942,6 +942,13 @@ sub cancel_unavailable {
                 sub {
                     $self->biblio_cleanup( $request );
 
+                    Koha::Illrequestattribute->new(
+                        {   illrequest_id => $request->illrequest_id,
+                            type          => 'cancellation_reason',
+                            value         => 'unavailable',
+                        }
+                    )->store;
+
                     # mark as complete
                     $request->set(
                         {
