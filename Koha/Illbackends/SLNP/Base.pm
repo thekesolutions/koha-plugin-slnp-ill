@@ -179,12 +179,34 @@ sub status_graph {
             ui_method_icon => 'fa-check',
         },
 
-        SLNP_COMP => {
+        NEGFLAG => {
+            prev_actions => [ 'REQ' ],
+            id           => 'NEGFLAG',
+            name         => "Negativ/gel\N{U+f6}scht",
+
+            #ui_method_name => "Negativ-Kennzeichen / l\N{U+f6}schen",
+            ui_method_name => 'Negativ-Kennzeichen',
+            method         => 'cancel_unavailable',
+            next_actions   => [],
+            ui_method_icon => 'fa-times',
+        },
+
+        SLNP_COMP => { # Pseudo-status
             prev_actions   => [ 'RET' ],
             id             => 'SLNP_COMP',
             name           => 'Completed',
             ui_method_name => 'Mark completed',
             method         => 'slnp_mark_completed',
+            next_actions   => [],
+            ui_method_icon => 'fa-check',
+        },
+
+        COMP => {
+            prev_actions   => [ 'SLNP_COMP' ],
+            id             => 'COMP',
+            name           => 'Completed',
+            ui_method_name => 'Mark completed',
+            method         => '',
             next_actions   => [],
             ui_method_icon => 'fa-check',
         },
@@ -243,19 +265,6 @@ sub status_graph {
         #     next_actions   => ['COMP'],
         #     ui_method_icon => 'fa-times',
         # },
-
-        # Pseudo status, not stored in illrequests. Sole purpose: displaying 'Negativ-Kennzeichen' dialog (status becomes 'COMP')
-        NEGFLAG => {
-            prev_actions => [ 'REQ' ],
-            id           => 'NEGFLAG',
-            name         => "Negativ/gel\N{U+f6}scht",
-
-            #ui_method_name => "Negativ-Kennzeichen / l\N{U+f6}schen",
-            ui_method_name => 'Negativ-Kennzeichen',
-            method         => 'cancel_unavailable',
-            next_actions   => [],                      # in reality: ['COMP']
-            ui_method_icon => 'fa-times',
-        },
     };
 }
 
