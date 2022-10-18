@@ -166,7 +166,7 @@ sub intranet_js {
 
     unless ( $self->{_intranet_js} ) {
         my $js = decode_utf8($self->mbf_read('intranet.js'));
-        $self->{_intranet_js} =  '<script>' . $js . '</script>}';
+        $self->{_intranet_js} =  '<script>' . $js . '</script>';
     }
 
     return $self->{_intranet_js};
@@ -185,7 +185,7 @@ sub opac_js {
         my $js = decode_utf8($self->mbf_read('opac.js'));
         my $portal_url = $self->configuration->{portal_url} // 'https://your.portal.url';
         $js =~ s/\{\{portal_url\}\}/$portal_url/eg;
-        $self->{_opac_js} =  '<script>' . $js . '</script>}';
+        $self->{_opac_js} =  '<script>' . $js . '</script>';
     }
 
     return $self->{_opac_js};
