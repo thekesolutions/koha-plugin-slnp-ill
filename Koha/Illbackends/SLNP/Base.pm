@@ -955,9 +955,10 @@ sub cancel_unavailable {
                     $request->set(
                         {
                             completed => \'NOW()',
-                            status    => 'COMP',
                         }
-                    )->store;
+                    );
+
+                    $request->status('COMP');
 
                     # send message
                     if ( $params->{other}->{notify_patron} eq 'on' ) {
@@ -1014,9 +1015,10 @@ sub slnp_mark_completed {
                 $request->set(
                     {
                         completed => \'NOW()',
-                        status    => 'COMP',
                     }
                 )->store;
+
+                $request->status('COMP');
             }
         )
     }
