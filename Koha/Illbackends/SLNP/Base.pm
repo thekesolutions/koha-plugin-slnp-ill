@@ -568,29 +568,12 @@ sub receive {
 
                 $new_attributes->{hold_id} = $hold_id;
 
-                while ( my ( $type, $value ) = each %{$new_attributes} ) {
-
-                    my $attr = $request->illrequestattributes->find(
-                        {
-                            type => $type
-                        }
-                    );
-
-                    if ($attr) {    # update
-                        if ( $attr->value ne $value ) {
-                            $attr->update( { value => $value, } );
-                        }
+                $self->add_or_update_attributes(
+                    {
+                        request    => $request,
+                        attributes => $new_attributes,
                     }
-                    else {          # new
-                        $attr = Koha::Illrequestattribute->new(
-                            {
-                                illrequest_id => $request->id,
-                                type          => $type,
-                                value         => $value,
-                            }
-                        )->store;
-                    }
-                }
+                );
 
                 # item information
                 my $item_type = $self->{configuration}->{item_types}->{$request_type};
@@ -756,29 +739,12 @@ sub update {
               $params->{other}->{circulation_notes}
               if $params->{other}->{circulation_notes};
 
-            while ( my ( $type, $value ) = each %{$new_attributes} ) {
-
-                my $attr = $request->illrequestattributes->find(
-                    {
-                        type => $type
-                    }
-                );
-
-                if ($attr) {    # update
-                    if ( $attr->value ne $value ) {
-                        $attr->update( { value => $value, } );
-                    }
+            $self->add_or_update_attributes(
+                {
+                    request    => $request,
+                    attributes => $new_attributes,
                 }
-                else {          # new
-                    $attr = Koha::Illrequestattribute->new(
-                        {
-                            illrequest_id => $request->id,
-                            type          => $type,
-                            value         => $value,
-                        }
-                    )->store;
-                }
-            }
+            );
 
             # item information
             $item->itype( $params->{other}->{item_type} )
@@ -1029,27 +995,15 @@ sub return_to_library {
         try {
             Koha::Database->new->schema->txn_do(
                 sub {
-                    my $new_attributes = {};
 
-                    $new_attributes->{lending_library} = $params->{other}->{lending_library};
-
-                    while ( my ( $type, $value ) = each %{$new_attributes} ) {
-
-                        my $attr = $request->illrequestattributes->find( { type => $type } );
-
-                        if ($attr) {    # update
-                            if ( $attr->value ne $value ) {
-                                $attr->update( { value => $value, } );
+                    $self->add_or_update_attributes(
+                        {
+                            request    => $request,
+                            attributes => {
+                                lending_library => $params->{other}->{lending_library},
                             }
-                        } else {        # new
-                            $attr = Koha::Illrequestattribute->new(
-                                {   illrequest_id => $request->id,
-                                    type          => $type,
-                                    value         => $value,
-                                }
-                            )->store;
                         }
-                    }
+                    );
 
                     $request->set( { notesstaff => $params->{other}->{staff_note}, } )->store;
                     $request->status('SLNP_COMP');
@@ -1758,6 +1712,66 @@ sub biblio_cleanup {
         );
     } catch {
         warn "$_ " . ref($_);
+    };
+
+    return $self;
+}
+
+=head3 add_or_update_attributes
+
+    $request->add_or_update_attributes(
+        {
+            request    => $request,
+            attributes => {
+                $type_1 => $value_1,
+                $type_2 => $value_2,
+                ...
+            },
+        }
+    );
+
+Takes care of updating or adding attributes if they don't already exist.
+
+=cut
+
+sub add_or_update_attributes {
+    my ( $self, $params ) = @_;
+
+    my $request    = $params->{request};
+    my $attributes = $params->{attributes};
+
+    try {
+        Koha::Database->new->schema->txn_do(
+            sub {
+
+                while ( my ( $type, $value ) = each %{$attributes} ) {
+
+                    my $attr = $request->illrequestattributes->find(
+                        {
+                            type => $type
+                        }
+                    );
+
+                    if ($attr) {    # update
+                        if ( $attr->value ne $value ) {
+                            $attr->update( { value => $value, } );
+                        }
+                    }
+                    else {          # new
+                        $attr = Koha::Illrequestattribute->new(
+                            {
+                                illrequest_id => $request->id,
+                                type          => $type,
+                                value         => $value,
+                            }
+                        )->store;
+                    }
+                }
+            }
+        );
+    }
+    catch {
+        $_->rethrow;
     };
 
     return $self;
