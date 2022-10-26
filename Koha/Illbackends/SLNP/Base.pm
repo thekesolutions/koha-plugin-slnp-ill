@@ -921,6 +921,7 @@ sub cancel_unavailable {
     $backend_result->{illrequest_id}  = $request->illrequest_id;
     $template_params->{other}->{type} = $request->medium;
     $template_params->{request}       = $request;
+    $template_params->{patron}        = $request->patron;
 
     if ( !$stage ) {
 

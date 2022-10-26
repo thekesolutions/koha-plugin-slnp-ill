@@ -27,6 +27,13 @@
                 <legend>Cancellation</legend>
                 <ol>
                     <li>
+                        <label for="the_patron">Requesting patron:</label>
+                        <div name="the_patron" id="the_patron">
+                            <a target="_blank" href="/cgi-bin/koha/members/moremember.pl?borrowernumber=[% whole.value.patron.borrowernumber %]">
+                            [% whole.value.patron.firstname | html %] [% whole.value.patron.surname | html %] ([% whole.value.patron.cardnumber | html %])</a>
+                        </div>
+                    </li>
+                    <li>
                         <label for="notify_patron">Notify:</label>
                     [% IF whole.value.notify %]
                         <input type="checkbox" id="notify_patron" name="notify_patron" checked />
