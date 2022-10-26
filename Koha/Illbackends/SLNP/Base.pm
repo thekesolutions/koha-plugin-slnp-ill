@@ -650,7 +650,122 @@ sub update {
         illrequest_id => $request->id,
     };
 
-    if ( !defined $stage ) { # init, show information
+    if ( $stage and $stage eq 'commit' ) {
+        # process the receiving parameters
+
+        try {
+            Koha::Database->new->schema->txn_do(
+                sub {
+
+                    my $request_type = $params->{other}->{type} // 'loan';
+
+                    my $new_attributes = {};
+
+                    $new_attributes->{type} = $request_type eq 'loan' ? 'Leihe' : 'Kopie';
+
+                    $new_attributes->{received_on_date} = dt_from_string( $params->{other}->{received_on_date} )
+                    if $params->{other}->{received_on_date};
+
+                    $new_attributes->{due_date} = dt_from_string( $params->{other}->{due_date} )
+                    if $params->{other}->{due_date};
+
+                    $new_attributes->{request_charges} = $params->{other}->{request_charges}
+                    if $params->{other}->{request_charges};
+
+                    $new_attributes->{lending_library} = $params->{other}->{lending_library};
+
+                    if ( $params->{other}->{charge_extra_fee} and
+                        $params->{other}->{request_charges} and
+                        $params->{other}->{request_charges} > 0 ) {
+                        my $debit = $request->patron->account->add_debit(
+                            {
+                                amount => $params->{other}->{request_charges},
+                                type   => $self->{configuration}->{extra_fee_debit_type}
+                                // 'ILL',
+                                interface => 'intranet',
+                            }
+                        );
+
+                        $new_attributes->{debit_id} = $debit->id;
+                    }
+
+                    $new_attributes->{circulation_notes} =
+                    $params->{other}->{circulation_notes}
+                    if $params->{other}->{circulation_notes};
+
+                    $self->add_or_update_attributes(
+                        {
+                            request    => $request,
+                            attributes => $new_attributes,
+                        }
+                    );
+
+                    # item information
+                    $item->itype( $params->{other}->{item_type} )
+                    if $params->{other}->{item_type};
+
+                    $item->restricted( $params->{other}->{item_usage_restrictions} )
+                    if defined $params->{other}->{item_usage_restrictions};
+
+                    $item->itemcallnumber( $params->{other}->{item_callnumber} )
+                    if $params->{other}->{item_callnumber};
+
+                    $item->damaged ( $params->{other}->{item_damaged} )
+                    if $params->{other}->{item_damaged};
+
+                    $item->itemnotes_nonpublic( $params->{other}->{item_internal_note} )
+                    if $params->{other}->{item_internal_note};
+
+                    $item->materials( $params->{other}->{item_number_of_parts} )
+                    if $params->{other}->{item_number_of_parts};
+
+                    $item->store;
+
+                    if ( $params->{other}->{notify_patron} eq 'on' ) {
+                        my $letter = $request->get_notice(
+                            { notice_code => 'ILL_PICKUP_READY', transport => 'email' }
+                        );
+
+                        my $result = C4::Letters::EnqueueLetter(
+                            {
+                                letter                 => $letter,
+                                borrowernumber         => $request->borrowernumber,
+                                message_transport_type => 'email',
+                            }
+                        );
+                    }
+
+                    # item information
+                    my $item_type = $self->{configuration}->{item_types}->{$request_type};
+                    $item->set(
+                        {   itype               => $item_type,
+                            restricted          => $params->{other}->{item_usage_restrictions},
+                            itemcallnumber      => $params->{other}->{item_callnumber},
+                            damaged             => $params->{other}->{item_damaged},
+                            itemnotes_nonpublic => $params->{other}->{item_internal_note},
+                            materials           => $params->{other}->{item_number_of_parts},
+                        }
+                    )->store;
+
+                    $request->set(
+                        {   medium     => $request_type,
+                            notesopac  => $params->{other}->{opac_note},
+                            notesstaff => $params->{other}->{staff_note},
+                        }
+                    )->store;
+
+                    $backend_result->{stage} = 'commit';
+                }
+            );
+        }
+        catch {
+            warn "$_";
+            $backend_result->{error}   = 1;
+            $backend_result->{message} = "$_";
+            $backend_result->{stage}   = undef;
+        };
+    }
+    else { # init or error
 
         $template_params->{medium} = $request->medium;
 
@@ -697,118 +812,6 @@ sub update {
         ];
 
         $backend_result->{stage} = 'init';
-    }
-    elsif ( $stage eq 'commit' ) {
-        # process the receiving parameters
-
-        try {
-
-            my $request_type = $params->{other}->{type} // 'loan';
-
-            my $new_attributes = {};
-
-            $new_attributes->{type} = $request_type eq 'loan' ? 'Leihe' : 'Kopie';
-
-            $new_attributes->{received_on_date} = dt_from_string( $params->{other}->{received_on_date} )
-              if $params->{other}->{received_on_date};
-
-            $new_attributes->{due_date} = dt_from_string( $params->{other}->{due_date} )
-              if $params->{other}->{due_date};
-
-            $new_attributes->{request_charges} = $params->{other}->{request_charges}
-              if $params->{other}->{request_charges};
-
-            $new_attributes->{lending_library} = $params->{other}->{lending_library};
-
-            if ( $params->{other}->{charge_extra_fee} and
-                 $params->{other}->{request_charges} and
-                 $params->{other}->{request_charges} > 0 ) {
-                my $debit = $request->patron->account->add_debit(
-                    {
-                        amount => $params->{other}->{request_charges},
-                        type   => $self->{configuration}->{extra_fee_debit_type}
-                          // 'ILL',
-                        interface => 'intranet',
-                    }
-                );
-
-                $new_attributes->{debit_id} = $debit->id;
-            }
-
-            $new_attributes->{circulation_notes} =
-              $params->{other}->{circulation_notes}
-              if $params->{other}->{circulation_notes};
-
-            $self->add_or_update_attributes(
-                {
-                    request    => $request,
-                    attributes => $new_attributes,
-                }
-            );
-
-            # item information
-            $item->itype( $params->{other}->{item_type} )
-              if $params->{other}->{item_type};
-
-            $item->restricted( $params->{other}->{item_usage_restrictions} )
-              if defined $params->{other}->{item_usage_restrictions};
-
-            $item->itemcallnumber( $params->{other}->{item_callnumber} )
-              if $params->{other}->{item_callnumber};
-
-            $item->damaged ( $params->{other}->{item_damaged} )
-              if $params->{other}->{item_damaged};
-
-            $item->itemnotes_nonpublic( $params->{other}->{item_internal_note} )
-              if $params->{other}->{item_internal_note};
-
-            $item->materials( $params->{other}->{item_number_of_parts} )
-              if $params->{other}->{item_number_of_parts};
-
-            $item->store;
-
-            if ( $params->{other}->{notify_patron} eq 'on' ) {
-                my $letter = $request->get_notice(
-                    { notice_code => 'ILL_PICKUP_READY', transport => 'email' }
-                );
-
-                my $result = C4::Letters::EnqueueLetter(
-                    {
-                        letter                 => $letter,
-                        borrowernumber         => $request->borrowernumber,
-                        message_transport_type => 'email',
-                    }
-                );
-            }
-
-            # item information
-            my $item_type = $self->{configuration}->{item_types}->{$request_type};
-            $item->set(
-                {   itype               => $item_type,
-                    restricted          => $params->{other}->{item_usage_restrictions},
-                    itemcallnumber      => $params->{other}->{item_callnumber},
-                    damaged             => $params->{other}->{item_damaged},
-                    itemnotes_nonpublic => $params->{other}->{item_internal_note},
-                    materials           => $params->{other}->{item_number_of_parts},
-                }
-            )->store;
-
-            $request->set(
-                {   medium     => $request_type,
-                    notesopac  => $params->{other}->{opac_note},
-                    notesstaff => $params->{other}->{staff_note},
-                }
-            )->store;
-
-            $backend_result->{stage} = 'commit';
-        }
-        catch {
-            warn "$_";
-            $backend_result->{stage} = 'commit';
-        };
-    }
-    else {
-        $backend_result->{stage} = $stage;
     }
 
     return $backend_result;
