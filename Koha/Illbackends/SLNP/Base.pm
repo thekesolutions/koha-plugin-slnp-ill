@@ -145,17 +145,17 @@ sub status_graph {
             name           => 'Eingangsverbucht',
             ui_method_name => 'Eingang verbuchen',
             method         => 'receive',
-            next_actions   => [ 'RECVDUPD', 'SLNP_COMP' ],                    # in reality: ['CHK']
+            next_actions   => [ 'RECVDUPD', 'SLNP_COMP', 'SENT_BACK' ],
             ui_method_icon => 'fa-download',
         },
 
-        RECVDUPD => {
+        RECVDUPD => { # Pseudo status
             prev_actions   => [ 'RECVD' ],
             id             => 'RECVDUPD',
             name           => 'Eingangsverbucht',
             ui_method_name => 'Eingang bearbeiten',
             method         => 'update',
-            next_actions   => [],
+            next_actions   => [], # really RECVD
             ui_method_icon => 'fa-pencil',
         },
 
@@ -175,29 +175,37 @@ sub status_graph {
             name           => "R\N{U+fc}ckgegeben",
             ui_method_name => '',
             method         => '',
-            next_actions   => ['SLNP_COMP'],
+            next_actions   => ['SLNP_COMP','SENT_BACK'],
             ui_method_icon => 'fa-check',
         },
 
         NEGFLAG => {
-            prev_actions => [ 'REQ' ],
-            id           => 'NEGFLAG',
-            name         => "Negativ/gel\N{U+f6}scht",
-
-            #ui_method_name => "Negativ-Kennzeichen / l\N{U+f6}schen",
+            prev_actions   => ['REQ'],
+            id             => 'NEGFLAG',
+            name           => "Negativ/gel\N{U+f6}scht",
             ui_method_name => 'Negativ-Kennzeichen',
             method         => 'cancel_unavailable',
             next_actions   => [],
             ui_method_icon => 'fa-times',
+          },
+
+        SENT_BACK => {
+            prev_actions   => [ 'RET', 'RECVD' ],
+            id             => 'SENT_BACK',
+            name           => 'Return to library',
+            ui_method_name => 'Return to library',
+            method         => 'return_to_library',
+            next_actions   => [ 'SLNP_COMP' ],
+            ui_method_icon => 'fa-truck',
         },
 
-        SLNP_COMP => { # Pseudo-status
+        SLNP_COMP => { # Intermediate status for handling cleanup
             prev_actions   => [ 'RET' ],
             id             => 'SLNP_COMP',
             name           => 'Completed',
             ui_method_name => 'Mark completed',
             method         => 'slnp_mark_completed',
-            next_actions   => [],
+            next_actions   => [  ],
             ui_method_icon => 'fa-check',
         },
 
@@ -211,60 +219,6 @@ sub status_graph {
             ui_method_icon => 'fa-check',
         },
 
-        # # Pseudo status, not stored in illrequests. Sole purpose: displaying "Rueckversenden" dialog (status becomes 'COMP')
-        # SNTBCK => {                                               # medium is sent back, mark this ILL request as COMP
-        #     prev_actions   => [ 'RECVD', 'CNCLDFU', 'RET' ],
-        #     id             => 'SNTBCK',
-        #     name           => "Zur\N{U+fc}ckversandt",
-        #     ui_method_name => "R\N{U+fc}ckversenden",
-        #     method         => 'sendeZurueck',
-        #     next_actions   => [],                                 # in reality: ['COMP']
-        #     ui_method_icon => 'fa-check',
-        # },
-
-        # # Pseudo status, not stored in illrequests. Sole purpose: displaying 'Verlust buchen' dialog (status stays unchanged)
-        # LOSTHOWTO => {
-        #     prev_actions   => [ 'RECVD', 'CHK', 'RET' ],
-        #     id             => 'LOSTHOWTO',
-        #     name           => 'Verlust HowTo',
-        #     ui_method_name => 'Verlust buchen',
-        #     method         => 'bucheVerlust',
-        #     next_actions   => [],                                 # in reality: status stays unchanged
-        #     ui_method_icon => 'fa-times',
-        # },
-
-        # # status 'LostBeforeCheckOut' (not for GUI, now internally handled by itemLost(), called by cataloguing::additem.pl and catalogue::updateitem.pl )
-        # LOSTBCO => {                                              # lost by library Before CheckOut
-        #     prev_actions   => [],                                     # Officially empty, so not used in GUI. in reality: ['RECVD']
-        #     id             => 'LOSTBCO',
-        #     name           => 'Verlust vor Ausleihe',
-        #     ui_method_name => 'Aufruf_durch_Koha_Verlust-Buchung',    # not used in GUI
-        #     method         => 'itemLost',
-        #     next_actions   => [],                                     # in reality: ['COMP']
-        #     ui_method_icon => 'fa-times',
-        # },
-
-        # # status 'LostAfterCheckOut' (not for GUI, now internally handled by itemLost(), called by cataloguing::additem.pl and catalogue::updateitem.pl )
-        # LOSTACO => {                                                  # lost by user After CheckOut or by library after CheckIn
-        #     prev_actions   => [],                                     # Officially empty, so not used in GUI. in reality: ['CHK', 'RET']
-        #     id             => 'LOSTACO',
-        #     name           => 'Verlust',
-        #     ui_method_name => 'Aufruf_durch_Koha_Verlust-Buchung',    # not used in GUI
-        #     method         => 'itemLost',
-        #     next_actions   => [],                                     # in reality: ['COMP']
-        #     ui_method_icon => 'fa-times',
-        # },
-
-        # # Pseudo status, not stored in illrequests. Sole purpose: displaying 'Verlust melden' dialog (status becomes 'COMP')
-        # LOST => {
-        #     prev_actions   => [ 'LOSTBCO', 'LOSTACO' ],
-        #     id             => 'LOST',
-        #     name           => 'Verlustgebucht',
-        #     ui_method_name => 'Verlust melden',
-        #     method         => 'meldeVerlust',
-        #     next_actions   => ['COMP'],
-        #     ui_method_icon => 'fa-times',
-        # },
     };
 }
 
@@ -1004,6 +958,16 @@ Koha::Illrequest. So...
 sub slnp_mark_completed {
     my ( $self, $params ) = @_;
 
+    my $backend_result = {
+        error   => 0,
+        status  => '',
+        message => '',
+        method  => 'slnp_mark_completed',
+        stage   => 'commit',
+        next    => 'illview',
+        value   => '',
+    };
+
     my $request = $params->{request};
 
     try {
@@ -1024,20 +988,100 @@ sub slnp_mark_completed {
     }
     catch {
         warn "$_";
-#$backend_result->{error}   = 1;
-#$backend_result->{message} = "$_";
-#$backend_result->{stage}   = undef;
+        $backend_result->{stage}   = 'init';
+        $backend_result->{message} = "$_";
     };
 
-    return {
-        error   => 0,
-        status  => '',
-        message => '',
-        method  => 'slnp_mark_completed',
-        stage   => 'commit',
-        next    => 'illview',
-        value   => '',
+    return $backend_result;
+}
+
+=head3 return_to_library
+
+    $request->return_to_library;
+
+=cut
+
+sub return_to_library {
+    my ( $self, $params ) = @_;
+
+    my $request = $params->{request};
+    my $method  = $params->{other}->{method};
+    my $stage   = $params->{other}->{stage};
+
+    my $template_params = {};
+
+    my $backend_result = {
+        backend       => $self->name,
+        method        => 'return_to_library',
+        stage         => $stage,                # default for testing the template
+        error         => 0,
+        status        => "",
+        message       => "",
+        value         => $template_params,
+        next          => "illview",
+        illrequest_id => $request->id,
     };
+
+    if ( $stage && $stage eq 'commit' ) {
+
+        # process the incoming parameters
+
+        try {
+            Koha::Database->new->schema->txn_do(
+                sub {
+                    my $new_attributes = {};
+
+                    $new_attributes->{lending_library} = $params->{other}->{lending_library};
+
+                    while ( my ( $type, $value ) = each %{$new_attributes} ) {
+
+                        my $attr = $request->illrequestattributes->find( { type => $type } );
+
+                        if ($attr) {    # update
+                            if ( $attr->value ne $value ) {
+                                $attr->update( { value => $value, } );
+                            }
+                        } else {        # new
+                            $attr = Koha::Illrequestattribute->new(
+                                {   illrequest_id => $request->id,
+                                    type          => $type,
+                                    value         => $value,
+                                }
+                            )->store;
+                        }
+                    }
+
+                    $request->set( { notesstaff => $params->{other}->{staff_note}, } )->store;
+                    $request->status('SLNP_COMP');
+                }
+            );
+
+            $backend_result->{stage} = 'commit';
+        } catch {
+            warn "$_";
+            $backend_result->{stage}   = 'init';
+            $backend_result->{message} = "$_";
+        };
+    } else {
+        # init, show information
+
+        my $partner_category_code = $self->{configuration}->{partner_category_code} // 'IL';
+        $template_params->{mandatory_lending_library} = !defined $self->{configuration}->{mandatory_lending_library}
+          ? 1                   # defaults to true
+          : ( $self->{configuration}->{mandatory_lending_library} eq 'false' ) ? 0 : 1;
+
+        my $lending_libraries = Koha::Patrons->search( { categorycode => $partner_category_code }, { order_by => [ 'surname', 'othernames' ] } );
+
+        $template_params->{lending_libraries} = $lending_libraries;
+        my $selected_lending_library = $request->illrequestattributes->search( { type => 'lending_library' } )->next;
+        $template_params->{selected_lending_library_id} = $selected_lending_library->value
+          if $selected_lending_library;
+
+        $template_params->{patron}     = $request->patron;
+        $template_params->{staff_note} = $request->notesstaff;
+    }
+
+    return $backend_result;
 }
 
 # shipping back the ILL item to the owning library
