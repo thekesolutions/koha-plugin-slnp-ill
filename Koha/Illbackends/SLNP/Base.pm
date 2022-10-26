@@ -654,9 +654,10 @@ sub receive {
                     {   medium     => $request_type,
                         notesopac  => $params->{other}->{opac_note},
                         notesstaff => $params->{other}->{staff_note},
-                        status     => 'RECVD',
                     }
                 )->store;
+                
+                $request->status('RECVD');
 
                 $backend_result->{stage} = 'commit';
             });
