@@ -1760,7 +1760,7 @@ sub biblio_cleanup {
         warn "$_ " . ref($_);
     };
 
-    return $self,;
+    return $self;
 }
 
 1;
