@@ -220,9 +220,7 @@ sub after_circ_action {
                     my $item = $checkout->item;
                     AddReturn( $item->barcode );
                     $req->status('RET')->store; # TODO: Koha could do better
-                    $req->status('COMP')->store; # TODO: Koha could do better
-                    # cleanup
-                    $req->_backend->biblio_cleanup($req);
+                    $req->status('SLNP_COMP')->store; # TODO: Koha could do better
                 }
                 catch {
                     warn "Error attempting to return: $_";
