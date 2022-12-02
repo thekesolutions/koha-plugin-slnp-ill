@@ -1009,7 +1009,7 @@ sub return_to_library {
                     );
 
                     $request->set( { notesstaff => $params->{other}->{staff_note}, } )->store;
-                    $request->status('SLNP_COMP');
+                    $request->status('SENT_BACK');
                 }
             );
 
