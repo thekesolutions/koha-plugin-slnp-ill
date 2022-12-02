@@ -1,8 +1,20 @@
 [% USE raw %]
 [% USE Asset %]
 
+[% TRY %]
+    [% lang = "$plugin_dir/i18n/$lang_dialect"_".inc" %]
+    [% PROCESS "$lang" %]
+[% CATCH %]
+    [% TRY %]
+        [% lang = "$plugin_dir/i18n/$lang_all"_".inc" %]
+        [% PROCESS "$lang" %]
+    [% CATCH %]
+        [% PROCESS "$plugin_dir/i18n/default.inc" %]
+    [% END %]
+[% END %]
+
 [% INCLUDE 'doc-head-open.inc' %]
- <title>Koha &rsaquo; SLNP ILL connector plugin &rsaquo; Configuration</title>
+ <title>Koha &rsaquo; [% TOKENS.breadcrumb_name %] &rsaquo; [% TOKENS.breadcrumb_config %]</title>
 [% INCLUDE 'doc-head-close.inc' %]
   <style>
     .CodeMirror {
@@ -10,44 +22,24 @@
       height: auto;
     }
   </style>
-  <script type="text/javascript">
-
-      $(document).ready(function(){
-        $("#refresh").on("click",function(e){
-            e.preventDefault;
-            $('#api_key').val(gen_api_key(32));
-        });
-      });
-
-      function gen_api_key(size) {
-        var output = "";
-        var chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
-
-        for (var i = 0; i < size; i++)
-          output += chars.charAt(Math.floor(Math.random() * chars.length));
-
-        return output;
-      }
-  </script>
 
 [% Asset.js( "lib/codemirror/codemirror.min.js" ) | $raw %]
 [% Asset.css("lib/codemirror/codemirror.min.css") | $raw %]
 [% Asset.css("lib/codemirror/lint.min.css") | $raw %]
-
 </head>
 <body>
 [% INCLUDE 'header.inc' %]
 [% INCLUDE 'cat-search.inc' %]
 
 <div id="breadcrumbs">
-    <a href="/cgi-bin/koha/mainpage.pl">Home</a> &rsaquo;
-    <a href="?class=[% CLASS | uri %]&method=configure">SLNP ILL connector plugin</a> &rsaquo;
-    Configuration
+    <a href="/cgi-bin/koha/mainpage.pl">[% TOKENS.breadcrumb_home %]</a> &rsaquo;
+    <a href="?class=[% CLASS | uri %]&method=configure">[% TOKENS.breadcrumb_name %]</a> &rsaquo;
+    [% TOKENS.breadcrumb_config %]
 </div>
 
 <div id="doc3" class="yui-t2">
   <div id="yui-main">
-    <h2>Configuration</h2>
+    <h2>[% TOKENS.configuration_title %]</h2>
     <br/>
       <form method="post">
         <input type="hidden" name="class"  value="[% CLASS | html %]"/>
@@ -55,7 +47,7 @@
         <input type="hidden" name="step"   value="configure"/>
         <input type="hidden" name="save"   value="1"/>
         <div class="input-group">
-          <span class="input-group-addon" id="configuration_label">Configuration</span>
+          <span class="input-group-addon" id="configuration_label">[% TOKENS.configuration_title %]</span>
           <textarea rows="200"
                     columns="200"
                     class="form-control"
@@ -64,7 +56,7 @@
                     id="configuration">[%- configuration | $raw -%]</textarea>
         </div>
         <br/>
-        <button type="submit" value="Save" class="btn btn-default" type="button">Save</button>
+        <button type="submit" value="Save" class="btn btn-default" type="button">[% TOKENS.configuration_save %]</button>
       </form>
   </div>
   <div class="yui-b">

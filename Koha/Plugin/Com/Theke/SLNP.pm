@@ -30,6 +30,7 @@ use YAML;
 
 use C4::Biblio qw(DelBiblio);
 use C4::Circulation qw(AddReturn);
+use C4::Languages;
 
 use Koha::Illrequests;
 use Koha::Items;
@@ -91,6 +92,15 @@ sub configure {
     my $template = $self->get_template({ file => 'configure.tt' });
 
     unless ( scalar $cgi->param('save') ) {
+
+        my $lang = C4::Languages::getlanguage($cgi);
+        my @lang_split = split /_|-/, $lang;
+
+        $template->param(
+            lang_dialect => $lang,
+            lang_all     => $lang_split[0],
+            plugin_dir   => $self->bundle_path
+        );
 
         ## Grab the values we already have for our settings, if any exist
         $template->param(
