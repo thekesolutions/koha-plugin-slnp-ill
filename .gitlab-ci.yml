@@ -6,7 +6,7 @@ stages:
 build: 
   stage: release
   script:
-    - apk add --update zip curl jq
+    - apk add --update zip curl jq git
     - npm install
     - npm install -g gulp-cli
     - gulp build
