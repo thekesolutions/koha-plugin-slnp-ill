@@ -249,7 +249,7 @@ sub cronjob_nightly {
 
     while ( my $request = $requests->next ) {
         $request->status('COMP')->store; # TODO: Koha could do better
-        $request->_backend->biblio_cleanup($req);
+        $request->_backend->biblio_cleanup($request);
     }
 
     return $self;
