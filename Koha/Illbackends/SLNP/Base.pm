@@ -515,17 +515,17 @@ sub receive {
 
                 $new_attributes->{type} = $request_type eq 'loan' ? 'Leihe' : 'Kopie';
 
-                $new_attributes->{received_on_date} = dt_from_string($params->{other}->{received_on_date})
-                if $params->{other}->{received_on_date};
+                $new_attributes->{received_on_date} = dt_from_string( $params->{other}->{received_on_date} )
+                  if $params->{other}->{received_on_date};
 
-                $new_attributes->{due_date} = dt_from_string($params->{other}->{due_date})
-                if $params->{other}->{due_date};
+                $new_attributes->{due_date} = dt_from_string( $params->{other}->{due_date} )
+                  if $params->{other}->{due_date};
 
                 $new_attributes->{request_charges} = $params->{other}->{request_charges}
-                if $params->{other}->{request_charges};
+                  if $params->{other}->{request_charges};
 
                 $new_attributes->{lending_library} = $params->{other}->{lending_library}
-                if $params->{other}->{lending_library};
+                  if $params->{other}->{lending_library};
 
                 if ( $params->{other}->{charge_extra_fee} and
                     $params->{other}->{request_charges} and
@@ -664,13 +664,13 @@ sub update {
                     $new_attributes->{type} = $request_type eq 'loan' ? 'Leihe' : 'Kopie';
 
                     $new_attributes->{received_on_date} = dt_from_string( $params->{other}->{received_on_date} )
-                    if $params->{other}->{received_on_date};
+                      if $params->{other}->{received_on_date};
 
                     $new_attributes->{due_date} = dt_from_string( $params->{other}->{due_date} )
-                    if $params->{other}->{due_date};
+                      if $params->{other}->{due_date};
 
                     $new_attributes->{request_charges} = $params->{other}->{request_charges}
-                    if $params->{other}->{request_charges};
+                      if $params->{other}->{request_charges};
 
                     $new_attributes->{lending_library} = $params->{other}->{lending_library};
 
