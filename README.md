@@ -116,6 +116,15 @@ To be removed (do not use):
 
 * ill_full_metadata: Inherited from Koha, probably not useful besides debugging. Newline-separated list of `key: value` pairs for all metadata entries about the backend.
 
+## Implemented hooks
+
+This plugin implements several hooks that are required for using it:
+
+* *intranet_js*
+* *opac_js*
+* *after_circ_action*
+* *cronjob_nightly*
+
 ## Development
 
 For developing the plugin, you need to have the plugins available in your [KTD](https://gitlab.com/koha-community/koha-testing-docker) environment:
