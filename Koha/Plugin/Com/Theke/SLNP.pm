@@ -221,6 +221,10 @@ sub after_circ_action {
                     AddReturn( $item->barcode );
                     $req->status('RET')->store; # TODO: Koha could do better
                     $req->status('SLNP_COMP')->store; # TODO: Koha could do better
+                    # refetch item
+                    $item->discard_changes;
+                    my $not_for_loan_status = $self->configuration->{not_for_loan_after_auto_checkin} // 1;
+                    $item->notforloan($not_for_loan_status)->store;
                 }
                 catch {
                     warn "Error attempting to return: $_";

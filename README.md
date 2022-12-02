@@ -60,7 +60,15 @@ pickup_location_mapping:
 item_types:
   loan: BK
   copy: CR
+not_for_loan_after_auto_checkin: 1
 ```
+
+### not_for_loan_after_auto_checkin
+
+For copies, which get auto-returned, we cannot perform the cleanup action right away,
+because the checkin page requires the item to be present and it explodes otherwise. So,
+instead, we set the status to `SLNP_COMP` and set the item `notforloan` status to a preset
+default (1). This can be configured using the **not_for_loan_after_auto_checkin** entry.
 
 ## Running the SLNP server
 
