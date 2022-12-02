@@ -234,6 +234,27 @@ sub after_circ_action {
     }
 }
 
+=head3 cronjob_nightly
+
+Nightly cronjob hook that performs required cleanup on ILL requests that are marked
+so. Right now only I<SLNP_COMP> status is considered for completion and cleanup.
+
+=cut
+
+sub cronjob_nightly {
+    my ($self) = @_;
+
+    # find the SLNP_COMPLETE ILL requests
+    my $requests = Koha::Illrequests->search({ status => 'SLNP_COMP' });
+
+    while ( my $request = $requests->next ) {
+        $request->status('COMP')->store; # TODO: Koha could do better
+        $request->_backend->biblio_cleanup($req);
+    }
+
+    return $self;
+}
+
 =head2 Internal methods
 
 =head3 get_recvd_ill_req
