@@ -91,6 +91,23 @@ $ journalctl -u slnp-server.service -f
 
 ```
 
+## Letters
+
+The plugin introduces an API endpoint for generating the print notices.
+
+Notice templates are handed the following attributes, depending on the context:
+
+* illrequestattributes: a `Koha::Illrequestattributes` iterator for `Koha::Illrequest` objects.
+* illrequest: The `Koha::Illrequest` object.
+* ill_bib_title: The generated record title field.
+* ill_bib_author: The generated record author field.
+* item: The linked `Koha::Item` object.
+* lending_library: The `Koha::Patron` object representing the lending library.
+
+To be removed (do not use):
+
+* ill_full_metadata: Inherited from Koha, probably not useful besides debugging. Newline-separated list of `key: value` pairs for all metadata entries about the backend.
+
 ## Development
 
 For developing the plugin, you need to have the plugins available in your [KTD](https://gitlab.com/koha-community/koha-testing-docker) environment:

@@ -82,6 +82,9 @@ sub get_print_slip {
 
         my $metastring = join("\n", @metaarray);
 
+        my $lending_library_id = $req->illrequestattributes->find({ type => 'lending_library' });
+        my $lending_library = ($lending_library_id) ? Koha::Patrons->find($lending_library_id->value) : undef;
+
         my $item_id_attr = $req->illrequestattributes->find({ type => 'item_id' });
         my $item_id = ($item_id_attr) ? $item_id_attr->value : '';
 
@@ -104,6 +107,7 @@ sub get_print_slip {
                 ill_bib_author       => $author ? $author->value : '',
                 ill_full_metadata    => $metastring,
                 item                 => $item_id ? Koha::Items->find($item_id) : undef,
+                lending_library      => $lending_library,
             }
         );
         # / Koha::Illrequest->get_notice
