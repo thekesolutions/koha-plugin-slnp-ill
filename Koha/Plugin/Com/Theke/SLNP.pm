@@ -75,6 +75,7 @@ sub new {
     $args->{'metadata'}->{'class'} = $class;
 
     my $self = $class->SUPER::new($args);
+    $self->get_strings;
 
     return $self;
 }
@@ -97,9 +98,7 @@ sub configure {
         my @lang_split = split /_|-/, $lang;
 
         $template->param(
-            lang_dialect => $lang,
-            lang_all     => $lang_split[0],
-            plugin_dir   => $self->bundle_path
+            strings => $self->get_strings->{configure},
         );
 
         ## Grab the values we already have for our settings, if any exist
@@ -297,6 +296,36 @@ sub get_recvd_ill_req {
     my $req = $reqs->next;
 
     return $req;
+}
+
+=head3 get_strings
+
+    my $strings = $self->get_strings;
+
+Returns the translated strings.
+
+=cut
+
+sub get_strings {
+    my ($self) = @_;
+
+    my $lang = C4::Languages::getlanguage(CGI->new);
+    my @lang_split = split /_|-/, $lang;
+    my $plugin_dir = $self->bundle_path;
+
+    my $strings = YAML::XS::LoadFile( "$plugin_dir/i18n/default.yaml" );
+
+    unless ( $lang eq 'en' ) {
+        try {
+            my $translated_strings = YAML::XS::LoadFile( "$plugin_dir/i18n/$lang" . ".yaml" );
+            $strings = { %$strings, %$translated_strings };
+        }
+        catch {
+            warn "Couldn't load '$lang' translation file.";
+        };
+    }
+
+    return $strings;
 }
 
 1;

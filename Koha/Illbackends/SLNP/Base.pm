@@ -29,7 +29,7 @@ use Scalar::Util qw(blessed);
 use Try::Tiny;
 use URI::Escape;
 use XML::LibXML;
-use YAML;
+use YAML::XS;
 
 use C4::Biblio qw( AddBiblio DelBiblio );
 use C4::Context;
@@ -95,11 +95,15 @@ sub new {
     my $plugin = Koha::Plugin::Com::Theke::SLNP->new;
     my $configuration = $plugin->configuration;
 
+    my $strings = $plugin->get_strings;
+
     my $self = {
         framework     => $configuration->{default_framework} // 'FA',
         plugin        => $plugin,
         configuration => $configuration,
         logger        => Koha::Logger->get,
+        strings       => $strings,
+        status_graph  => $strings->{status_graph},
     };
 
     bless( $self, $class );
@@ -128,11 +132,12 @@ sub _config {
 =cut
 
 sub status_graph {
+    my ($self) = @_;
     return {
         REQ => {
             prev_actions   => [],
             id             => 'REQ',
-            name           => 'Bestellt',
+            name           => $self->{status_graph}->{REQ}->{name},#'Bestellt',
             ui_method_name => undef,
             method         => undef,
             next_actions   => [ 'RECVD', 'NEGFLAG' ],
@@ -142,8 +147,8 @@ sub status_graph {
         RECVD => {
             prev_actions   => [ 'REQ' ],
             id             => 'RECVD',
-            name           => 'Eingangsverbucht',
-            ui_method_name => 'Eingang verbuchen',
+            name           => $self->{status_graph}->{RECVD}->{name},
+            ui_method_name => $self->{status_graph}->{RECVD}->{ui_method_name},
             method         => 'receive',
             next_actions   => [ 'RECVDUPD', 'SLNP_COMP', 'SENT_BACK' ],
             ui_method_icon => 'fa-download',
@@ -152,8 +157,8 @@ sub status_graph {
         RECVDUPD => { # Pseudo status
             prev_actions   => [ 'RECVD' ],
             id             => 'RECVDUPD',
-            name           => 'Eingangsverbucht',
-            ui_method_name => 'Eingang bearbeiten',
+            name           => $self->{status_graph}->{RECVDUPD}->{name},
+            ui_method_name => $self->{status_graph}->{RECVDUPD}->{ui_method_name},
             method         => 'update',
             next_actions   => [], # really RECVD
             ui_method_icon => 'fa-pencil',
@@ -182,8 +187,8 @@ sub status_graph {
         NEGFLAG => {
             prev_actions   => ['REQ'],
             id             => 'NEGFLAG',
-            name           => "Negativ/gel\N{U+f6}scht",
-            ui_method_name => 'Negativ-Kennzeichen',
+            name           => $self->{status_graph}->{NEGFLAG}->{name},
+            ui_method_name => $self->{status_graph}->{NEGFLAG}->{ui_method_name},
             method         => 'cancel_unavailable',
             next_actions   => [],
             ui_method_icon => 'fa-times',
@@ -192,8 +197,8 @@ sub status_graph {
         SENT_BACK => {
             prev_actions   => [ 'RET', 'RECVD' ],
             id             => 'SENT_BACK',
-            name           => 'Return to library',
-            ui_method_name => 'Return to library',
+            name           => $self->{status_graph}->{SENT_BACK}->{name},
+            ui_method_name => $self->{status_graph}->{SENT_BACK}->{ui_method_name},
             method         => 'return_to_library',
             next_actions   => [ 'SLNP_COMP' ],
             ui_method_icon => 'fa-truck',
@@ -202,8 +207,8 @@ sub status_graph {
         SLNP_COMP => { # Intermediate status for handling cleanup
             prev_actions   => [ 'RET' ],
             id             => 'SLNP_COMP',
-            name           => 'Completed',
-            ui_method_name => 'Mark completed',
+            name           => $self->{status_graph}->{SLNP_COMP}->{name},
+            ui_method_name => $self->{status_graph}->{SLNP_COMP}->{ui_method_name},
             method         => 'slnp_mark_completed',
             next_actions   => [  ],
             ui_method_icon => 'fa-check',
@@ -212,8 +217,8 @@ sub status_graph {
         COMP => {
             prev_actions   => [ 'SLNP_COMP' ],
             id             => 'COMP',
-            name           => 'Completed',
-            ui_method_name => 'Mark completed',
+            name           => $self->{status_graph}->{COMP}->{name},
+            ui_method_name => $self->{status_graph}->{COMP}->{ui_method_name},
             method         => '',
             next_actions   => [],
             ui_method_icon => 'fa-check',

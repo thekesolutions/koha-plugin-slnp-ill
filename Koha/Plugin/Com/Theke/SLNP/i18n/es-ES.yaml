@@ -1,0 +1,36 @@
+---
+status_graph:
+    REQ:
+        name: Solicitado
+        ui_method_name: null
+    RECVD:
+        name: Recibido
+        ui_method_name: Recibir
+    RECVDUPD:
+        name: Recibido
+        ui_method_name: Editar ítem recibido
+    CHK:
+        name: Prestado
+        ui_method_name: null
+    RET:
+        name: Devuelto
+        ui_method_name: null
+    NEGFLAG:
+        name: No disponible
+        ui_method_name: Marcar no disponible
+    SENT_BACK:
+        name: Devuelto a la biblioteca
+        ui_method_name: Devolver a la biblioteca
+    SLNP_COMP:
+        name: Completado
+        ui_method_name: Marcar completado
+    COMP:
+        name: Completado
+        ui_method_name: Marcar completado
+configure:
+    breadcrumb_home: Inicio
+    breadcrumb_name: Conector SLNP ILL
+    breadcrumb_config: Configuración
+    configuration_title: Configuración
+    configuration_save: Guardar
+    configuration_cancel: Cancelar

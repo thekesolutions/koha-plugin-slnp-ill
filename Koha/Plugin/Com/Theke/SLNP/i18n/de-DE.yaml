@@ -1,0 +1,36 @@
+---
+status_graph:
+    REQ:
+        name: Bestellt
+        ui_method_name: null
+    RECVD:
+        name: Eingangsverbucht
+        ui_method_name: Eingang verbuchen
+    RECVDUPD:
+        name: Eingangsverbucht
+        ui_method_name: Eingang bearbeiten
+    CHK:
+        name: Ausgeliehen
+        ui_method_name: null
+    RET:
+        name: R\N{U+fc}ckgegeben
+        ui_method_name: null
+    NEGFLAG:
+        name: Negativ/gel\N{U+f6}scht
+        ui_method_name: Negativ-Kennzeichen
+    SENT_BACK:
+        name: Returned to library
+        ui_method_name: Return to library
+    SLNP_COMP:
+        name: Completed
+        ui_method_name: Mark completed
+    COMP:
+        name: Completed
+        ui_method_name: Mark completed
+configure:
+    breadcrumb_home: Home
+    breadcrumb_name: SLNP ILL connector plugin
+    breadcrumb_config: Configuration
+    configuration_title: Configuration
+    configuration_save: Save
+    configuration_cancel: Cancel

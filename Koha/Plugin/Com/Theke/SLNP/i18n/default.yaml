@@ -1,0 +1,36 @@
+---
+status_graph:
+    REQ:
+        name: Requested
+        ui_method_name: null
+    RECVD:
+        name: Received
+        ui_method_name: Receive
+    RECVDUPD:
+        name: Received
+        ui_method_name: Edit received item
+    CHK:
+        name: Checked out
+        ui_method_name: null
+    RET:
+        name: Checked in
+        ui_method_name: null
+    NEGFLAG:
+        name: Not available
+        ui_method_name: Mark as not available
+    SENT_BACK:
+        name: Returned to library
+        ui_method_name: Return to library
+    SLNP_COMP:
+        name: Completed
+        ui_method_name: Mark completed
+    COMP:
+        name: Completed
+        ui_method_name: Mark completed
+configure:
+    breadcrumb_home: Home
+    breadcrumb_name: SLNP ILL connector plugin
+    breadcrumb_config: Configuration
+    configuration_title: Configuration
+    configuration_save: Save
+    configuration_cancel: Cancel
