@@ -116,3 +116,16 @@ staff_cancel_unavailable:
     notify: Notify
     cancel_request: Cancel request
     unknown_stage: Unknown stage
+
+staff_return_to_library:
+    error: Error
+    return_to_library: Return to library
+    delivery: Delivery
+    lending_library: Lending library
+    request: Request
+    request_staff_note: Staff note
+    patron: Patron details
+    patron_requester: Requesting patron
+    save: Save
+    save_and_print: Save and print slip
+    cancel: Cancel

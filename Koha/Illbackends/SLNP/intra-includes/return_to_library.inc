@@ -10,23 +10,23 @@
 
 [%# IF whole.error %]
   [% IF whole.message %]
-    <p class="dialog alert">Error: [% whole.message | html %]</p>
+    <p class="dialog alert">[% whole.strings.error | html %]: [% whole.message | html %]</p>
   [% END %]
 [%# END %]
 
-  <h2>Return to library ([% request.orderid %])</h2>
+  <h2>[% whole.strings.return_to_library | html %] ([% request.orderid %])</h2>
 
   <form id="SLNP_return_to_library" name="SLNP_return_to_library" method="POST" action=[% here %]>
 
     <fieldset class="rows">
-      <legend>Delivery</legend>
+      <legend>[% whole.strings.delivery | html %]</legend>
       <ol id="general-slnp_delivery-fields">
         <li>
         [% IF whole.value.mandatory_lending_library %]
-            <label class="required" for="lending_library">Lending library:</label>
+            <label class="required" for="lending_library">[% whole.strings.lending_library | html %]:</label>
             <select name="lending_library" id="lending_library" required="required" class="select2" style="width: 45%">
         [% ELSE %]
-            <label for="lending_library">Lending library:</label>
+            <label for="lending_library">[% whole.strings.lending_library | html %]:</label>
             <select name="lending_library" id="lending_library" class="select2" style="width: 45%">
         [% END %]
                 <option value="">&nbsp;</option>
@@ -43,20 +43,20 @@
     </fieldset>
 
     <fieldset class="rows">
-    <legend>Request</legend>
+    <legend>[% whole.strings.request | html %]</legend>
       <ol>
         <li>
-          <label for="staff_note">Staff note:</label>
+          <label for="staff_note">[% whole.strings.request_staff_note | html %]:</label>
           <textarea id="staff_note" name="staff_note" rows="4" cols="50">[% whole.value.staff_note | html %]</textarea>
         </li>
       </ol>
     </fieldset>
 
     <fieldset class="rows">
-    <legend>Patron details</legend>
+    <legend>[% whole.strings.patron | html %]</legend>
       <ol>
         <li>
-          <label for="the_patron">Requesting patron:</label>
+          <label for="the_patron">[% whole.strings.patron_requester | html %]:</label>
           <div name="the_patron" id="the_patron">
             <a target="_blank" href="/cgi-bin/koha/members/moremember.pl?borrowernumber=[% whole.value.patron.borrowernumber %]">
             [% whole.value.patron.firstname | html %] [% whole.value.patron.surname | html %] ([% whole.value.patron.cardnumber | html %])</a>
@@ -72,14 +72,14 @@
       <input type="hidden" name="stage" id="stage" value="commit" />
 
       <button type="submit" class="btn btn-default approve">
-        <i class="fa fa-check"></i> Save
+        <i class="fa fa-check"></i> [% whole.strings.save | html %]
       </button>
 
       <button type="submit" class="btn btn-default openWin" data-url="/api/v1/contrib/slnp/ill_requests/[% whole.illrequest_id | uri %]/print_slips/ILL_PARTNER_RET" data-prevent-default="yes">
-        <i class="fa fa-print"></i> Save and print slip
+        <i class="fa fa-print"></i> [% whole.strings.save_and_print | html %]
       </button>
 
-      <a class="cancel" id="cancelbutton" name="cancelbutton" href="/cgi-bin/koha/ill/ill-requests.pl?method=illview&amp;illrequest_id=[% request.illrequest_id | uri %]">Cancel</a>
+      <a class="cancel" id="cancelbutton" name="cancelbutton" href="/cgi-bin/koha/ill/ill-requests.pl?method=illview&amp;illrequest_id=[% request.illrequest_id | uri %]">[% whole.strings.cancel | html %]</a>
 
     </fieldset>
   </form>

@@ -1004,6 +1004,8 @@ sub return_to_library {
         illrequest_id => $request->id,
     };
 
+    $backend_result->{strings} = $params->{request}->_backend->{strings}->{staff_return_to_library};
+
     if ( $stage && $stage eq 'commit' ) {
 
         # process the incoming parameters

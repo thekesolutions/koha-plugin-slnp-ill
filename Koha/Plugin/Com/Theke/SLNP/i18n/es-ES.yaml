@@ -116,3 +116,16 @@ staff_cancel_unavailable:
     notify: Notificar
     cancel_request: Cancelar solicitud
     unknown_stage: Etapa desconocida
+
+staff_return_to_library:
+    error: Error
+    return_to_library: Devolver a biblioteca
+    delivery: Entrega
+    lending_library: Prestado por
+    request: Solicitud
+    request_staff_note: NOta administrativa
+    patron: Detalles del usuario
+    patron_requester: Usuario solicitante
+    save: Guardar
+    save_and_print: Imprimir recibo y guardar
+    cancel: Cancelar
