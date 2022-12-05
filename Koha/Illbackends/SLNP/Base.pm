@@ -326,6 +326,8 @@ sub create {
         value   => {}
     };
 
+    $backend_result->{strings} = $params->{request}->_backend->{strings}->{staff_receive};
+
     # Initiate process stage is dummy for SLNP
     if ( !$stage || $stage eq 'init' ) {
 
@@ -460,6 +462,8 @@ sub receive {
         next    => "illview",
         illrequest_id => $request->id,
     };
+
+    $backend_result->{strings} = $params->{request}->_backend->{strings}->{staff_receive};
 
     if ( !defined $stage ) { # init
         $template_params->{medium} = $request->medium;

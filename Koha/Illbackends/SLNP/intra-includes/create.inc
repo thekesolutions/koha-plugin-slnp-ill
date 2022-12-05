@@ -1,9 +1,9 @@
 <div id="slnp_create_error" class="alert">
-    <h2>SLNP</h2>
-    <p>Manually creating SNLP ILL requests is not supported for this backend.</p>
+    <h2>[% whole.strings.title | html %]</h2>
+    <p>[% whole.strings.text_1 | html %]</p>
     <br />
-    <p>ILL requests are solely added through the <a href="[% whole.value.portal_url | html %]">external ILL portal</a>.</p>
+    <p>[% whole.strings.text_2 | html %] <a href="[% whole.portal_url | html %]">[% whole.strings.link | html %]</a>.</p>
 </div>
 
 
-<a class="cancel" href="/cgi-bin/koha/ill/ill-requests.pl">Cancel</a>
+<a class="cancel" href="/cgi-bin/koha/ill/ill-requests.pl">[% whole.strings.cancel | html %]</a>

@@ -34,3 +34,40 @@ configure:
     configuration_title: Configuración
     configuration_save: Guardar
     configuration_cancel: Cancelar
+
+staff_create:
+    title: SLNP
+    text_1: Crear una solicitud de PIB manualmente no está soportado por SLNP.
+    text_2: Las solicitudes sólo pueden ser creadas en el
+    link: portal externo de PIB
+    cancel: Cancelar
+
+staff_receive:
+    debit_type_error: <em>Nota:</em> El tipo de débito configurado no existe.
+    delivery: Entrega
+    unkown_error: Error desconocido
+    request_type: Tipo de solicitud
+    loan: Préstamo
+    copy: Copia
+    title: Proceso de entrega
+    received_on: Recibido el
+    lending_library: Prestado por
+    cost: Costo
+    charge_patron: Cobrar al socio
+    circulation_restrictions: Restricciones de circulación
+    item: Ítem
+    item_callnumber: Signatura
+    item_num_parts: Número de partes
+    item_usage_restrictions: Restricciones de uso
+    item_damaged: Dañado
+    item_internal_note: Nota interna
+    item_due_date: Fecha de devolución
+    request: Solicitud
+    request_opac_note: Nota de OPAC
+    request_staff_note: Nota administrativa
+    patron: Detalles del usuario
+    patron_requester: Usuario solicitante
+    receive: Recibir
+    print_and_receive: Imprimir recibo y recibir
+    cancel: Cancelar
+    unknown_stage: Etapa desconocida

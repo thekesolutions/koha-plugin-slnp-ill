@@ -34,3 +34,40 @@ configure:
     configuration_title: Configuration
     configuration_save: Save
     configuration_cancel: Cancel
+
+staff_create:
+    title: SLNP
+    text_1: Manually creating SNLP ILL requests is not supported for this backend.
+    text_2: ILL requests are solely added through the
+    link: external ILL portal
+    cancel: Cancel
+
+staff_receive:
+    debit_type_error: <em>Note:</em> The configured debit type doesn't exist.
+    delivery: Delivery
+    unkown_error: Unknown error
+    request_type: Request type
+    loan: Loan
+    copy: Copy
+    title: Process delivery
+    received_on: Received on
+    lending_library: Lending library
+    cost: Cost
+    charge_patron: Charge patron
+    circulation_restrictions: Circulation restrictions
+    item: Item
+    item_callnumber: Callnumber
+    item_num_parts: Number of parts
+    item_usage_restrictions: Usage restrictions
+    item_damaged: Damaged
+    item_internal_note: Internal note
+    item_due_date: Due date
+    request: Request
+    request_opac_note: OPAC note
+    request_staff_note: Staff note
+    patron: Patron details
+    patron_requester: Requesting patron
+    receive: Receive
+    print_and_receive: Print slip and receive
+    cancel: Cancel
+    unknown_stage: Unknown stage
