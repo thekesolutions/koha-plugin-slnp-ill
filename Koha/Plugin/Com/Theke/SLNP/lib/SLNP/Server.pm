@@ -42,7 +42,7 @@ use DateTime;
 # each real SLNP command is handled in an individual perl module
 use SLNP::Commands::Bestellung;
 
-use SLNP::Normalizer;
+use SLNP::Normalizer qw();
 
 BEGIN {
     if ( !exists( $ENV{"KOHA_CONF"} ) ) {

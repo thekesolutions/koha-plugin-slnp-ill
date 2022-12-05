@@ -32,8 +32,10 @@ use C4::Biblio qw(DelBiblio);
 use C4::Circulation qw(AddReturn);
 use C4::Languages;
 
+use Koha::Account::DebitTypes;
 use Koha::Illrequests;
 use Koha::Items;
+use Koha::Notice::Templates;
 
 BEGIN {
     my $path = Module::Metadata->find_module_by_name(__PACKAGE__);
@@ -89,16 +91,39 @@ sub configure {
     my ( $self, $args ) = @_;
     my $cgi = $self->{'cgi'};
 
-    my $template = $self->get_template({ file => 'configure.tt' });
+    my $template      = $self->get_template({ file => 'configure.tt' });
+    my $configuration = $self->configuration;
+
+    my @errors;
+
+    push @errors, 'no_ILL_PARTNER_RET'
+      unless Koha::Notice::Templates->search({ code => 'ILL_PARTNER_RET' })->count;
+
+    push @errors, 'no_ILL_RECEIVE_SLIP'
+      unless Koha::Notice::Templates->search({ code => 'ILL_RECEIVE_SLIP' })->count;
+
+    if ($configuration->{fee_debit_type}) {
+        push @errors, 'no_fee_debit_type'
+          unless Koha::Account::DebitTypes->find($configuration->{fee_debit_type});
+    }
+    else {
+        push @errors, 'fee_debit_type_not_set';
+    }
+
+    if ($configuration->{extra_fee_debit_type}) {
+        push @errors, 'no_extra_fee_debit_type'
+          unless Koha::Account::DebitTypes->find($configuration->{extra_fee_debit_type});
+    }
+    else {
+        push @errors, 'extra_fee_debit_type_not_set';
+    }
+
+    $template->param(
+        errors  => \@errors,
+        strings => $self->get_strings->{configure},
+    );
 
     unless ( scalar $cgi->param('save') ) {
-
-        my $lang = C4::Languages::getlanguage($cgi);
-        my @lang_split = split /_|-/, $lang;
-
-        $template->param(
-            strings => $self->get_strings->{configure},
-        );
 
         ## Grab the values we already have for our settings, if any exist
         $template->param(

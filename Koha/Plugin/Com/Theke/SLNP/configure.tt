@@ -27,6 +27,22 @@
 
 <div id="doc3" class="yui-t2">
   <div id="yui-main">
+
+    [% IF errors %]
+        [% FOREACH error IN errors %]
+            <div class="dialog error">
+                [% SWITCH error %]
+                [% CASE 'no_ILL_PARTNER_RET' %]<span>[% strings.missing_letter | html %] (ILL_PARTNER_RET)</span>
+                [% CASE 'no_ILL_RECEIVE_SLIP' %]<span>[% strings.missing_letter | html %] (ILL_RECEIVE_SLIP)</span>
+                [% CASE 'no_fee_debit_type' %]<span>[% strings.bad_configuration | html %]: fee_debit_type</span>
+                [% CASE 'no_extra_fee_debit_type' %]<span>[% strings.bad_configuration | html %]: extra_fee_debit_type</span>
+                [% CASE 'fee_debit_type_not_set' %]<span>[% strings.config_entry_not_set | html %]: fee_debit_type</span>
+                [% CASE 'extra_fee_debit_type_not_set' %]<span>[% strings.config_entry_not_set | html %]: extra_fee_debit_type</span>
+                [% CASE %]<span>[% strings.unhandled_error | html %] ([% error | html %])</span>
+                [% END %]
+            </div>
+        [% END %]
+    [% END %]
     <h2>[% strings.configuration_title %]</h2>
     <br/>
       <form method="post">
