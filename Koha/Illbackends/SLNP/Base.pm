@@ -167,7 +167,7 @@ sub status_graph {
         CHK => {
             prev_actions   => [],
             id             => 'CHK',
-            name           => 'Ausgeliehen',
+            name           => $self->{status_graph}->{CHK}->{name},
             ui_method_name => '',
             method         => '',
             next_actions   => [],
@@ -177,7 +177,7 @@ sub status_graph {
         RET => {
             prev_actions   => [],
             id             => 'RET',
-            name           => "R\N{U+fc}ckgegeben",
+            name           => $self->{status_graph}->{RET}->{name},
             ui_method_name => '',
             method         => '',
             next_actions   => ['SLNP_COMP','SENT_BACK'],

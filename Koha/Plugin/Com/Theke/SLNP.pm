@@ -75,7 +75,6 @@ sub new {
     $args->{'metadata'}->{'class'} = $class;
 
     my $self = $class->SUPER::new($args);
-    $self->get_strings;
 
     return $self;
 }
@@ -313,16 +312,19 @@ sub get_strings {
     my @lang_split = split /_|-/, $lang;
     my $plugin_dir = $self->bundle_path;
 
-    my $strings = YAML::XS::LoadFile( "$plugin_dir/i18n/default.yaml" );
-
+    my $strings;
+    
     unless ( $lang eq 'en' ) {
         try {
-            my $translated_strings = YAML::XS::LoadFile( "$plugin_dir/i18n/$lang" . ".yaml" );
-            $strings = { %$strings, %$translated_strings };
+            $strings = YAML::XS::LoadFile( "$plugin_dir/i18n/$lang" . ".yaml" );
         }
         catch {
             warn "Couldn't load '$lang' translation file.";
         };
+    }
+
+    unless ($strings) {
+        $strings = YAML::XS::LoadFile( "$plugin_dir/i18n/en.yaml" );
     }
 
     return $strings;
