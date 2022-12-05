@@ -659,6 +659,8 @@ sub update {
         illrequest_id => $request->id,
     };
 
+    $backend_result->{strings} = $params->{request}->_backend->{strings}->{staff_update};
+
     if ( $stage and $stage eq 'commit' ) {
         # process the receiving parameters
 

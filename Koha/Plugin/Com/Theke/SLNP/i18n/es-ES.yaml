@@ -71,3 +71,34 @@ staff_receive:
     print_and_receive: Imprimir recibo y recibir
     cancel: Cancelar
     unknown_stage: Etapa desconocida
+
+staff_update:
+    update_request: Actualizar solicitud
+    delivery: Entrega
+    unkown_error: Error desconocido
+    request_type: Tipo de solicitud
+    loan: Préstamo
+    copy: Copia
+    title: Actualizar solicitud
+    received_on: Recibido el
+    lending_library: Prestado por
+    cost: Costo
+    charge_patron: Cobrar al socio
+    circulation_restrictions: Restricciones de circulación
+    item: Ítem
+    item_callnumber: Signatura
+    item_num_parts: Número de partes
+    item_usage_restrictions: Restricciones de uso
+    item_damaged: Dañado
+    item_internal_note: Nota interna
+    item_due_date: Fecha de devolución
+    request: Solicitud
+    request_opac_note: Nota de OPAC
+    request_staff_note: Nota administrativa
+    patron: Destalles del usuario
+    patron_requester: Usuario solicitante
+    update: Actualizar
+    print_and_update: Imprimir y actualizar
+    cancel: Cancelar
+    unknown_stage: Etapa desconocida
+    lending_library_missing: <em>Nota:</em> El campo obligatorio 'Prestado por' está vacío
