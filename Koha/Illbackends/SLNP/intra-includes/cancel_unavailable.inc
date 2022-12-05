@@ -5,36 +5,36 @@
 
 [% IF whole.error %]
     [% IF whole.message %]
-    <div class="dialog message">There was an error processing your request: [%- whole.message | html -%].</div>
+    <div class="dialog message">[% whole.strings.error | html %]: [%- whole.message | html -%].</div>
     [% ELSE %]
-    <p>Unknown error</p>
+    <p>[% whole.strings.unknown_error | html %]</p>
     [% END %]
 [% END %]
 
 [% IF ( whole.stage == "init" ) %]
-    <h2>Mark as unavailable ([% request.orderid | html %])</h2>
+    <h2>[% whole.strings.title | html %] ([% request.orderid | html %])</h2>
 
     [% IF ! ( request.status == 'REQ' ) %]
-        <p>The current status ([% request.status | html %]) of the ILL request doesn't allow to mark this request as not available.</p>
-        <p>This action is only possible until the item has been received.</p>
+        <p>[% whole.strings.wrong_status_text_1 | html %] ([% request.status | html %]) [% whole.strings.wrong_status_text_2 | html %].</p>
+        <p>[% whole.strings.wrong_status_text_3 | html %].</p>
 
-        <a class="cancel" href="/cgi-bin/koha/ill/ill-requests.pl?method=illview&amp;illrequest_id=[% request.illrequest_id | uri %]">Cancel</a>
+        <a class="cancel" href="/cgi-bin/koha/ill/ill-requests.pl?method=illview&amp;illrequest_id=[% request.illrequest_id | uri %]">[% whole.strings.cancel | html %]</a>
 
     [% ELSE %]
 
         <form id="SLNP_cancel_unavailable" name="SLNP_cancel_unavailable" method="POST" action=[% here | url %]>
             <fieldset class="rows">
-                <legend>Cancellation</legend>
+                <legend>[% whole.strings.cancellation | html %]</legend>
                 <ol>
                     <li>
-                        <label for="the_patron">Requesting patron:</label>
+                        <label for="the_patron">[% whole.strings.requesting_patron | html %]:</label>
                         <div name="the_patron" id="the_patron">
                             <a target="_blank" href="/cgi-bin/koha/members/moremember.pl?borrowernumber=[% whole.value.patron.borrowernumber %]">
                             [% whole.value.patron.firstname | html %] [% whole.value.patron.surname | html %] ([% whole.value.patron.cardnumber | html %])</a>
                         </div>
                     </li>
                     <li>
-                        <label for="notify_patron">Notify:</label>
+                        <label for="notify_patron">[% whole.strings.notify | html %]:</label>
                     [% IF whole.value.notify %]
                         <input type="checkbox" id="notify_patron" name="notify_patron" checked />
                     [% ELSE %]
@@ -51,14 +51,14 @@
 
             <fieldset class="action">
                 <button type="submit" class="btn btn-default approve">
-                    <i class="fa fa-check"></i> Cancel request
+                    <i class="fa fa-check"></i> [% whole.strings.cancel_request | html %]
                 </button>
 
-                <a class="cancel" id="cancelbutton" name="cancelbutton" href="/cgi-bin/koha/ill/ill-requests.pl?method=illview&amp;illrequest_id=[% request.illrequest_id | uri %]">Cancel</a>
+                <a class="cancel" id="cancelbutton" name="cancelbutton" href="/cgi-bin/koha/ill/ill-requests.pl?method=illview&amp;illrequest_id=[% request.illrequest_id | uri %]">[% whole.strings.cancel | html %]</a>
             </fieldset>
         </form>
     [% END %]
 
 [% ELSE %]
-    <p>Unknown stage: [% whole.stage %]</p>
+    <p>[% whole.strings.unknown_stage | html %]: [% whole.stage %]</p>
 [% END %]

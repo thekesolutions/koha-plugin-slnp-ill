@@ -102,3 +102,17 @@ staff_update:
     cancel: Cancelar
     unknown_stage: Etapa desconocida
     lending_library_missing: <em>Nota:</em> El campo obligatorio 'Prestado por' está vacío
+
+staff_cancel_unavailable:
+    error: Error al procesar su solicitud
+    unkown_error: Error desconocido
+    title: Marcar no disponible
+    cancel: Cancelar
+    wrong_status_text_1: The current status
+    wrong_status_text_2: of the ILL request doesn't allow to mark this request as not available
+    wrong_status_text_3: This action is only possible until the item has been received
+    cancellation: Cancelación
+    requesting_patron: Solicitado por
+    notify: Notificar
+    cancel_request: Cancelar solicitud
+    unknown_stage: Etapa desconocida

@@ -851,6 +851,8 @@ sub cancel_unavailable {
         next    => "illview",
     };
 
+    $backend_result->{strings} = $params->{request}->_backend->{strings}->{staff_cancel_unavailable};
+
     my $request = $params->{request};
 
     $backend_result->{illrequest_id}  = $request->illrequest_id;
