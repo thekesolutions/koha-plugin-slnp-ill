@@ -13,123 +13,123 @@ status_graph:
         name: Ausgeliehen
         ui_method_name: null
     RET:
-        name: R\N{U+fc}ckgegeben
+        name: Zur\N{U+fc}ckgegeben
         ui_method_name: null
     NEGFLAG:
-        name: Negativ/gel\N{U+f6}scht
-        ui_method_name: Negativ-Kennzeichen
+        name: Nicht lieferbar
+        ui_method_name: Nicht lieferbar
     SENT_BACK:
-        name: Returned to library
-        ui_method_name: Return to library
+        name: Zur\N{U+fc}ckgesendet
+        ui_method_name: An Bibliothek zur\N{U+fc}cksenden
     SLNP_COMP:
-        name: Completed
-        ui_method_name: Mark completed
+        name: Abgeschlossen
+        ui_method_name: Bestellung abschließen
     COMP:
-        name: Completed
-        ui_method_name: Mark completed
+        name: Abgeschlossen
+        ui_method_name: Bestellung abschließen
 configure:
-    breadcrumb_home: Home
-    breadcrumb_name: SLNP ILL connector plugin
-    breadcrumb_config: Configuration
-    configuration_title: Configuration
-    configuration_save: Save
-    configuration_cancel: Cancel
-    unhandled_error: Unhandled error
-    missing_letter: Missing mandatory letter
-    bad_configuration: Problem found with the following configuration entry
-    config_entry_not_set: Missing mandatory configuration entry
+    breadcrumb_home: Start
+    breadcrumb_name: SLNP-Fernleih-Plugin
+    breadcrumb_config: Konfiguration
+    configuration_title: Konfiguration
+    configuration_save: Speichern
+    configuration_cancel: Abbrechen
+    unhandled_error: Unbehandelter Fehler
+    missing_letter: Fehlende erforderliche Benachrichtigung
+    bad_configuration: Für den folgenden Konfigurationseintrag wurde ein Fehler festgestellt
+    config_entry_not_set: Fehlender erforderlicher Konfigurationseintrag
 
 staff_create:
     title: SLNP
-    text_1: Manually creating SNLP ILL requests is not supported for this backend.
-    text_2: ILL requests are solely added through the
-    link: external ILL portal
-    cancel: Cancel
+    text_1: Das manuelle Anlegen von Fernleihbestellungen wird für dieses Backend nicht unterstützt.
+    text_2: Bitte verwenden Sie für das Anlegen das
+    link: externe Fernleihportal
+    cancel: Abbrechen
 
 staff_receive:
-    debit_type_error: <em>Note:</em> The configured debit type doesn't exist.
-    delivery: Delivery
-    unkown_error: Unknown error
-    request_type: Request type
-    loan: Loan
-    copy: Copy
-    title: Process delivery
-    received_on: Received on
-    lending_library: Lending library
-    cost: Cost
-    charge_patron: Charge patron
-    circulation_restrictions: Circulation restrictions
-    item: Item
-    item_callnumber: Callnumber
-    item_num_parts: Number of parts
-    item_usage_restrictions: Usage restrictions
-    item_damaged: Damaged
-    item_internal_note: Internal note
-    item_due_date: Due date
-    request: Request
-    request_opac_note: OPAC note
-    request_staff_note: Staff note
-    patron: Patron details
-    patron_requester: Requesting patron
-    receive: Receive
-    print_and_receive: Print slip and receive
-    cancel: Cancel
-    unknown_stage: Unknown stage
+    debit_type_error: <em>Hinweis:</em> Der konfigurierte Gebührentyp existiert nicht.
+    delivery: Lieferung
+    unkown_error: Unbekannter Fehler
+    request_type: Bestellart
+    loan: Leihe
+    copy: Kopie
+    title: Lieferung bearbeiten
+    received_on: Erhalten am
+    lending_library: Leihende Bibliothek
+    cost: Kosten
+    charge_patron: Konto belasten
+    circulation_restrictions: Ausleihbeschränkungen
+    item: Exemplar
+    item_callnumber: Signatur
+    item_num_parts: Beilagen
+    item_usage_restrictions: Benutzungseinschränkungen
+    item_damaged: Beschädigung
+    item_internal_note: Interne Notiz
+    item_due_date: Fälligkeitsdatum
+    request: Bestellung
+    request_opac_note: OPAC-Notiz
+    request_staff_note: Interne Notiz
+    patron: Benutzerdetails
+    patron_requester: Besteller*in
+    receive: Eingang verbuchen
+    print_and_receive: Quittung drucken und Eingang verbuchen
+    cancel: Abbrechen
+    unknown_stage: Unbekannter Schritt
 
 staff_update:
-    update_request: Edit request
-    delivery: Delivery
-    unkown_error: Unknown error
-    request_type: Request type
-    loan: Loan
-    copy: Copy
-    title: Update delivery
-    received_on: Received on
-    lending_library: Lending library
-    cost: Cost
-    charge_patron: Charge patron
-    circulation_restrictions: Circulation restrictions
-    item: Item
-    item_callnumber: Callnumber
-    item_num_parts: Number of parts
-    item_usage_restrictions: Usage restrictions
-    item_damaged: Damaged
-    item_internal_note: Internal note
-    item_due_date: Due date
-    request: Request
-    request_opac_note: OPAC note
-    request_staff_note: Staff note
-    patron: Patron details
-    patron_requester: Requesting patron
-    update: Update
-    print_and_update: Print slip and update
-    cancel: Cancel
-    unknown_stage: Unknown stage
-    lending_library_missing: <em>Note:</em> The mandatory field 'Lending library' is empty
+    update_request: Bestellung bearbeiten
+    delivery: Lieferung
+    unkown_error: Unbekannter Fehler
+    request_type: Bestellart
+    loan: Leihe
+    copy: Kopie
+    title: Lieferung aktualisieren
+    received_on: Erhalten am
+    lending_library: Leihende Bibliothek
+    cost: Kosten
+    charge_patron: Konto belasten
+    circulation_restrictions: Ausleihbeschränkungen
+    item: Exemplar
+    item_callnumber: Signatur
+    item_num_parts: Beilagen
+    item_usage_restrictions: Benutzungseinschränkungen
+    item_damaged: Beschädigung
+    item_internal_note: Interne Notiz
+    item_due_date: Fälligkeitsdatum
+    request: Bestellung
+    request_opac_note: OPAC-Notiz
+    request_staff_note: Interne Notiz
+    patron: Benutzerdetails
+    patron_requester: Besteller*in
+    update: Aktualisieren
+    print_and_update: Quittung drucken und aktualisieren
+    cancel: Abbrechen
+    unknown_stage: Unbekannter Schritt
+    lending_library_missing: <em>Hinweis:</em> Das Pflichtfeld 'Leihende Bibliothek' ist nicht ausgefüllt
 
 staff_cancel_unavailable:
-    error: There was an error processing your request
-    unkown_error: Unknown error
-    title: Mark as unavailable
-    cancel: Cancel
-    wrong_status_text_1: The current status
-    wrong_status_text_2: of the ILL request doesn't allow to mark this request as not available
-    wrong_status_text_3: This action is only possible until the item has been received
-    cancellation: Cancellation
-    requesting_patron: Requesting patron
-    notify: Notify
-    cancel_request: Cancel request
-    unknown_stage: Unknown stage
+    error: Bei der Bearbeitung der Bestellung ist ein Fehler aufgetreten
+    unkown_error: Unbekannter Fehler
+    title: Als nicht lieferbar kennzeichnen
+    cancel: Abbrechen
+    wrong_status_text_1: Der aktuelle Status
+    wrong_status_text_2: der Fernleihbestellung erlaubt es nicht, diese als 'nicht lieferbar' zu markieren.
+    wrong_status_text_3: Diese Aktion kann nur ausgeführt werden, bevor die Bestellung eingangsverbucht wurde.
+    cancellation: Stornierung
+    requesting_patron: Besteller*in
+    notify: Benachrichtigen
+    cancel_request: Bestellung stornieren
+    unknown_stage: Unbekannter Schritt
 
 staff_return_to_library:
-    error: Error
-    return_to_library: Return to library
-    delivery: Delivery
-    lending_library: Lending library
-    request: Request
-    request_staff_note: Staff note
-    patron: Patron details
-    patron_requester: Requesting patron
-    save: Save
-    save_and_print: Save and print slip
-    cancel: Cancel
+    error: Fehler
+    return_to_library: Rückversand an Bibliothek
+    delivery: Versand
+    lending_library: Leihende Bibliothek
+    request: Bestellung
+    request_staff_note: Interne Notiz
+    patron: Benutzerdetails
+    patron_requester: Besteller*in
+    save: Speichern
+    save_and_print: Speichern und Quittung drucken
+    cancel: Abbrechen
