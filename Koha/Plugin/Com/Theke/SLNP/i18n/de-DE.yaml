@@ -13,14 +13,14 @@ status_graph:
         name: Ausgeliehen
         ui_method_name: null
     RET:
-        name: Zur\N{U+fc}ckgegeben
+        name: Zurückgegeben
         ui_method_name: null
     NEGFLAG:
         name: Nicht lieferbar
         ui_method_name: Nicht lieferbar
     SENT_BACK:
-        name: Zur\N{U+fc}ckgesendet
-        ui_method_name: An Bibliothek zur\N{U+fc}cksenden
+        name: Zurückgesendet
+        ui_method_name: An Bibliothek zurücksenden
     SLNP_COMP:
         name: Abgeschlossen
         ui_method_name: Bestellung abschließen
