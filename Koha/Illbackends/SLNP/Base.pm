@@ -530,11 +530,13 @@ sub receive {
                 $new_attributes->{due_date} = dt_from_string( $params->{other}->{due_date} )
                   if $params->{other}->{due_date};
 
-                $new_attributes->{request_charges} = $params->{other}->{request_charges}
-                  if $params->{other}->{request_charges};
-
                 $new_attributes->{lending_library} = $params->{other}->{lending_library}
                   if $params->{other}->{lending_library};
+
+                $request->cost($params->{other}->{request_charges});
+
+                $new_attributes->{request_charges} = $params->{other}->{request_charges}
+                  if $params->{other}->{request_charges};
 
                 if ( $params->{other}->{charge_extra_fee} and
                     $params->{other}->{request_charges} and
@@ -548,7 +550,6 @@ sub receive {
                         }
                     );
 
-                    $request->cost($params->{other}->{request_charges});
                     $new_attributes->{extra_fee_debit_id} = $debit->id;
                 }
 
@@ -680,29 +681,33 @@ sub update {
                     $new_attributes->{due_date} = dt_from_string( $params->{other}->{due_date} )
                       if $params->{other}->{due_date};
 
-                    $new_attributes->{request_charges} = $params->{other}->{request_charges}
-                      if $params->{other}->{request_charges};
+                    if ( $params->{other}->{set_extra_fee} ) {
+
+                        $request->cost($params->{other}->{request_charges});
+
+                        $new_attributes->{request_charges} = $params->{other}->{request_charges}
+                          if $params->{other}->{request_charges};
+
+                        if ( $params->{other}->{charge_extra_fee} and
+                            $params->{other}->{request_charges} and
+                            $params->{other}->{request_charges} > 0 ) {
+                            my $debit = $request->patron->account->add_debit(
+                                {
+                                    amount    => $params->{other}->{request_charges},
+                                    item_id   => $item->id,
+                                    interface => 'intranet',
+                                    type      => $self->{configuration}->{extra_fee_debit_type} // 'ILL',
+                                }
+                            );
+
+                            $new_attributes->{extra_fee_debit_id} = $debit->id;
+                        }
+                    }
 
                     $new_attributes->{lending_library} = $params->{other}->{lending_library};
 
-                    if ( $params->{other}->{charge_extra_fee} and
-                        $params->{other}->{request_charges} and
-                        $params->{other}->{request_charges} > 0 ) {
-                        my $debit = $request->patron->account->add_debit(
-                            {
-                                amount => $params->{other}->{request_charges},
-                                type   => $self->{configuration}->{extra_fee_debit_type}
-                                // 'ILL',
-                                interface => 'intranet',
-                            }
-                        );
-
-                        $new_attributes->{debit_id} = $debit->id;
-                    }
-
-                    $new_attributes->{circulation_notes} =
-                    $params->{other}->{circulation_notes}
-                    if $params->{other}->{circulation_notes};
+                    $new_attributes->{circulation_notes} = $params->{other}->{circulation_notes}
+                      if $params->{other}->{circulation_notes};
 
                     $self->add_or_update_attributes(
                         {

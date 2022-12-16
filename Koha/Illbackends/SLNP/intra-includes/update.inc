@@ -74,6 +74,7 @@
         [% ELSE %]
           <input type="text" size="10" name="request_charges" id="request_charges" value="[% whole.value.request_charges | $Price on_editing => 1 %]" />
           <input type="checkbox" id="charge_extra_fee" name="charge_extra_fee" />
+          <input type="hidden" id="set_extra_fee" name="set_extra_fee" value="1" />
         [% END %]
           <span>[% whole.strings.charge_patron | html %]</span>
         </li>
