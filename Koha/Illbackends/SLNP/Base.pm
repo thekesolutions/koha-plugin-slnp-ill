@@ -549,7 +549,7 @@ sub receive {
                     );
 
                     $request->cost($params->{other}->{request_charges});
-                    $new_attributes->{debit_id} = $debit->id;
+                    $new_attributes->{extra_fee_debit_id} = $debit->id;
                 }
 
                 $new_attributes->{circulation_notes} =
