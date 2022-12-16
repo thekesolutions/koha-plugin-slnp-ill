@@ -799,6 +799,12 @@ sub update {
         $template_params->{request_charges} = $request_charges->value
           if $request_charges;
 
+        my $extra_fee_debit_id = $request->illrequestattributes->search({ type => 'extra_fee_debit_id' })->next;
+
+        if ( $request_charges and $extra_fee_debit_id ) {
+            $template_params->{disable_extra_fee} = 1;
+        }
+
         my $circulation_notes = $request->illrequestattributes->search({ type => 'circulation_notes' })->next;
         $template_params->{circulation_notes} = $circulation_notes->value
           if $circulation_notes;
