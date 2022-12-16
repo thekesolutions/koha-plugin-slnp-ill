@@ -718,22 +718,22 @@ sub update {
 
                     # item information
                     $item->itype( $params->{other}->{item_type} )
-                    if $params->{other}->{item_type};
+                      if $params->{other}->{item_type};
 
                     $item->restricted( $params->{other}->{item_usage_restrictions} )
-                    if defined $params->{other}->{item_usage_restrictions};
+                      if defined $params->{other}->{item_usage_restrictions};
 
                     $item->itemcallnumber( $params->{other}->{item_callnumber} )
-                    if $params->{other}->{item_callnumber};
+                      if $params->{other}->{item_callnumber};
 
-                    $item->damaged ( $params->{other}->{item_damaged} )
-                    if $params->{other}->{item_damaged};
+                    $item->damaged( $params->{other}->{item_damaged} )
+                      if $params->{other}->{item_damaged};
 
                     $item->itemnotes_nonpublic( $params->{other}->{item_internal_note} )
-                    if $params->{other}->{item_internal_note};
+                      if $params->{other}->{item_internal_note};
 
                     $item->materials( $params->{other}->{item_number_of_parts} )
-                    if $params->{other}->{item_number_of_parts};
+                      if $params->{other}->{item_number_of_parts};
 
                     $item->store;
 
