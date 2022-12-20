@@ -1086,47 +1086,73 @@ sub add_biblio {
         my $title  = $other->{attributes}->{title};
         my $isbn   = $other->{attributes}->{isbn};
         my $issn   = $other->{attributes}->{issn};
+        # article fields
+        my $article_author = $other->{attributes}->{article_author};
+        my $article_title  = $other->{attributes}->{article_title};
+        my $issue          = $other->{attributes}->{issue};
+        my $pages          = $other->{attributes}->{pages};
+        my $volume         = $other->{attributes}->{volume};
+        my $year           = $other->{attributes}->{year};
 
         my $configuration = $self->{configuration};
 
         # Create the MARC::Record object and populate it
-        my $marcrecord = MARC::Record->new();
-        $marcrecord->MARC::Record::encoding('UTF-8');
+        my $record = MARC::Record->new();
+        $record->MARC::Record::encoding('UTF-8');
 
-        if ( $isbn && length($isbn) > 0 ) {
-            my $marc_isbn = MARC::Field->new( '020', ' ', ' ', 'a' => $isbn );
-            $marcrecord->insert_fields_ordered($marc_isbn);
-        }
-        if ( $issn && length($issn) > 0 ) {
-            my $marc_issn = MARC::Field->new( '022', ' ', ' ', 'a' => $issn );
-            $marcrecord->insert_fields_ordered($marc_issn);
-        }
-        if ($author) {
-            my $marc_author = MARC::Field->new( '100', '1', '', 'a' => $author );
-            $marcrecord->insert_fields_ordered($marc_author);
-        }
-        my $marc_field245;
-        if ( defined($title) && length($title) > 0 ) {
-            my $prefix = $configuration->{title_prefix} // '';
-            my $suffix = $configuration->{title_suffix} // '';
-            $marc_field245 = MARC::Field->new( '245', '0', '0', 'a' => $prefix . $title . $suffix );
-        }
-        if ( defined($author) && length($author) > 0 ) {
-            if ( !defined($marc_field245) ) {
-                $marc_field245 = MARC::Field->new( '245', '0', '0', 'c' => $author );
-            } else {
-                $marc_field245->add_subfields( 'c' => $author );
+        if ($article_title) {    # it's an article! do the right things!
+
+            my @subfields;
+
+            if ( defined $article_title && length $article_title > 0 ) {
+
+                my $prefix = $configuration->{title_prefix} // '';
+                my $suffix = $configuration->{title_suffix} // '';
+
+                push @subfields, 'a' => $prefix . $article_title . $suffix;
             }
+
+            if ( defined $article_author && length $article_author > 0 ) {
+
+                push @subfields, 'c' => $article_author;
+            }
+
+            $record->insert_fields_ordered( MARC::Field->new( '245', '0', '0', @subfields ) )
+              if scalar @subfields;
+
+        } else {
+
+            my @subfields;
+
+            if ( defined $title && length $title > 0 ) {
+
+                my $prefix = $configuration->{title_prefix} // '';
+                my $suffix = $configuration->{title_suffix} // '';
+
+                push @subfields, 'a' => $prefix . $title . $suffix;
+            }
+            if ( defined $author && length $author > 0 ) {
+
+                push @subfields, 'c' => $author;
+            }
+
+            $record->insert_fields_ordered( MARC::Field->new( '245', '0', '0', @subfields ) )
+              if scalar @subfields;
         }
-        if ( defined($marc_field245) ) {
-            $marcrecord->insert_fields_ordered($marc_field245);
-        }
+
+        $record->insert_fields_ordered( MARC::Field->new( '020', ' ', ' ', 'a' => $isbn ) )
+          if defined $isbn && length $isbn > 0;
+
+        $record->insert_fields_ordered( MARC::Field->new( '022', ' ', ' ', 'a' => $issn ) )
+          if defined $issn && length $issn > 0;
+
+        $record->insert_fields_ordered( MARC::Field->new( '100', '1', ' ', 'a' => $author ) )
+          if $author;
 
         # set opac display suppression flag of the record
-        my $marc_field942 = MARC::Field->new( '942', '', '', n => '1' );
-        $marcrecord->append_fields($marc_field942);
+        $record->insert_fields_ordered( MARC::Field->new( '942', '', '', n => '1' ) );
 
-        my $biblionumber = C4::Biblio::AddBiblio( $marcrecord, $self->{framework} );
+        my $biblionumber = C4::Biblio::AddBiblio( $record, $self->{framework} );
 
         return $biblionumber;
     }
