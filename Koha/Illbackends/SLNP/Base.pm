@@ -214,6 +214,26 @@ sub status_graph {
             ui_method_icon => 'fa-check',
         },
 
+        SLNP_LOST => {
+            prev_actions   => [],
+            id             => 'SLNP_LOST',
+            name           => $self->{status_graph}->{SLNP_LOST}->{name},
+            ui_method_name => '',
+            method         => '',
+            next_actions   => [ 'SLNP_LOST_COMP' ],
+            ui_method_icon => '',
+        },
+
+        SLNP_LOST_COMP => {
+            prev_actions   => [ 'SLNP_LOST', 'RET', 'RECVD' ],
+            id             => 'SLNP_LOST_COMP',
+            name           => $self->{status_graph}->{SLNP_LOST}->{name},
+            ui_method_name => $self->{status_graph}->{SLNP_LOST}->{ui_method_name},
+            method         => 'mark_lost',
+            next_actions   => [ 'SLNP_COMP' ],
+            ui_method_icon => 'fa-truck',
+        },
+
         COMP => {
             prev_actions   => [ 'SLNP_COMP' ],
             id             => 'COMP',

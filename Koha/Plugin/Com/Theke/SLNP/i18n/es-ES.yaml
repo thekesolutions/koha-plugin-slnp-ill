@@ -24,6 +24,12 @@ status_graph:
     SLNP_COMP:
         name: Completado
         ui_method_name: Marcar completado
+    SLNP_LOST:
+        name: Perdido
+        ui_method_name: null
+    SLNP_LOST_COMP:
+        name: Marcado perdido
+        ui_method_name: Marcar perdido
     COMP:
         name: Completado
         ui_method_name: Marcar completado

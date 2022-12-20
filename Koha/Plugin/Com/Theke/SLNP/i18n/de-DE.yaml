@@ -24,6 +24,12 @@ status_graph:
     SLNP_COMP:
         name: Abgeschlossen
         ui_method_name: Bestellung abschließen
+    SLNP_LOST:
+        name: Lost
+        ui_method_name: null
+    SLNP_LOST_COMP:
+        name: Marked lost
+        ui_method_name: Mark lost
     COMP:
         name: Abgeschlossen
         ui_method_name: Bestellung abschließen
