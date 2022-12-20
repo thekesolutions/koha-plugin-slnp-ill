@@ -1120,6 +1120,32 @@ sub add_biblio {
             $record->insert_fields_ordered( MARC::Field->new( '245', '0', '0', @subfields ) )
               if scalar @subfields;
 
+            # build 773
+            my $field_773_g;
+
+            $field_773_g = $volume
+              if defined $volume and $volume != 0;
+
+            $field_773_g = join( ' ', $field_773_g, "($year)" )
+              if defined $year;
+
+            $field_773_g = join( ' ', $field_773_g, $issue )
+              if defined $issue and $issue != 0;
+
+            $field_773_g = join( ' ', $field_773_g, $pages )
+              if defined $pages and $pages != 0;
+
+            @subfields = ();
+
+            push @subfields, 'g' => $field_773_g
+              if $field_773_g;
+
+            push @subfields, 't' => $title
+              if $title;
+
+            $record->insert_fields_ordered( MARC::Field->new( '773', '0', '0', @subfields ) )
+              if scalar @subfields;
+
         } else {
 
             my @subfields;
