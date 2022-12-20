@@ -89,60 +89,24 @@ Plugin configuration method
 
 sub configure {
     my ( $self, $args ) = @_;
-    my $cgi = $self->{'cgi'};
 
-    my $template      = $self->get_template({ file => 'configure.tt' });
-    my $configuration = $self->configuration;
+    my $template = $self->get_template({ file => 'configure.tt' });
+    my $cgi = $self->{cgi};
 
-    my @errors;
+    if ( scalar $cgi->param('save') ) {
 
-    push @errors, 'no_ILL_PARTNER_RET'
-      unless Koha::Notice::Templates->search({ code => 'ILL_PARTNER_RET' })->count;
-
-    push @errors, 'no_ILL_RECEIVE_SLIP'
-      unless Koha::Notice::Templates->search({ code => 'ILL_RECEIVE_SLIP' })->count;
-
-    if ($configuration->{fee_debit_type}) {
-        push @errors, 'no_fee_debit_type'
-          unless Koha::Account::DebitTypes->find($configuration->{fee_debit_type});
-    }
-    else {
-        push @errors, 'fee_debit_type_not_set';
+        $self->store_data( { configuration => scalar $cgi->param('configuration'), } );
     }
 
-    if ($configuration->{extra_fee_debit_type}) {
-        push @errors, 'no_extra_fee_debit_type'
-          unless Koha::Account::DebitTypes->find($configuration->{extra_fee_debit_type});
-    }
-    else {
-        push @errors, 'extra_fee_debit_type_not_set';
-    }
+    my $errors = $self->check_configuration;
 
     $template->param(
-        errors  => \@errors,
-        strings => $self->get_strings->{configure},
+        errors        => $errors,
+        configuration => $self->retrieve_data('configuration'),
+        strings       => $self->get_strings->{configure},
     );
 
-    unless ( scalar $cgi->param('save') ) {
-
-        ## Grab the values we already have for our settings, if any exist
-        $template->param(
-            configuration => $self->retrieve_data('configuration'),
-        );
-
-        $self->output_html( $template->output() );
-    }
-    else {
-        $self->store_data(
-            {
-                configuration => scalar $cgi->param('configuration'),
-            }
-        );
-        $template->param(
-            configuration => $self->retrieve_data('configuration'),
-        );
-        $self->output_html( $template->output() );
-    }
+    $self->output_html( $template->output() );
 }
 
 =head3 configuration
@@ -353,6 +317,50 @@ sub get_strings {
     }
 
     return $strings;
+}
+
+
+=head3 check_configuration
+
+    my $errors = $self->check_configuration;
+
+Returns a reference to a list of errors found in configuration.
+
+=cut
+
+sub check_configuration {
+    my ($self) = @_;
+
+    my @errors;
+
+    try {
+
+        my $configuration = $self->configuration;
+
+        if ( $configuration->{fee_debit_type} ) {
+            push @errors, 'no_fee_debit_type'
+              unless Koha::Account::DebitTypes->find( $configuration->{fee_debit_type} );
+        } else {
+            push @errors, 'fee_debit_type_not_set';
+        }
+
+        if ( $configuration->{extra_fee_debit_type} ) {
+            push @errors, 'no_extra_fee_debit_type'
+              unless Koha::Account::DebitTypes->find( $configuration->{extra_fee_debit_type} );
+        } else {
+            push @errors, 'extra_fee_debit_type_not_set';
+        }
+    } catch {
+        push @errors, "Error parsing YAML configuration ($_)";
+    };
+
+    push @errors, 'no_ILL_PARTNER_RET'
+      unless Koha::Notice::Templates->search( { code => 'ILL_PARTNER_RET' } )->count;
+
+    push @errors, 'no_ILL_RECEIVE_SLIP'
+      unless Koha::Notice::Templates->search( { code => 'ILL_RECEIVE_SLIP' } )->count;
+
+    return \@errors;
 }
 
 1;
