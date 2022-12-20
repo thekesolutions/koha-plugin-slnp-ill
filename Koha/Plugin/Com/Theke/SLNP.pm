@@ -360,6 +360,9 @@ sub check_configuration {
     push @errors, 'no_ILL_RECEIVE_SLIP'
       unless Koha::Notice::Templates->search( { code => 'ILL_RECEIVE_SLIP' } )->count;
 
+    push @errors, 'no_ILL_PARTNER_LOST'
+      unless Koha::Notice::Templates->search( { code => 'ILL_PARTNER_LOST' } )->count;
+
     return \@errors;
 }
 

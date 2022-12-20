@@ -34,6 +34,7 @@
                 [% SWITCH error %]
                 [% CASE 'no_ILL_PARTNER_RET' %]<span>[% strings.missing_letter | html %] (ILL_PARTNER_RET)</span>
                 [% CASE 'no_ILL_RECEIVE_SLIP' %]<span>[% strings.missing_letter | html %] (ILL_RECEIVE_SLIP)</span>
+                [% CASE 'no_ILL_PARTNER_LOST' %]<span>[% strings.missing_letter | html %] (ILL_PARTNER_LOST)</span>
                 [% CASE 'no_fee_debit_type' %]<span>[% strings.bad_configuration | html %]: fee_debit_type</span>
                 [% CASE 'no_extra_fee_debit_type' %]<span>[% strings.bad_configuration | html %]: extra_fee_debit_type</span>
                 [% CASE 'fee_debit_type_not_set' %]<span>[% strings.config_entry_not_set | html %]: fee_debit_type</span>
