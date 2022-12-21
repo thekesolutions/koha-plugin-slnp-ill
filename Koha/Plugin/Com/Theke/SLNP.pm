@@ -231,6 +231,41 @@ sub after_circ_action {
     }
 }
 
+=head3 after_item_action
+
+After item actions
+
+=cut
+
+sub after_item_action {
+    my ($self, $params) = @_;
+
+    if (    $params->{action} eq 'modify' # we only care if the item has been updated
+        and $params->{item}->itemlost ) { # and the item is lost
+
+        my $item_id = $params->{item_id};
+
+        my $attrs = Koha::Illrequestattributes->search(
+            {   type  => 'item_id',
+                value => $item_id,
+            }
+        );
+
+        my $attrs_count = $attrs->count;
+
+        if ( $attrs_count > 0 ) {
+
+            warn "SLNP warning: More than one request for the item ($item_id)."
+            if $attrs_count > 1;
+
+            my $attr = $attrs->next;
+            my $request = Koha::Illrequests->find( $attr->illrequest_id );
+        }
+    }
+
+    return $self;
+}
+
 =head3 cronjob_nightly
 
 Nightly cronjob hook that performs required cleanup on ILL requests that are marked
