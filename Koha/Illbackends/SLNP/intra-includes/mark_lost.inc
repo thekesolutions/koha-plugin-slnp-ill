@@ -76,11 +76,23 @@
         <legend>[% whole.strings.lending_library_title | html %]</legend>
         <ol>
             <li>
+            [% IF whole.value.mandatory_lending_library %]
+                <label class="required" for="lending_library">[% whole.strings.lending_library_name | html %]:</label>
+                <select name="lending_library" id="lending_library" required="required" class="select2" style="width: 45%" data-tags="true">
+            [% ELSE %]
                 <label for="lending_library">[% whole.strings.lending_library_name | html %]:</label>
-                <div name="lending_library" id="lending_library">
-                    <a target="_blank" href="/cgi-bin/koha/members/moremember.pl?borrowernumber=[% whole.value.lending_library.borrowernumber %]">
-                    [% whole.value.lending_library.firstname | html %] [% whole.value.lending_library.surname | html %] ([% whole.value.lending_library.cardnumber | html %])</a>
-                </div>
+                <select name="lending_library" id="lending_library" class="select2" style="width: 45%" data-tags="true">
+            [% END %]
+                    <option value="">&nbsp;</option>
+            [% FOREACH library IN whole.value.lending_libraries %]
+                [% SET can_be_notified = library.first_valid_email_address ? 1 : 0 %]
+                [% IF whole.value.selected_lending_library_id and whole.value.selected_lending_library_id == library.id %]
+                    <option value="[% library.borrowernumber | html %]" selected="selected" data-can-be-notified="[% can_be_notified | html %]">[% library.surname | html %][% IF library.othernames %] ([% library.othernames | html %])[% END %]</option>
+                [% ELSE %]
+                    <option value="[% library.borrowernumber | html %]" data-can-be-notified="[% can_be_notified | html %]">[% library.surname | html %][% IF library.othernames %] ([% library.othernames | html %])[% END %]</option>
+                [% END %]
+            [% END %]
+                </select>
             </li>
 
             <li>
@@ -130,6 +142,20 @@
 
             if ( $(this).data("prevent-default" === 'yes' ) ) {
                 e.preventDefault();
+            }
+        });
+
+        $("#lending_library").on("change", function(){
+
+            var can_be_notified = $("#lending_library").select2().find(":selected").data("can-be-notified");
+
+            if ( can_be_notified === 1 ) {
+                $("#notify_lending_library").removeAttr("disabled");
+            }
+            else {
+                $("#notify_lending_library")
+                    .attr( "disabled", true )
+                    .prop( "checked", false );
             }
         });
     });

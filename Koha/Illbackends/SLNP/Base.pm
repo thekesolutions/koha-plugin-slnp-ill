@@ -992,12 +992,7 @@ sub mark_lost {
     $template_params->{patron}       = $request->patron;
     $template_params->{item}         = $item;
 
-    my $lending_library_id = $request->illrequestattributes->search( { type => 'lending_library' } )->next->value;
-    my $lending_library    = Koha::Patrons->find($lending_library_id);
-
-    $template_params->{lending_library} = $lending_library;
-    $template_params->{can_be_notified} = 1
-      if $lending_library->first_valid_email_address;
+    my $selected_lending_library = $request->illrequestattributes->search( { type => 'lending_library' } )->next;
 
     my $due_date = $request->illrequestattributes->search( { type => 'due_date' } )->next;
     $template_params->{due_date} = dt_from_string( $due_date->value )
@@ -1009,6 +1004,22 @@ sub mark_lost {
             $template_params->{item_not_lost} = 1;
         }
 
+        my $partner_category_code = $self->{configuration}->{partner_category_code} // 'IL';
+        $template_params->{mandatory_lending_library} = !defined $self->{configuration}->{mandatory_lending_library}
+          ? 1                   # defaults to true
+          : ( $self->{configuration}->{mandatory_lending_library} eq 'false' ) ? 0 : 1;
+
+        my $lending_libraries = Koha::Patrons->search( { categorycode => $partner_category_code }, { order_by => [ 'surname', 'othernames' ] } );
+
+        $template_params->{lending_libraries} = $lending_libraries;
+        my $selected_lending_library = $request->illrequestattributes->search( { type => 'lending_library' } )->next;
+
+        if ($selected_lending_library) {
+
+            $template_params->{selected_lending_library_id} = $selected_lending_library->value
+              if $selected_lending_library;
+        }
+
         $backend_result->{stage} = "init";
 
     } elsif ( $stage eq 'commit' ) {
@@ -1017,24 +1028,26 @@ sub mark_lost {
             Koha::Database->new->schema->txn_do(
                 sub {
 
-                    Koha::Illrequestattribute->new(
-                        {   illrequest_id => $request->illrequest_id,
-                            type          => 'cancellation_reason',
-                            value         => 'lost',
+                    $self->add_or_update_attributes(
+                        {
+                            request    => $request,
+                            attributes => {
+                                lending_library     => $params->{other}->{lending_library},
+                                cancellation_reason => 'lost'
+                            }
                         }
-                    )->store;
+                    );
 
-                    # mark as complete
                     $request->set( { completed => \'NOW()', } );
-
                     $request->status('SLNP_LOST_COMP');
 
                     # send message
-                    if ( $params->{other}->{notify_lending_library} eq 'on' ) {
+                    if ( $params->{other}->{notify_lending_library} eq 'on'
+                         and $selected_lending_library ) {
                         my $letter = $request->get_notice( { notice_code => 'ILL_PARTNER_LOST', transport => 'email' } );
                         my $result = C4::Letters::EnqueueLetter(
                             {   letter                 => $letter,
-                                borrowernumber         => $lending_library,
+                                borrowernumber         => $selected_lending_library,
                                 message_transport_type => 'email',
                             }
                         );
