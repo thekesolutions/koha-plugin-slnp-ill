@@ -150,7 +150,7 @@ sub status_graph {
             name           => $self->{status_graph}->{RECVD}->{name},
             ui_method_name => $self->{status_graph}->{RECVD}->{ui_method_name},
             method         => 'receive',
-            next_actions   => [ 'RECVDUPD', 'SLNP_COMP', 'SENT_BACK' ],
+            next_actions   => [ 'RECVDUPD', 'SLNP_COMP', 'SLNP_LOST_COMP', 'SENT_BACK' ],
             ui_method_icon => 'fa-download',
         },
 
@@ -180,7 +180,7 @@ sub status_graph {
             name           => $self->{status_graph}->{RET}->{name},
             ui_method_name => '',
             method         => '',
-            next_actions   => ['SLNP_COMP','SENT_BACK'],
+            next_actions   => ['SLNP_COMP','SENT_BACK', 'SLNP_LOST_COMP'],
             ui_method_icon => 'fa-check',
         },
 
@@ -227,11 +227,11 @@ sub status_graph {
         SLNP_LOST_COMP => {
             prev_actions   => [ 'SLNP_LOST', 'RET', 'RECVD' ],
             id             => 'SLNP_LOST_COMP',
-            name           => $self->{status_graph}->{SLNP_LOST}->{name},
-            ui_method_name => $self->{status_graph}->{SLNP_LOST}->{ui_method_name},
+            name           => $self->{status_graph}->{SLNP_LOST_COMP}->{name},
+            ui_method_name => $self->{status_graph}->{SLNP_LOST_COMP}->{ui_method_name},
             method         => 'mark_lost',
             next_actions   => [ 'SLNP_COMP' ],
-            ui_method_icon => 'fa-truck',
+            ui_method_icon => 'fa-exclamation-circle',
         },
 
         COMP => {
@@ -944,6 +944,107 @@ sub cancel_unavailable {
             )
         }
         catch {
+            warn "$_";
+            $backend_result->{error}   = 1;
+            $backend_result->{message} = "$_";
+            $backend_result->{stage}   = undef;
+        };
+
+    } else {
+
+        # in case of faulty or testing stage, we just return the standard $backend_result with original stage
+        $backend_result->{stage} = $stage;
+    }
+
+    return $backend_result;
+}
+
+=head3 mark_lost
+
+    $request->mark_lost;
+
+=cut
+
+sub mark_lost {
+    my ( $self, $params ) = @_;
+
+    my $stage           = $params->{other}->{stage};
+    my $template_params = {};
+
+    my $backend_result = {
+        backend => $self->name,
+        method  => "mark_lost",
+        stage   => $stage,             # default for testing the template
+        error   => 0,
+        status  => "",
+        message => "",
+        value   => $template_params,
+        next    => "illview",
+    };
+
+    $backend_result->{strings} = $params->{request}->_backend->{strings}->{staff_mark_lost};
+
+    my $request = $params->{request};
+    my $item    = $self->get_item_from_request( { request => $request } );
+
+    $backend_result->{illrequest_id} = $request->illrequest_id;
+    $template_params->{request}      = $request;
+    $template_params->{patron}       = $request->patron;
+    $template_params->{item}         = $item;
+
+    my $lending_library_id = $request->illrequestattributes->search( { type => 'lending_library' } )->next->value;
+    my $lending_library    = Koha::Patrons->find($lending_library_id);
+
+    $template_params->{lending_library} = $lending_library;
+    $template_params->{can_be_notified} = 1
+      if $lending_library->first_valid_email_address;
+
+    my $due_date = $request->illrequestattributes->search( { type => 'due_date' } )->next;
+    $template_params->{due_date} = dt_from_string( $due_date->value )
+      if $due_date;
+
+    if ( !$stage ) {
+
+        if ( !$item->itemlost ) {
+            $template_params->{item_not_lost} = 1;
+        }
+
+        $backend_result->{stage} = "init";
+
+    } elsif ( $stage eq 'commit' ) {
+
+        try {
+            Koha::Database->new->schema->txn_do(
+                sub {
+
+                    Koha::Illrequestattribute->new(
+                        {   illrequest_id => $request->illrequest_id,
+                            type          => 'cancellation_reason',
+                            value         => 'lost',
+                        }
+                    )->store;
+
+                    # mark as complete
+                    $request->set( { completed => \'NOW()', } );
+
+                    $request->status('SLNP_LOST_COMP');
+
+                    use Data::Printer colored => 1;
+                    p($params);
+
+                    # send message
+                    if ( $params->{other}->{notify_lending_library} eq 'on' ) {
+                        my $letter = $request->get_notice( { notice_code => 'ILL_PARTNER_LOST', transport => 'email' } );
+                        my $result = C4::Letters::EnqueueLetter(
+                            {   letter                 => $letter,
+                                borrowernumber         => $lending_library,
+                                message_transport_type => 'email',
+                            }
+                        );
+                    }
+                }
+            )
+        } catch {
             warn "$_";
             $backend_result->{error}   = 1;
             $backend_result->{message} = "$_";

@@ -127,6 +127,27 @@ staff_cancel_unavailable:
     cancel_request: Cancel request
     unknown_stage: Unknown stage
 
+staff_mark_lost:
+    cancel: Cancel
+    error: There was an error processing your request
+    item_callnumber: Callnumber
+    item_due_date: Due date
+    item_internal_note: Internal note
+    item_not_lost: The item is not marked as lost. It needs to be marked as lost before moving forward
+    item_num_parts: Number of parts
+    item: Item
+    lending_library_name: Name
+    lending_library_title: Lending library
+    mark_lost_and_print: Mark lost and print
+    mark_lost: Mark lost
+    message: This request's item is marked as lost on the system. This action will flag the request as SLNP_LOST
+    notify_lending_library: Notify
+    patron_requester: Requesting patron
+    patron: Patron details
+    title: Mark as lost
+    unknown_stage: Unknown stage
+    unkown_error: Unknown error
+
 staff_return_to_library:
     error: Error
     return_to_library: Return to library

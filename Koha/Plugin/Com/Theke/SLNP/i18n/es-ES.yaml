@@ -127,13 +127,34 @@ staff_cancel_unavailable:
     cancel_request: Cancelar solicitud
     unknown_stage: Etapa desconocida
 
+staff_mark_lost:
+    cancel: Cancelar
+    error: Error al procesar su solicitud
+    item_callnumber: Signatura
+    item_due_date: Fecha de devolución
+    item_internal_note: Nota interna
+    item_not_lost: El ítem no se encuentra marcado como perdido en el sistema. Necesita estarlo para poder continuar
+    item_num_parts: Número de partes
+    item: Ítem
+    lending_library_name: Nombre
+    lending_library_title: Prestado por
+    mark_lost_and_print: Marcar como perdido e imprimir
+    mark_lost: Marcar como perdido
+    message: El ítem se encuentra marcado como perdido en el sistema. Esta acción marcará la solicitud como SLNP_LOST
+    notify_lending_library: Notificar
+    patron_requester: Usuario solicitante
+    patron: Detalles del usuario
+    title: Marcar como perdido
+    unknown_stage: Etapa desconocida
+    unkown_error: Error desconocido
+
 staff_return_to_library:
     error: Error
     return_to_library: Devolver a biblioteca
     delivery: Entrega
     lending_library: Prestado por
     request: Solicitud
-    request_staff_note: NOta administrativa
+    request_staff_note: Nota administrativa
     patron: Detalles del usuario
     patron_requester: Usuario solicitante
     save: Guardar
