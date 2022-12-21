@@ -28,8 +28,8 @@ status_graph:
         name: Lost
         ui_method_name: null
     SLNP_LOST_COMP:
-        name: Marked lost
-        ui_method_name: Mark lost
+        name: Verloren
+        ui_method_name: Verlustmeldung
     COMP:
         name: Abgeschlossen
         ui_method_name: Bestellung abschließen
@@ -128,25 +128,25 @@ staff_cancel_unavailable:
     unknown_stage: Unbekannter Schritt
 
 staff_mark_lost:
-    cancel: Cancel
-    error: There was an error processing your request
-    item_callnumber: Callnumber
-    item_due_date: Due date
-    item_internal_note: Internal note
-    item_not_lost: The item is not marked as lost. It needs to be marked as lost before moving forward
-    item_num_parts: Number of parts
-    item: Item
+    cancel: Abbrechen
+    error: Beim Bearbeiten Ihrer Bestellung ist ein Fehler aufgetreten
+    item_callnumber: Signatur
+    item_due_date: Fälligkeitsdatum
+    item_internal_note: Interne Notiz
+    item_not_lost: Das Exemplar wurde nicht als verloren markiert. Es muss auf Verlust gesetzt werden, bevor hier fortgefahren werden kann.
+    item_num_parts: Beilagen
+    item: Exemplar
     lending_library_name: Name
-    lending_library_title: Lending library
-    mark_lost_and_print: Mark lost and print
-    mark_lost: Mark lost
-    message: This request's item is marked as lost on the system. This action will flag the request as SLNP_LOST
-    notify_lending_library: Notify
-    patron_requester: Requesting patron
-    patron: Patron details
-    title: Mark as lost
-    unknown_stage: Unknown stage
-    unkown_error: Unknown error
+    lending_library_title: Leihende Bibliothek
+    mark_lost_and_print: Als verloren markieren und drucken
+    mark_lost: Als verloren markieren
+    message: Das Exemplar für diese Bestellung wurde als verloren markiert. Mit dieser Aktion wird auch die Bestellung auf Verlust (SLNP_LOST) gesetzt.
+    notify_lending_library: Benachrichtigen
+    patron_requester: Besteller*in
+    patron: Benutzerdetails
+    title: Als verloren markieren
+    unknown_stage: Unbekannter Schritt
+    unkown_error: Unbekannter Fehler
 
 staff_return_to_library:
     error: Fehler
