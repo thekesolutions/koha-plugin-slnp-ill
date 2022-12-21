@@ -1029,9 +1029,6 @@ sub mark_lost {
 
                     $request->status('SLNP_LOST_COMP');
 
-                    use Data::Printer colored => 1;
-                    p($params);
-
                     # send message
                     if ( $params->{other}->{notify_lending_library} eq 'on' ) {
                         my $letter = $request->get_notice( { notice_code => 'ILL_PARTNER_LOST', transport => 'email' } );
