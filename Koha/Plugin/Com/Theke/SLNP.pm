@@ -256,10 +256,19 @@ sub after_item_action {
         if ( $attrs_count > 0 ) {
 
             warn "SLNP warning: More than one request for the item ($item_id)."
-            if $attrs_count > 1;
+              if $attrs_count > 1;
 
             my $attr = $attrs->next;
             my $request = Koha::Illrequests->find( $attr->illrequest_id );
+
+            if (    $request
+                and (
+                    $request->status eq 'RECVD'
+                or $request->status eq 'CHK'
+                or $request->status eq 'RET'
+                ) ) {
+                    $request->status( 'SLNP_LOST' );
+                }
         }
     }
 
