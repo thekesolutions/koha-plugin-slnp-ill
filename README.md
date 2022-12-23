@@ -70,6 +70,13 @@ because the checkin page requires the item to be present and it explodes otherwi
 instead, we set the status to `SLNP_COMP` and set the item `notforloan` status to a preset
 default (1). This can be configured using the **not_for_loan_after_auto_checkin** entry.
 
+### server.log_level
+
+The `log_level` corresponds to the **Net::Server** logs levels. Only the following levels are used:
+
+* 1: Only errors are logged.
+* 3: All the transaction steps are logged, including the requests and intermediate response values.
+
 ## Running the SLNP server
 
 The plugin bundles an SLNP server. The server code belongs to a specific Koha instance for which the plugin has been installed. If your instance is called _kohadev_, then you will start the server like this:

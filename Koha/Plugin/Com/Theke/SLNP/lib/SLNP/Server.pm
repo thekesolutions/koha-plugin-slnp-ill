@@ -407,7 +407,7 @@ sub process_request {
     my $self  = shift;
     my $inbuf = '';
     my ( $loginrequired, $loggedin, $quitconnection ) = ( 0, 0, 0 );
-    $self->log( 3, getTime() . " process_request START" );
+    $self->log( 3, getTime() . " [SLNP::Server] New request" );
 
     binmode STDIN,  ":utf8";
     binmode STDOUT, ":utf8";
@@ -423,7 +423,7 @@ sub process_request {
             || $inbuf =~ /^\s*SLNPQuit\s*/m )
         {
 
-            $self->log( 3, getTime() . " New SLNP command received:$inbuf:" );
+            $self->log( 3, getTime() . " [SLNP::Server] New SLNP command received:$inbuf:" );
 
             my $responsecode = '501';
             my $responsetext = 'Error while processing SLNP command';
@@ -436,7 +436,7 @@ sub process_request {
 
             if ( $responsecode ne '200' ) {
                 $self->log( 3,
-                    getTime()
+                    getTime() . " [SLNP::Server]"
                       . " responsecode:$responsecode: responsetext:$responsetext:"
                 );
             }
@@ -461,10 +461,6 @@ sub evalSlnpCmd {
     my ( $slnpreq, $loginrequired, $loggedin, $quit ) = @_;
     my $slnpcmd;
     my $slnpcmdname;
-
-    $self->log( 3,
-        getTime()
-          . "SLNP::Server::evalSlnpCmd START slnpreq:$slnpreq:" );
 
     $slnpcmd = eval { $self->analyzeSLNPReq($slnpreq); };
     if ($slnpcmd) {
@@ -529,7 +525,7 @@ sub analyzeSLNPReq {
     my $self    = shift;
     my $slnpreq = shift;
     my ( $slnpreqlineNo, @level, $lv, $cmd );
-    $self->log( 3, getTime() . " SLNP::Server::analyzeSLNPReq Start" );
+    $self->log( 3, getTime() . " [SLNP::Server] analyzeSLNPReq" );
 
     if (   $slnpreq =~ /^\s*SLNPEndCommand\s*/m
         || $slnpreq =~ /^\s*SLNPQuit\s*/m )
@@ -628,7 +624,7 @@ sub validateSLNPReq {
     my $rejectUnspecifiedParameters = shift;
     $self->log( 3,
         getTime()
-          . " SLNP::Server::validateSLNPReq Start cmd->{'cmd_name'}:$cmd->{'cmd_name'}:"
+          . " [SLNP::Server] validateSLNPReq"
     );
 
     my ( $cmdname, %slnp, $level, $leveloffsets );
@@ -778,7 +774,7 @@ sub genSLNPResp {
           . Dumper($cmd)
           . ' ' );
 
-    $self->log( 1, getTime() . ' Error running command ' . $cmd->{cmd_name} . ': ' . $cmd->{warn} )
+    $self->log( 1, getTime() . ' [SLNP::Server] Error running command ' . $cmd->{cmd_name} . ': ' . $cmd->{warn} )
       if $cmd->{warn};
 
     if ( $cmd->{'req_valid'} == 1 ) {
@@ -826,7 +822,7 @@ sub genSLNPResp {
     }
     $self->log( 3,
             getTime()
-          . " SLNP::Server::genSLNPResp slnpresp:"
+          . " [SLNP::Server] genSLNPResp slnpresp:"
           . $slnpresp );
     return $slnpresp;
 }
@@ -879,7 +875,7 @@ sub readSLNPParam {
     my $lv     = shift;
     my @params = @_;
     $self->log( 3,
-        getTime() . " SLNP::Server::readSLNPParam Start level:$lv:" );
+        getTime() . " [SLNP::Server] readSLNPParam Start level:$lv:" );
     my ( $reqParamVals, $oldbaselevel, $leveloffsets );
 
     $reqParamVals = undef;
@@ -940,7 +936,7 @@ sub cmdFLBestellung {
     my $slnpcmd = shift;
     $self->log( 3,
             getTime()
-          . " cmdFLBestellung START slnpcmd->{'cmd_name'}:"
+          . "[SLNP::Server][Bestellung] "
           . $slnpcmd->{'cmd_name'}
           . ":" );
 
@@ -978,14 +974,12 @@ sub cmdFLBestellung {
         $params->{$field} = $param->[0]->[0] if $param;
     }
 
-    $self->log( 3, getTime() . " cmdFLBestellung params:" . Dumper($params) );
+    $self->log( 3, getTime() . " [SLNP::Server] > params:" . Dumper($params) );
 
-    $self->log( 3,
-        getTime() . " cmdFLBestellung is calling doSLNPFLBestellung" );
     $res = SLNP::Commands::Bestellung::doSLNPFLBestellung( $slnpcmd, $params );
     $self->log( 3,
         getTime()
-          . " cmdFLBestellung doSLNPFLBestellung has returned, res->{'cmd_name'}:" . $res->{'cmd_name'} .":, res->{'req_valid'}:". $res->{'req_valid'}
+          . " [SLNP::Server] doSLNPFLBestellung has returned, res->{'cmd_name'}:" . $res->{'cmd_name'} .":, res->{'req_valid'}:". $res->{'req_valid'}
     );
 
     return $slnpcmd;
