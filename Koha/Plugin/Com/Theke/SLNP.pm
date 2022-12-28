@@ -120,7 +120,8 @@ sub configuration {
 
     my $configuration;
     eval { $configuration = YAML::Load( $self->retrieve_data('configuration') // '' . "\n\n" ); };
-    die($@) if $@;
+    warn "[SLNP]" . $@
+      if $@;
 
     return $configuration;
 }
