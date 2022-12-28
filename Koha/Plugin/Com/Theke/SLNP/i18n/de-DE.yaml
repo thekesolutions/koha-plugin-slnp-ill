@@ -133,7 +133,7 @@ staff_mark_lost:
     item_callnumber: Signatur
     item_due_date: Fälligkeitsdatum
     item_internal_note: Interne Notiz
-    item_not_lost: Das Exemplar wurde nicht als verloren markiert. Es muss auf Verlust gesetzt werden, bevor hier fortgefahren werden kann.
+    item_not_lost: Das Exemplar wurde nicht als verloren markiert. Es muss auf Verlust gesetzt werden, bevor die Bearbeitung fortgesetzt werden kann
     item_num_parts: Beilagen
     item: Exemplar
     lending_library_name: Name
