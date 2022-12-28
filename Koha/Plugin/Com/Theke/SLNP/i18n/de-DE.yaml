@@ -140,7 +140,7 @@ staff_mark_lost:
     lending_library_title: Leihende Bibliothek
     mark_lost_and_print: Als verloren markieren und drucken
     mark_lost: Als verloren markieren
-    message: Das Exemplar für diese Bestellung wurde als verloren markiert. Mit dieser Aktion wird auch die Bestellung auf Verlust (SLNP_LOST) gesetzt.
+    message: Das Exemplar für diese Bestellung wurde als verloren markiert. Mit dieser Aktion wird auch die Bestellung auf Verlust gemeldet (SLNP_LOST_COMP) gesetzt.
     notify_lending_library: Benachrichtigen
     patron_requester: Besteller*in
     patron: Benutzerdetails

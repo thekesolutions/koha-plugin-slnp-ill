@@ -140,7 +140,7 @@ staff_mark_lost:
     lending_library_title: Lending library
     mark_lost_and_print: Mark lost and print
     mark_lost: Mark lost
-    message: This request's item is marked as lost on the system. This action will flag the request as SLNP_LOST
+    message: This request's item is marked as lost on the system. This action will flag the request as SLNP_LOST_COMP
     notify_lending_library: Notify
     patron_requester: Requesting patron
     patron: Patron details

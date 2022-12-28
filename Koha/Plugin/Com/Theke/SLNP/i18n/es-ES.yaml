@@ -140,7 +140,7 @@ staff_mark_lost:
     lending_library_title: Prestado por
     mark_lost_and_print: Marcar como perdido e imprimir
     mark_lost: Marcar como perdido
-    message: El ítem se encuentra marcado como perdido en el sistema. Esta acción marcará la solicitud como SLNP_LOST
+    message: El ítem se encuentra marcado como perdido en el sistema. Esta acción marcará la solicitud como SLNP_LOST_COMP
     notify_lending_library: Notificar
     patron_requester: Usuario solicitante
     patron: Detalles del usuario
