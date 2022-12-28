@@ -48,6 +48,8 @@ sub get_print_slip {
     my $illrequest_id = $c->validation->param('illrequest_id');
     my $print_slip_id = $c->validation->param('print_slip_id');
 
+    sleep 1;
+
     try {
 
         my $plugin = Koha::Plugin::Com::Theke::SLNP->new();
