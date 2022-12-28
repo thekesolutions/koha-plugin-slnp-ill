@@ -25,10 +25,10 @@ status_graph:
         name: Abgeschlossen
         ui_method_name: Bestellung abschließen
     SLNP_LOST:
-        name: Lost
+        name: Verloren
         ui_method_name: null
     SLNP_LOST_COMP:
-        name: Verloren
+        name: Verloren gemeldet
         ui_method_name: Verlustmeldung
     COMP:
         name: Abgeschlossen
