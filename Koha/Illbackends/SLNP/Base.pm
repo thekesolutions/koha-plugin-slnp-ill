@@ -1043,11 +1043,11 @@ sub mark_lost {
 
                     # send message
                     if ( $params->{other}->{notify_lending_library} eq 'on'
-                         and $selected_lending_library ) {
+                         and $params->{other}->{lending_library} ) {
                         my $letter = $request->get_notice( { notice_code => 'ILL_PARTNER_LOST', transport => 'email' } );
                         my $result = C4::Letters::EnqueueLetter(
                             {   letter                 => $letter,
-                                borrowernumber         => $selected_lending_library,
+                                borrowernumber         => $params->{other}->{lending_library},
                                 message_transport_type => 'email',
                             }
                         );
