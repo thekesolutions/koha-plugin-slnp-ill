@@ -145,8 +145,11 @@
             }
         });
 
-        $("#lending_library").on("change", function(){
+        toggle_notify_checkbox();
 
+        $("#lending_library").on("change", toggle_notify_checkbox());
+
+        function toggle_notify_checkbox() {
             var can_be_notified = $("#lending_library").select2().find(":selected").data("can-be-notified");
 
             if ( can_be_notified === 1 ) {
@@ -157,7 +160,7 @@
                     .attr( "disabled", true )
                     .prop( "checked", false );
             }
-        });
+        }
     });
 </script>
 
