@@ -140,8 +140,18 @@ sub status_graph {
             name           => $self->{status_graph}->{REQ}->{name},#'Bestellt',
             ui_method_name => undef,
             method         => undef,
-            next_actions   => [ 'RECVD', 'NEGFLAG' ],
+            next_actions   => [ 'RECVD', 'NEGFLAG', 'CANC' ],
             ui_method_icon => '',
+        },
+
+        CANC => {
+            prev_actions   => [ 'REQ' ],
+            id             => 'CANC',
+            name           => $self->{status_graph}->{CANC}->{name},
+            ui_method_name => $self->{status_graph}->{CANC}->{ui_method_name},
+            method         => 'cancel',
+            next_actions   => [ 'SLNP_COMP' ],
+            ui_method_icon => 'fa-times',
         },
 
         RECVD => {
@@ -1066,6 +1076,60 @@ sub mark_lost {
         # in case of faulty or testing stage, we just return the standard $backend_result with original stage
         $backend_result->{stage} = $stage;
     }
+
+    return $backend_result;
+}
+
+=head3 cancel
+
+    $request->cancel;
+
+Cancel the request and perform the required cleanup
+
+=cut
+
+sub cancel {
+    my ( $self, $params ) = @_;
+
+    my $backend_result = {
+        error   => 0,
+        status  => '',
+        message => '',
+        method  => 'cancel',
+        stage   => 'commit',
+        next    => 'illlist',
+        value   => '',
+    };
+
+    my $request = $params->{request};
+
+    try {
+        Koha::Database->new->schema->txn_do(
+            sub {
+                $self->biblio_cleanup( $request );
+
+                $self->add_or_update_attributes(
+                    {
+                        attributes => { cancellation_reason => 'cancelled' },
+                        request    => $request,
+                    }
+                );
+                # mark as complete
+                $request->set(
+                    {
+                        completed => \'NOW()',
+                    }
+                )->store;
+
+                $request->status('COMP');
+            }
+        )
+    }
+    catch {
+        warn "$_";
+        $backend_result->{stage}   = 'init';
+        $backend_result->{message} = "$_";
+    };
 
     return $backend_result;
 }

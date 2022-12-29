@@ -3,6 +3,9 @@ status_graph:
     REQ:
         name: Requested
         ui_method_name: null
+    CANC:
+        name: Cancelled
+        ui_method_name: Cancel
     RECVD:
         name: Received
         ui_method_name: Receive

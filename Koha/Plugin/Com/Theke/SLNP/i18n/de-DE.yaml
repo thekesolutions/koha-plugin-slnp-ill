@@ -3,6 +3,9 @@ status_graph:
     REQ:
         name: Bestellt
         ui_method_name: null
+    CANC:
+        name: Cancelled
+        ui_method_name: Cancel
     RECVD:
         name: Eingangsverbucht
         ui_method_name: Eingang verbuchen
