@@ -393,7 +393,6 @@ sub create {
                 library_id      => $library_id,
                 callnumber      => $params->{other}->{attributes}->{shelfmark},
                 notes           => undef,
-                notes_nonpublic => $params->{other}->{attributes}->{notes},
                 orderid         => $params->{other}->{orderid},                   # zflorderid
             }
         )->id;
@@ -413,6 +412,7 @@ sub create {
                 orderid        => $params->{other}->{orderid},
                 backend        => $self->name,
                 price_paid     => "$fee", # FIXME: varchar => formatting?
+                notesstaff     => $params->{other}->{attributes}->{notes},
             }
         )->store;
 
