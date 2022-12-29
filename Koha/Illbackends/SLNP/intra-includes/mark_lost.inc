@@ -147,9 +147,9 @@
 
         toggle_notify_checkbox();
 
-        $("#lending_library").on("change", toggle_notify_checkbox());
+        $("#lending_library").on("select2:select", function(e){toggle_notify_checkbox(e);});
 
-        function toggle_notify_checkbox() {
+        function toggle_notify_checkbox(e) {
             var can_be_notified = $("#lending_library").select2().find(":selected").data("can-be-notified");
 
             if ( can_be_notified === 1 ) {
