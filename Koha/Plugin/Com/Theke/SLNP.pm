@@ -287,7 +287,11 @@ sub cronjob_nightly {
     my ($self) = @_;
 
     # find the SLNP_COMPLETE ILL requests
-    my $requests = Koha::Illrequests->search({ status => 'SLNP_COMP' });
+    my $requests = Koha::Illrequests->search(
+        {
+            status => [ 'SENT_BACK', 'SLNP_COMP' ]
+        }
+    );
 
     while ( my $request = $requests->next ) {
         $request->set(
