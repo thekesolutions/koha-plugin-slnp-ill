@@ -346,7 +346,7 @@ sub create {
         value   => {}
     };
 
-    $backend_result->{strings} = $params->{request}->_backend->{strings}->{staff_receive};
+    $backend_result->{strings} = $params->{request}->_backend->{strings}->{staff_create};
 
     # Initiate process stage is dummy for SLNP
     if ( !$stage || $stage eq 'init' ) {
