@@ -403,6 +403,10 @@ sub check_configuration {
         } else {
             push @errors, 'extra_fee_debit_type_not_set';
         }
+
+        eval { $configuration = YAML::Load( $self->retrieve_data('configuration') // '' . "\n\n" ); };
+        push @errors, "Error parsing YAML configuration ($@)"
+          if $@;
     } catch {
         push @errors, "Error parsing YAML configuration ($_)";
     };
