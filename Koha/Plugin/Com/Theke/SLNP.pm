@@ -294,11 +294,16 @@ sub cronjob_nightly {
     );
 
     while ( my $request = $requests->next ) {
+
+        # mark as complete
         $request->set(
-            {   status    => 'COMP',
+            {
                 completed => \'NOW()',
             }
         )->store;
+
+        $request->status('COMP');
+
         $request->_backend->biblio_cleanup($request);
     }
 
