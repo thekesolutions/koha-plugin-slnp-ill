@@ -208,7 +208,7 @@ sub after_circ_action {
 
         if ( $req ) { # Yay
 
-            $req->status('CHK')->store; # TODO: Koha could do better
+            $req->status('CHK');
             my $type = $req->illrequestattributes->search({ type => 'type' })->next;
             my $THE_type = ($type) ? $type->value : 'Leihe';
 
@@ -217,7 +217,7 @@ sub after_circ_action {
                 try {
                     my $item = $checkout->item;
                     AddReturn( $item->barcode );
-                    $req->status('SLNP_COMP')->store; # TODO: Koha could do better
+                    $req->status('SLNP_COMP');
                     # refetch item
                     $item->discard_changes;
                     my $not_for_loan_status = $self->configuration->{not_for_loan_after_auto_checkin} // 1;
