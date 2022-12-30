@@ -4,8 +4,8 @@ status_graph:
         name: Bestellt
         ui_method_name: null
     CANC:
-        name: Cancelled
-        ui_method_name: Cancel
+        name: Storniert
+        ui_method_name: Stornieren
     RECVD:
         name: Eingangsverbucht
         ui_method_name: Eingang verbuchen
@@ -25,7 +25,7 @@ status_graph:
         name: Zurückgesendet
         ui_method_name: An Bibliothek zurücksenden
     SLNP_COMP:
-        name: Abgeschlossen
+        name: Abgeholt
         ui_method_name: Bestellung abschließen
     SLNP_LOST:
         name: Verloren
@@ -136,14 +136,14 @@ staff_mark_lost:
     item_callnumber: Signatur
     item_due_date: Fälligkeitsdatum
     item_internal_note: Interne Notiz
-    item_not_lost: Das Exemplar wurde nicht als verloren markiert. Es muss auf Verlust gesetzt werden, bevor die Bearbeitung fortgesetzt werden kann
+    item_not_lost: Das Exemplar wurde nicht als verloren markiert. Es muss ein Verloren-Status gesetzt werden, bevor die Bearbeitung fortgesetzt werden kann
     item_num_parts: Beilagen
     item: Exemplar
     lending_library_name: Name
     lending_library_title: Leihende Bibliothek
     mark_lost_and_print: Als verloren markieren und drucken
     mark_lost: Als verloren markieren
-    message: Das Exemplar für diese Bestellung wurde als verloren markiert. Mit dieser Aktion wird auch die Bestellung auf Verlust gemeldet (SLNP_LOST_COMP) gesetzt.
+    message: Das Exemplar für diese Bestellung wurde als verloren markiert. Mit dieser Aktion wird auch die Bestellung auf 'Verloren gemeldet' gesetzt.
     notify_lending_library: Benachrichtigen
     patron_requester: Besteller*in
     patron: Benutzerdetails
