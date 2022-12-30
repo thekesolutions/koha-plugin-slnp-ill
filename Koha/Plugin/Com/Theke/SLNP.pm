@@ -217,7 +217,6 @@ sub after_circ_action {
                 try {
                     my $item = $checkout->item;
                     AddReturn( $item->barcode );
-                    $req->status('RET')->store; # TODO: Koha could do better
                     $req->status('SLNP_COMP')->store; # TODO: Koha could do better
                     # refetch item
                     $item->discard_changes;
