@@ -21,8 +21,6 @@ use Modern::Perl;
 
 use Carp;
 use Clone qw( clone );
-use Data::Dumper;
-use File::Basename qw( dirname );
 use JSON qw( to_json );
 use MARC::Record;
 use Scalar::Util qw(blessed);
@@ -628,7 +626,8 @@ sub receive {
                 )->store;
 
                 $request->set(
-                    {   medium     => $request_type,
+                    {   due_date   => dt_from_string($params->{other}->{due_date}),
+                        medium     => $request_type,
                         notesopac  => $params->{other}->{opac_note},
                         notesstaff => $params->{other}->{staff_note},
                     }
@@ -794,7 +793,8 @@ sub update {
                     )->store;
 
                     $request->set(
-                        {   medium     => $request_type,
+                        {   due_date   => dt_from_string($params->{other}->{due_date}),
+                            medium     => $request_type,
                             notesopac  => $params->{other}->{opac_note},
                             notesstaff => $params->{other}->{staff_note},
                         }
