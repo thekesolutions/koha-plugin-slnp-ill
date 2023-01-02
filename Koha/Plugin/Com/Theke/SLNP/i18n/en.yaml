@@ -45,6 +45,7 @@ configure:
     configuration_cancel: Cancel
     unhandled_error: Unhandled error
     missing_letter: Missing mandatory letter
+    missing_syspref: Mandatory system preference not set
     bad_configuration: Problem found with the following configuration entry
     config_entry_not_set: Missing mandatory configuration entry
 

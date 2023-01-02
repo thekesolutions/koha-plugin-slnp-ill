@@ -424,6 +424,12 @@ sub check_configuration {
     push @errors, 'no_ILL_PARTNER_LOST'
       unless Koha::Notice::Templates->search( { code => 'ILL_PARTNER_LOST' } )->count;
 
+    push @errors, 'ILLModule_disabled'
+      unless C4::Context->preference('ILLModule');
+
+    push @errors, 'CirculateILL_disabled'
+      unless C4::Context->preference('CirculateILL');
+
     return \@errors;
 }
 
