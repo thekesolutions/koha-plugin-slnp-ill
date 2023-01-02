@@ -32,6 +32,8 @@
         [% FOREACH error IN errors %]
             <div class="dialog error">
                 [% SWITCH error %]
+                [% CASE 'ILLModule_disabled' %]<span>[% strings.missing_syspref | html %] (ILLModule)</span>
+                [% CASE 'CirculateILL_disabled' %]<span>[% strings.missing_syspref | html %] (CirculateILL)</span>
                 [% CASE 'no_ILL_PARTNER_RET' %]<span>[% strings.missing_letter | html %] (ILL_PARTNER_RET)</span>
                 [% CASE 'no_ILL_RECEIVE_SLIP' %]<span>[% strings.missing_letter | html %] (ILL_RECEIVE_SLIP)</span>
                 [% CASE 'no_ILL_PARTNER_LOST' %]<span>[% strings.missing_letter | html %] (ILL_PARTNER_LOST)</span>

@@ -45,6 +45,7 @@ configure:
     configuration_cancel: Cancelar
     unhandled_error: Error inesperado
     missing_letter: No se encontró aviso obligatorio
+    missing_syspref: Preferencia de sistema obligatoria no configurada
     bad_configuration: Problema encontrado con la siguiente entrada de configuración
     config_entry_not_set: No se encontré entrada de configuración obligatoria
 
