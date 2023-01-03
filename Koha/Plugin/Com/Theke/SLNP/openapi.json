@@ -2,7 +2,7 @@
   "/ill_requests/{illrequest_id}/print_slips/{print_slip_id}": {
     "get": {
       "x-mojo-to": "Com::Theke::SLNP::Controller#get_print_slip",
-      "operationId": "print_slip",
+      "operationId": "slnp_print_slip",
       "description": "Endpoint used by the plugin to render the slip print page",
       "tags": [
         "circulation"
