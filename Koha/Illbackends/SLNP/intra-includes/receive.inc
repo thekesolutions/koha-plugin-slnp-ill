@@ -43,7 +43,7 @@
 
         <li>
           <label class="required" for="received_on_date">[% whole.strings.received_on | html %]:</label>
-          <input type="text" class="datepicker" name="received_on_date" id="received_on_date" size="10" maxlength="10" value="[% whole.value.received_on_date | $KohaDates %]" required="required" />
+          <input type="text" class="flatpickr" name="received_on_date" id="received_on_date" size="10" maxlength="10" value="[% whole.value.received_on_date | $KohaDates %]" required="required" />
           <span class="hint">[% INCLUDE 'date-format.inc' %]</span>
         </li>
 
@@ -111,7 +111,7 @@
 
         <li>
           <label for="due_date">[% whole.strings.item_due_date | html %]:</label>
-          <input type="text" class="datepicker" name="due_date" id="due_date" size="10" maxlength="10" value="[% whole.value.other.due_date | $KohaDates %]" />
+          <input type="text" class="flatpickr" name="due_date" id="due_date" size="10" maxlength="10" value="[% whole.value.other.due_date | $KohaDates %]" />
          <span class="hint">[% INCLUDE 'date-format.inc' %]</span>
         </li>
 

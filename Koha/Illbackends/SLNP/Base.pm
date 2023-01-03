@@ -552,10 +552,10 @@ sub receive {
 
                 $new_attributes->{type} = $request_type eq 'loan' ? 'Leihe' : 'Kopie';
 
-                $new_attributes->{received_on_date} = dt_from_string( $params->{other}->{received_on_date} )
+                $new_attributes->{received_on_date} = $params->{other}->{received_on_date}
                   if $params->{other}->{received_on_date};
 
-                $new_attributes->{due_date} = dt_from_string( $params->{other}->{due_date} )
+                $new_attributes->{due_date} = $params->{other}->{due_date}
                   if $params->{other}->{due_date};
 
                 $new_attributes->{lending_library} = $params->{other}->{lending_library}
@@ -626,7 +626,7 @@ sub receive {
                 )->store;
 
                 $request->set(
-                    {   due_date   => dt_from_string($params->{other}->{due_date}),
+                    {   due_date   => $params->{other}->{due_date},
                         medium     => $request_type,
                         notesopac  => $params->{other}->{opac_note},
                         notesstaff => $params->{other}->{staff_note},
@@ -704,10 +704,10 @@ sub update {
 
                     $new_attributes->{type} = $request_type eq 'loan' ? 'Leihe' : 'Kopie';
 
-                    $new_attributes->{received_on_date} = dt_from_string( $params->{other}->{received_on_date} )
+                    $new_attributes->{received_on_date} = $params->{other}->{received_on_date}
                       if $params->{other}->{received_on_date};
 
-                    $new_attributes->{due_date} = dt_from_string( $params->{other}->{due_date} )
+                    $new_attributes->{due_date} = $params->{other}->{due_date}
                       if $params->{other}->{due_date};
 
                     if ( $params->{other}->{set_extra_fee} ) {
@@ -793,7 +793,7 @@ sub update {
                     )->store;
 
                     $request->set(
-                        {   due_date   => dt_from_string($params->{other}->{due_date}),
+                        {   due_date   => $params->{other}->{due_date},
                             medium     => $request_type,
                             notesopac  => $params->{other}->{opac_note},
                             notesstaff => $params->{other}->{staff_note},
@@ -845,11 +845,11 @@ sub update {
           if $circulation_notes;
 
         my $received_on_date = $request->illrequestattributes->search({ type => 'received_on_date' })->next;
-        $template_params->{received_on_date} = dt_from_string($received_on_date->value)
+        $template_params->{received_on_date} = $received_on_date->value
           if $received_on_date;
 
         my $due_date = $request->illrequestattributes->search({ type => 'due_date' })->next;
-        $template_params->{due_date} = dt_from_string($due_date->value)
+        $template_params->{due_date} = $due_date->value
           if $due_date;
 
         $template_params->{item}   = $item;
