@@ -1312,7 +1312,7 @@ sub add_biblio {
                 push @subfields, 'c' => $article_author;
             }
 
-            $record->insert_fields_ordered( MARC::Field->new( '245', '0', '0', @subfields ) )
+            $record->insert_fields_ordered( MARC::Field->new( '245', '0', ' ', @subfields ) )
               if scalar @subfields;
 
             # build 773
