@@ -105,7 +105,15 @@ my $SlnpErr2HttpCode = {
     PATRON_NOT_FOUND => {
         code => 510,
         text => 'SLNPParameterValueError'
-    }
+    },
+    RECORD_NOT_FOUND => {
+        code => 510,
+        text => 'SLNPParameterValueError',
+    },
+    NO_ITEMS_FOUND => {
+        code => 510,
+        text => 'SLNPParameterValueError',
+    },
 };
 
 my $SLNPCmds = {
@@ -129,6 +137,12 @@ my $SLNPCmds = {
                 'level' => 1,
                 'regex' => '^\s*(PFL|AFL)$',
                 'mand'  => 1,
+            },
+
+            # <?> FIXME: need more info on the field spec. Looks like 'V' and 'C' are valid values
+            'BsTyp2' => {
+                'level' => 1,
+                'regex' => '^\s*(.+)$',
             },
 
             # <BestellId des ZFLServer>
@@ -944,28 +958,31 @@ sub cmdFLBestellung {
     my $params = undef;
 
     my @fields = (
-        'SpecIssue',      'BsTyp',
-        'BestellId',      'SigelListe',
-        'SigelNB',        'BenutzerNummer',
-        'Verfasser',      'Titel',
-        'AufsatzTitel',   'AufsatzAutor',
-        'Verlag',         'Isbn',
-        'Issn',           'EJahr',
-        'Heft',           'Auflage',
-        'Seitenangabe',   'Signatur',
-        'Info',           'Bemerkung',
-        'AusgabeOrt',     'SpecIssue',
-        'BsTyp',          'BestellId',
-        'SigelListe',     'SigelNB',
-        'BenutzerNummer', 'Verfasser',
-        'Titel',          'AufsatzTitel',
-        'AufsatzAutor',   'Verlag',
-        'Isbn',           'Issn',
-        'EJahr',          'Heft',
-        'Auflage',        'Seitenangabe',
-        'Signatur',       'Info',
-        'Bemerkung',      'AusgabeOrt',
+        'Auflage',
+        'AufsatzAutor',
+        'AufsatzTitel',
+        'AusgabeOrt',
         'Band',
+        'Bemerkung',
+        'BenutzerNummer',
+        'BestellId',
+        'BsTyp',
+        'BsTyp2',
+        'EJahr',
+        'ExternReferenz',
+        'Heft',
+        'Info',
+        'Isbn',
+        'Issn',
+        'Seitenangabe',
+        'SigelListe',
+        'SigelNB',
+        'Signatur',
+        'SpecIssue',
+        'Titel',
+        'TitelId',
+        'Verfasser',
+        'Verlag',
     );
 
     foreach my $field (@fields) {
