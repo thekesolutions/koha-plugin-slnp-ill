@@ -36,6 +36,9 @@ status_graph:
     COMP:
         name: Completado
         ui_method_name: Marcar completado
+    L_REQ:
+        name: Solicitado (prestando)
+        ui_method_name: null
 configure:
     breadcrumb_home: Inicio
     breadcrumb_name: Conector SLNP ILL

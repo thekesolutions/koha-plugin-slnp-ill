@@ -252,6 +252,16 @@ sub status_graph {
             ui_method_icon => 'fa-check',
         },
 
+        ## Lending workflow
+        L_REQ => {
+            prev_actions   => [],
+            id             => 'L_REQ',
+            name           => $self->{status_graph}->{L_REQ}->{name},
+            ui_method_name => undef,
+            method         => undef,
+            next_actions   => [ 'COMP' ],
+            ui_method_icon => '',
+        },
     };
 }
 

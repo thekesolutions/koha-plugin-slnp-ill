@@ -33,19 +33,17 @@ use Try::Tiny;
 
 use SLNP::Exceptions;
 
-sub doSLNPFLBestellung {
-    my $cmd = shift;
-    my ($params) = @_;
+sub SLNPFLBestellung {
+    my ( $cmd, $params ) = @_;
 
     my $configuration = Koha::Plugin::Com::Theke::SLNP->new->configuration;
 
     if ( $cmd->{'req_valid'} == 1 ) {
 
-        my $illrequest = Koha::Illrequest->new();
-        my $slnp_illbackend = $illrequest->load_backend("SLNP");  # this is still $illrequest
+        my $illrequest      = Koha::Illrequest->new();
+        my $slnp_illbackend = $illrequest->load_backend("SLNP");    # this is still $illrequest
 
-        my $args;
-        $args->{stage} = 'commit';
+        my $args = { stage => 'commit' };
 
         if (
             (

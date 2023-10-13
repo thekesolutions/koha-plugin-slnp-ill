@@ -36,6 +36,9 @@ status_graph:
     COMP:
         name: Completed
         ui_method_name: Mark completed
+    AFL_REQ:
+        name: Requested (lending)
+        ui_method_name: null
 configure:
     breadcrumb_home: Home
     breadcrumb_name: SLNP ILL connector plugin

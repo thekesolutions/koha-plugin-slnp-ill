@@ -36,6 +36,9 @@ status_graph:
     COMP:
         name: Abgeschlossen
         ui_method_name: Bestellung abschließen
+    L_REQ:
+        name: Requested (lending)
+        ui_method_name: null
 configure:
     breadcrumb_home: Start
     breadcrumb_name: SLNP-Fernleih-Plugin

@@ -58,43 +58,43 @@ BEGIN {
 }
 
 my $SlnpErr2HttpCode = {
-    'SLNP_REQ_ANALYZING_ERROR' => {
+    SLNP_REQ_ANALYZING_ERROR => {
         'code' => 520,
         'text' => 'SlnpInternalError'
     },
-    'SLNP_REQ_FORMAT_ERROR' => {
+    SLNP_REQ_FORMAT_ERROR => {
         'code' => 520,
         'text' => 'SlnpRequestError'
     },
-    'SLNP_END_COMMAND_LACKING' => {
+    SLNP_END_COMMAND_LACKING => {
         'code' => 520,
         'text' => 'SlnpRequestError'
     },
-    'SLNP_CMD_NOT_IMPLEMENTED' => {
+    SLNP_CMD_NOT_IMPLEMENTED => {
         'code' => 520,
         'text' => 'SlnpLookupError'
     },
-    'SLNP_PARAM_VALUE_NOT_VALID' => {
+    SLNP_PARAM_VALUE_NOT_VALID => {
         'code' => 520,
         'text' => 'SlnpRequestError'
     },
-    'SLNP_PARAM_LEVEL_WRONG' => {
+    SLNP_PARAM_LEVEL_WRONG => {
         'code' => 520,
         'text' => 'SlnpRequestError'
     },
-    'SLNP_PARAM_GROUP_ERROR' => {
+    SLNP_PARAM_GROUP_ERROR => {
         'code' => 520,
         'text' => 'SlnpRequestError'
     },
-    'SLNP_PARAM_UNSPECIFIED' => {
+    SLNP_PARAM_UNSPECIFIED => {
         'code' => 520,
         'text' => 'SlnpRequestError'
     },
-    'SLNP_MAND_PARAM_LACKING' => {
+    SLNP_MAND_PARAM_LACKING => {
         'code' => 520,
         'text' => 'SlnpRequestError'
     },
-    'SLNP_CMD_EXECUTION_ERROR' => {
+    SLNP_CMD_EXECUTION_ERROR => {
         'code' => 520,
         'text' => 'SlnpExecutionError'
     },
@@ -127,7 +127,7 @@ my $SLNPCmds = {
             # <BestellTyp>
             'BsTyp' => {
                 'level' => 1,
-                'regex' => '^\s*(PFL)$',
+                'regex' => '^\s*(PFL|AFL)$',
                 'mand'  => 1,
             },
 
@@ -932,13 +932,12 @@ sub readSLNPParam {
 }
 
 sub cmdFLBestellung {
-    my $self    = shift;
-    my $slnpcmd = shift;
-    $self->log( 3,
-            getTime()
-          . "[SLNP::Server][Bestellung] "
-          . $slnpcmd->{'cmd_name'}
-          . ":" );
+    my ( $self, $slnpcmd ) = @_;
+
+    $self->log(
+        3,
+        getTime() . "[SLNP::Server][Bestellung] " . $slnpcmd->{'cmd_name'} . ":"
+    );
 
     my ( $cmd, $res, $conn, $request ) = undef;
 
@@ -976,10 +975,15 @@ sub cmdFLBestellung {
 
     $self->log( 3, getTime() . " [SLNP::Server] > params:" . Dumper($params) );
 
-    $res = SLNP::Commands::Bestellung::doSLNPFLBestellung( $slnpcmd, $params );
-    $self->log( 3,
+    $res = SLNP::Commands::Bestellung::SLNPFLBestellung( $slnpcmd, $params );
+
+    $self->log(
+        3,
         getTime()
-          . " [SLNP::Server] doSLNPFLBestellung has returned, res->{'cmd_name'}:" . $res->{'cmd_name'} .":, res->{'req_valid'}:". $res->{'req_valid'}
+            . " [SLNP::Server] SLNPFLBestellung has returned, res->{'cmd_name'}:"
+            . $res->{'cmd_name'}
+            . ":, res->{'req_valid'}:"
+            . $res->{'req_valid'}
     );
 
     return $slnpcmd;
