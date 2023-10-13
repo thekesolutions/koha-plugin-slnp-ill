@@ -63,13 +63,11 @@ sub SLNPFLBestellung {
 
                         my $biblio = Koha::Biblios->find( $biblio_id );
                         # 2.3 Does the record have items?
-                        if ( $biblio->items->count ) { # No items => accept request
+                        if ( $biblio->items->count == 0 ) { # No items => accept request
                             request_accepted( $cmd, $params->{ExternReferenz} );
                         }
-                        else { # no items => reject
-                            $cmd->{req_valid} = 0;
-                            $cmd->{err_type}  = 'NO_ITEMS_FOUND';
-                            $cmd->{err_text}  = "Es existieren keine bestellbaren Exemplare";
+                        else {
+                            # 2.4 Are all items unavailable for ILL?
                         }
                     }
                     # FIXME: we need to be able to determine if it comes from the union catalog
