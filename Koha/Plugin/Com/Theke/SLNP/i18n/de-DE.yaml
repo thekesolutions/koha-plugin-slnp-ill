@@ -129,6 +129,8 @@ staff_cancel_unavailable:
     wrong_status_text_2: der Fernleihbestellung erlaubt es nicht, diese als 'nicht lieferbar' zu markieren.
     wrong_status_text_3: Diese Aktion kann nur ausgeführt werden, bevor die Bestellung eingangsverbucht wurde.
     cancellation: Stornierung
+    cancellation_patron_reason: Grund
+    cancellation_patron_message: Nachricht an Benutzer
     requesting_patron: Besteller*in
     notify: Benachrichtigen
     cancel_request: Bestellung stornieren

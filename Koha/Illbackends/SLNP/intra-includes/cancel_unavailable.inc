@@ -1,4 +1,5 @@
 [% USE Asset %]
+[% USE AuthorisedValues %]
 [% SET footerjs = 1 %]
 
 
@@ -40,6 +41,14 @@
                     [% ELSE %]
                         <input type="checkbox" id="notify_patron" name="notify_patron" />
                     [% END %]
+                    </li>
+                    <li>
+                        <label for="cancellation_patron_reason">[% whole.strings.cancellation_patron_reason | html %]:</label>
+                        [% PROCESS 'av-build-dropbox.inc' name="cancellation_patron_reason", category="ILL_CANCELLATION_REASON", empty=1 %]
+                    </li>
+                    <li>
+                        <label for="patron_message">[% whole.strings.cancellation_patron_message | html %]:</label>
+                        <textarea id="cancellation_patron_message" name="cancellation_patron_message" rows="4" cols="40"></textarea>
                     </li>
                 </ol>
 

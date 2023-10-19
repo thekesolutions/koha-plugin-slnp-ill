@@ -129,6 +129,8 @@ staff_cancel_unavailable:
     wrong_status_text_2: of the ILL request doesn't allow to mark this request as not available
     wrong_status_text_3: This action is only possible until the item has been received
     cancellation: Cancellation
+    cancellation_patron_reason: Reason
+    cancellation_patron_message: Message to patron
     requesting_patron: Requesting patron
     notify: Notify
     cancel_request: Cancel request

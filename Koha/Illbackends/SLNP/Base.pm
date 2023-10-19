@@ -934,12 +934,16 @@ sub cancel_unavailable {
                 sub {
                     $self->biblio_cleanup( $request );
 
-                    Koha::Illrequestattribute->new(
-                        {   illrequest_id => $request->illrequest_id,
-                            type          => 'cancellation_reason',
-                            value         => 'unavailable',
+                    $self->add_or_update_attributes(
+                    {
+                        request => $request,
+                        attributes => {
+                            cancellation_reason => 'unavailable',
+                            cancellation_patron_message => $params->{other}->{cancellation_patron_message},
+                            cancellation_patron_reason => $params->{other}->{cancellation_patron_reason},
                         }
-                    )->store;
+                    }
+                    );
 
                     # mark as complete
                     $request->set(
