@@ -110,7 +110,7 @@ my $SlnpErr2HttpCode = {
         code => 510,
         text => 'SLNPParameterValueError',
     },
-    NO_ITEMS_FOUND => {
+    NO_AVAILABLE_ITEMS => {
         code => 510,
         text => 'SLNPParameterValueError',
     },

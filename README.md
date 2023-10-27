@@ -60,6 +60,14 @@ pickup_location_mapping:
 item_types:
   loan: BK
   copy: CR
+lending:
+  excluded_notforloan_values:
+    - 1
+    - 2
+    - 3
+  item_age:
+    check: true
+    days: 5
 not_for_loan_after_auto_checkin: 1
 ```
 
