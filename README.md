@@ -61,7 +61,7 @@ item_types:
   loan: BK
   copy: CR
 lending:
-  excluded_notforloan_values:
+  denied_notforloan_values:
     - 1
     - 2
     - 3

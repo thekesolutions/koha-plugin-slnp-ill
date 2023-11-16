@@ -92,13 +92,13 @@ sub SLNPFLBestellung {
                         if ( $items->count > 0 ) {                                    # There are items, next checks
 
                             # 2.4 Are all items unavailable for ILL?
-                            my $excluded_notforloan_values = $configuration->{lending}->{excluded_notforloan_values};
+                            my $denied_notforloan_values = $configuration->{lending}->{denied_notforloan_values};
 
                             my $query = {
                                 -or => [
                                     (
-                                        $excluded_notforloan_values
-                                        ? { notforloan => { -not_in => $excluded_notforloan_values } }
+                                        $denied_notforloan_values
+                                        ? { notforloan => { -not_in => $denied_notforloan_values } }
                                         : ()
                                     ),
                                     { itemlost  => { ">" => 0 } },
