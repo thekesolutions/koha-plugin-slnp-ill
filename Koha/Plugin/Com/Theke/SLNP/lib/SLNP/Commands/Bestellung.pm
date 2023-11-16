@@ -119,8 +119,29 @@ sub SLNPFLBestellung {
                             }
 
                             if ( $filtered_items->count > 0 ) {    # Candidate items, next checks
-                                    # FIXME: How do we identify the patron to check things against?
+                                if ( $configuration->{lending}->{control_borrowernumber} ) {
+                                    my $control_patron = Koha::Patrons->find($configuration->{lending}->{control_borrowernumber});
 
+                                    if ( $control_patron ) {
+                                        # 2.6 Can any item be checked out to the ILL library?
+
+                                    }
+                                    else {
+                                        request_rejected(
+                                            $cmd, 'INTERNAL_SERVER_ERROR',
+                                            "Internal server error",
+                                            "Configuration invalid value for configuration entry 'control_borrowernumber' ("
+                                                . $configuration->{lending}->{control_borrowernumber} . ")";
+                                        );
+                                    }
+                                }
+                                else { # bad configuration
+                                    request_rejected(
+                                        $cmd, 'INTERNAL_SERVER_ERROR',
+                                        "Internal server error",
+                                        "Configuration missing mandatory configuration entry 'control_borrowernumber'";
+                                    );
+                                }
                             } else {    # no items left, deny
                                 request_rejected(
                                     $cmd, 'NO_AVAILABLE_ITEMS',
@@ -324,11 +345,14 @@ Helper method that makes I<$cmd> carry the right information for a rejected requ
 =cut
 
 sub request_rejected {
-    my ( $cmd, $type, $text ) = @_;
+    my ( $cmd, $type, $text, $warn ) = @_;
 
     $cmd->{req_valid} = 0;
     $cmd->{err_type}  = $type;
     $cmd->{err_text}  = $text;
+
+    $cmd->{warn} = $warn
+        if $warn;
 
     return $cmd;
 }

@@ -68,6 +68,7 @@ lending:
   item_age:
     check: true
     days: 5
+  control_borrowernumber: 123
 not_for_loan_after_auto_checkin: 1
 ```
 
