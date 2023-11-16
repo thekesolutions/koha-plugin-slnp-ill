@@ -131,7 +131,7 @@ sub SLNPFLBestellung {
                                             $cmd, 'INTERNAL_SERVER_ERROR',
                                             "Internal server error",
                                             "Configuration invalid value for configuration entry 'control_borrowernumber' ("
-                                                . $configuration->{lending}->{control_borrowernumber} . ")";
+                                                . $configuration->{lending}->{control_borrowernumber} . ")"
                                         );
                                     }
                                 }
@@ -139,7 +139,7 @@ sub SLNPFLBestellung {
                                     request_rejected(
                                         $cmd, 'INTERNAL_SERVER_ERROR',
                                         "Internal server error",
-                                        "Configuration missing mandatory configuration entry 'control_borrowernumber'";
+                                        "Configuration missing mandatory configuration entry 'control_borrowernumber'"
                                     );
                                 }
                             } else {    # no items left, deny
