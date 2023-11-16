@@ -24,6 +24,9 @@ use utf8;
 
 use C4::Context;
 
+use C4::Circulation;
+use C4::Reserves;
+
 use Koha::Database;
 
 use Koha::Biblios;
@@ -32,6 +35,7 @@ use Koha::Illrequests;
 use Koha::Plugin::Com::Theke::SLNP;
 use Koha::SearchEngine::Search;
 
+use List::MoreUtils qw(any uniq);
 use Scalar::Util qw(blessed);
 use Try::Tiny;
 
@@ -105,7 +109,9 @@ sub SLNPFLBestellung {
                             my $filtered_items = $items->search($query);
 
                             # 2.5 Are items new acquisitions?
-                            if ( $configuration->{lending}->{item_age}->{check} ) {
+                            if ( exists $configuration->{lending}->{item_age}->{check}
+                                && $configuration->{lending}->{item_age}->{check} eq 'true' )
+                            {
                                 my $min_days_age = $configuration->{lending}->{item_age}->{days} // 0;
                                 my $dtf          = Koha::Database->new->schema->storage->datetime_parser;
                                 $filtered_items = $filtered_items->search(
@@ -120,13 +126,65 @@ sub SLNPFLBestellung {
 
                             if ( $filtered_items->count > 0 ) {    # Candidate items, next checks
                                 if ( $configuration->{lending}->{control_borrowernumber} ) {
-                                    my $control_patron = Koha::Patrons->find($configuration->{lending}->{control_borrowernumber});
+                                    my $control_patron =
+                                        Koha::Patrons->find( $configuration->{lending}->{control_borrowernumber} );
 
-                                    if ( $control_patron ) {
+                                    if ($control_patron) {
+
                                         # 2.6 Can any item be checked out to the ILL library?
+                                        my @loanable_items;
 
-                                    }
-                                    else {
+                                        while ( my $item = $filtered_items->next ) {
+                                            unless ( C4::Circulation::TooMany( $control_patron, $item ) ) {
+                                                push @loanable_items, $item;
+                                            }
+                                        }
+
+                                        # 2.7 Are all loanable items checked out?
+                                        if (@loanable_items) {
+                                            if ( any { !defined $_->onloan } @loanable_items ) {
+                                                request_accepted( $cmd, $params->{ExternReferenz} );
+                                            } else {
+
+                                                # 2.8 Does the library allow hold requests?
+                                                if ( exists $configuration->{lending}->{accepts_hold_requets}
+                                                    && $configuration->{lending}->{accepts_hold_requets} eq 'true' )
+                                                {
+                                                    if (
+                                                        any {
+                                                            C4::Reserves::CanItemBeReserved(
+                                                                $control_patron, $_,
+                                                                $control_patron->branchcode
+                                                            )->{status} eq 'OK'
+                                                        } @loanable_items
+                                                        )
+                                                    {
+                                                        request_rejected(
+                                                            $cmd, 'NO_AVAILABLE_ITEMS',
+                                                            "Exemplar ausgeliehen, Vormerkung ist möglich"
+                                                        );
+                                                    } else {
+                                                        request_rejected(
+                                                            $cmd, 'NO_AVAILABLE_ITEMS',
+                                                            "Es existieren keine bestellbaren Exemplare"
+                                                        );
+                                                    }
+                                                } else {
+                                                    request_rejected(
+                                                        $cmd, 'NO_AVAILABLE_ITEMS',
+                                                        "Es existieren keine bestellbaren Exemplare"
+                                                    );
+                                                }
+                                            }
+                                        } else {
+
+                                            # no items left, deny
+                                            request_rejected(
+                                                $cmd, 'NO_AVAILABLE_ITEMS',
+                                                "Es existieren keine bestellbaren Exemplare"
+                                            );
+                                        }
+                                    } else {
                                         request_rejected(
                                             $cmd, 'INTERNAL_SERVER_ERROR',
                                             "Internal server error",
@@ -134,8 +192,7 @@ sub SLNPFLBestellung {
                                                 . $configuration->{lending}->{control_borrowernumber} . ")"
                                         );
                                     }
-                                }
-                                else { # bad configuration
+                                } else {    # bad configuration
                                     request_rejected(
                                         $cmd, 'INTERNAL_SERVER_ERROR',
                                         "Internal server error",

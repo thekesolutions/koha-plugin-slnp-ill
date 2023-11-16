@@ -69,6 +69,7 @@ lending:
     check: true
     days: 5
   control_borrowernumber: 123
+  accepts_hold_requests: true
 not_for_loan_after_auto_checkin: 1
 ```
 
