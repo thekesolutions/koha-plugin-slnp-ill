@@ -36,7 +36,7 @@ use Koha::Plugin::Com::Theke::SLNP;
 use Koha::SearchEngine::Search;
 
 use List::MoreUtils qw(any uniq);
-use Scalar::Util qw(blessed);
+use Scalar::Util    qw(blessed);
 use Try::Tiny;
 
 use SLNP::Exceptions;
