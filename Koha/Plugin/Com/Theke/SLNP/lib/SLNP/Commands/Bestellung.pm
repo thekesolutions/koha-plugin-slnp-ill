@@ -101,9 +101,14 @@ sub SLNPFLBestellung {
                                         ? { notforloan => { -in => $denied_notforloan_values } }
                                         : ()
                                     ),
-                                    { itemlost   => { ">" => 0 } },    # is lost
-                                    { withdrawn  => { ">" => 0 } },    # is withdrawn
-                                    { restricted => 1 },               # is restricted
+                                    { itemlost  => { ">" => 0 } },    # is lost
+                                    { withdrawn => { ">" => 0 } },    # is withdrawn
+                                    {
+                                        -and => [
+                                            { restricted => { "!=" => undef } },
+                                            { restricted => 1 }
+                                        ]
+                                    },                                # is restricted
                                 ]
                             };
 
