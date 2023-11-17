@@ -98,15 +98,16 @@ sub SLNPFLBestellung {
                                 -or => [
                                     (
                                         $denied_notforloan_values
-                                        ? { notforloan => { -not_in => $denied_notforloan_values } }
+                                        ? { notforloan => { -in => $denied_notforloan_values } }
                                         : ()
                                     ),
-                                    { itemlost  => { ">" => 0 } },
-                                    { withdrawn => { ">" => 0 } },
+                                    { itemlost   => { ">" => 0 } },    # is lost
+                                    { withdrawn  => { ">" => 0 } },    # is withdrawn
+                                    { restricted => 1 },               # is restricted
                                 ]
                             };
 
-                            my $filtered_items = $items->search($query);
+                            my $filtered_items = $items->search( { '-not' => $query } );
 
                             # 2.5 Are items new acquisitions?
                             if ( exists $configuration->{lending}->{item_age}->{check}
