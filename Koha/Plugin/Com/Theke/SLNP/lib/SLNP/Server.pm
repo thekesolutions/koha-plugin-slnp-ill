@@ -253,7 +253,7 @@ my $SLNPCmds = {
             # <Datensatz-Id des Mediums>    (mandatory?)
             'TitelId' => {
                 'level' => 1,
-                'regex' => '^\s*(.+)\s*$',
+                'regex' => '^\s*(.*)\s*$',
             },
 
             # <Verfasser>
