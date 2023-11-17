@@ -16,6 +16,12 @@
 <body id="sln_printslip" class="circ">
 <div id="receipt">
 
+[% IF plain %]
+<pre>
+[% IF ( slip ) %][% slip | html %][% ELSE %]No slip template found[% END %]
+</pre>
+[% ELSE %]
 [% IF ( slip ) %][% slip | $raw %][% ELSE %]No slip template found[% END %]
+[% END %]
 
 [% INCLUDE 'intranet-bottom.inc' %]

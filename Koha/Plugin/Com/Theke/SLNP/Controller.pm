@@ -117,6 +117,7 @@ sub get_print_slip {
         $template->param(
             slip  => $slip->{content},
             title => $slip->{title},
+            plain => !$slip->{is_html},
         );
 
         return $c->render(
