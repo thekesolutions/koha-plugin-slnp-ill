@@ -70,7 +70,7 @@ sub SLNPFLBestellung {
             if ( $params->{TitelId} ) {
 
                 return request_accepted( $cmd, $params->{ExternReferenz} )
-                    if $params->{TitelId} eq '999999999' && $params->{BsTyp2} eq 'F';
+                    if $params->{TitelId} eq '999999999' && defined $params->{BsTyp2} && $params->{BsTyp2} eq 'F';
 
                 # Local title => checks and handling
                 my $searcher = Koha::SearchEngine::Search->new( { index => $Koha::SearchEngine::BIBLIOS_INDEX } );
