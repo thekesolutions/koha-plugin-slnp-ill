@@ -166,15 +166,24 @@ sub SLNPFLBestellung {
                                                 if ( exists $configuration->{lending}->{accepts_hold_requets}
                                                     && $configuration->{lending}->{accepts_hold_requets} eq 'true' )
                                                 {
-                                                    if (
-                                                        any {
-                                                            C4::Reserves::CanItemBeReserved(
-                                                                $control_patron, $_,
-                                                                $control_patron->branchcode
-                                                            )->{status} eq 'OK'
-                                                        } @loanable_items
-                                                        )
-                                                    {
+                                                    my $reservable_item;
+                                                    foreach my $item (@loanable_items) {
+
+                                                        my $status = C4::Reserves::CanItemBeReserved(
+                                                            $control_patron, $item,
+                                                            $control_patron->branchcode
+                                                        );
+
+                                                        # use Data::Printer colored => 1;
+                                                        # p($status);
+
+                                                        if ( $status->{status} eq 'OK' ) {
+                                                            $reservable_item = 1;
+                                                            last;
+                                                        }
+                                                    }
+
+                                                    if ($reservable_item) {
                                                         request_rejected(
                                                             $cmd, 'NO_AVAILABLE_ITEMS',
                                                             "Exemplar ausgeliehen, Vormerkung ist möglich"
