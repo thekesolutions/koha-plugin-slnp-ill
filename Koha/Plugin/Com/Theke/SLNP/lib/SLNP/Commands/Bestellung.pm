@@ -144,10 +144,20 @@ sub SLNPFLBestellung {
                                         my @loanable_items;
 
                                         while ( my $item = $filtered_items->next ) {
+
                                             # is itype notforloan?
                                             my $itype = $item->itemtype;
+                                            my $too_many;
+
+                                            if ( C4::Context->preference('Version') ge '23.110000' ) {
+                                                $too_many = C4::Circulation::TooMany( $control_patron, $item );
+                                            }
+                                            else {
+                                                $too_many = C4::Circulation::TooMany( $control_patron->unblessed, $item );
+                                            }
+
                                             unless (
-                                                C4::Circulation::TooMany( $control_patron, $item )
+                                                $too_many
                                                 || $itype    # this makes itype mandatory to be defined
                                                 && $itype->notforloan
                                                 )
