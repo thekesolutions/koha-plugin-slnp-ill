@@ -144,7 +144,14 @@ sub SLNPFLBestellung {
                                         my @loanable_items;
 
                                         while ( my $item = $filtered_items->next ) {
-                                            unless ( C4::Circulation::TooMany( $control_patron, $item ) ) {
+                                            # is itype notforloan?
+                                            my $itype = $item->itemtype;
+                                            unless (
+                                                C4::Circulation::TooMany( $control_patron, $item )
+                                                || $itype    # this makes itype mandatory to be defined
+                                                && $itype->notforloan
+                                                )
+                                            {
                                                 push @loanable_items, $item;
                                             }
                                         }
