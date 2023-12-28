@@ -413,7 +413,10 @@ sub check_configuration {
             push @errors, 'extra_fee_debit_type_not_set';
         }
 
-        eval { $configuration = YAML::Load( $self->retrieve_data('configuration') // '' . "\n\n" ); };
+        eval {
+            $configuration = YAML::XS::Load(
+                Encode::encode_utf8( $self->retrieve_data('configuration') ) );
+        };
         push @errors, "Error parsing YAML configuration ($@)"
           if $@;
     } catch {
