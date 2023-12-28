@@ -821,7 +821,7 @@ sub genSLNPResp {
 
         if ( exists( $SlnpErr2HttpCode->{$err_type} ) ) {
             $slnpresp = $self->escapeSLNP( $SlnpErr2HttpCode->{$err_type}->{code} );
-            $slnprest .= ' ' . $SlnpErr2HttpCode->{$err_type}->{text}
+            $slnpresp .= ' ' . $SlnpErr2HttpCode->{$err_type}->{text}
                 if defined $SlnpErr2HttpCode->{$err_type}->{text};
         } else {
             $slnpresp = '510 SLNPEvalError: Undefined error';
