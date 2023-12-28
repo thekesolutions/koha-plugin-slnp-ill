@@ -104,15 +104,15 @@ my $SlnpErr2HttpCode = {
     },
     PATRON_NOT_FOUND => {
         code => 510,
-        text => 'SLNPParameterValueError'
+        text => 'SlnpRequestError'
     },
     RECORD_NOT_FOUND => {
         code => 510,
-        text => 'SLNPParameterValueError',
+        text => 'SlnpRequestError',
     },
     NO_AVAILABLE_ITEMS => {
         code => 510,
-        text => 'SLNPParameterValueError',
+        text => undef,
     },
 };
 
@@ -820,17 +820,15 @@ sub genSLNPResp {
         my $err_type = $cmd->{err_type};
 
         if ( exists( $SlnpErr2HttpCode->{$err_type} ) ) {
-            $slnpresp = $self->escapeSLNP(
-                $SlnpErr2HttpCode->{$err_type}->{code} . ' '
-                  . $SlnpErr2HttpCode->{$err_type}->{text}
-            );
-        }
-        else {
+            $slnpresp = $self->escapeSLNP( $SlnpErr2HttpCode->{$err_type}->{code} );
+            $slnprest .= ' ' . $SlnpErr2HttpCode->{$err_type}->{text}
+                if defined $SlnpErr2HttpCode->{$err_type}->{text};
+        } else {
             $slnpresp = '510 SLNPEvalError: Undefined error';
         }
 
         if ( $cmd->{err_text} ne '' ) {
-            $slnpresp .= ': ' . $cmd->{err_text};
+            $slnpresp .= ( defined $SlnpErr2HttpCode->{$err_type}->{text} ? ': ' : ' ' ) . $cmd->{err_text};
         }
         $slnpresp .= "\n";
     }
