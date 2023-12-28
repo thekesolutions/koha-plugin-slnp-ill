@@ -528,10 +528,7 @@ sub receive {
         $template_params->{patron}            = $request->patron;
 
         # FIXME: Check in newer Koha how booleans are dealth with in YAML
-        $template_params->{charge_extra_fee_by_default} =
-          ( $self->{configuration}->{charge_extra_fee_by_default} eq 'true' )
-          ? 1
-          : 0;
+        $template_params->{charge_extra_fee_by_default} = $self->{configuration}->{charge_extra_fee_by_default};
 
         my $patron_preferences = C4::Members::Messaging::GetMessagingPreferences({
             borrowernumber => $template_params->{patron}->borrowernumber,

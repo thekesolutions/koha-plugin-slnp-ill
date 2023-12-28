@@ -118,9 +118,7 @@ sub SLNPFLBestellung {
                             my $filtered_items = $items->search( { '-not' => $query } );
 
                             # 2.5 Are items new acquisitions?
-                            if ( exists $configuration->{lending}->{item_age}->{check}
-                                && $configuration->{lending}->{item_age}->{check} eq 'true' )
-                            {
+                            if ( $configuration->{lending}->{item_age}->{check} ) {
                                 my $min_days_age = $configuration->{lending}->{item_age}->{days} // 0;
                                 my $dtf          = Koha::Database->new->schema->storage->datetime_parser;
                                 $filtered_items = $filtered_items->search(
@@ -173,9 +171,7 @@ sub SLNPFLBestellung {
                                             } else {
 
                                                 # 2.8 Does the library allow hold requests?
-                                                if ( exists $configuration->{lending}->{accepts_hold_requests}
-                                                    && $configuration->{lending}->{accepts_hold_requests} eq 'true' )
-                                                {
+                                                if ( $configuration->{lending}->{accepts_hold_requests} ) {
                                                     my $reservable_item;
                                                     foreach my $item (@loanable_items) {
 
