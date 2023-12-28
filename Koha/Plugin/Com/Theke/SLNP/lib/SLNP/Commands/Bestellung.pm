@@ -173,8 +173,8 @@ sub SLNPFLBestellung {
                                             } else {
 
                                                 # 2.8 Does the library allow hold requests?
-                                                if ( exists $configuration->{lending}->{accepts_hold_requets}
-                                                    && $configuration->{lending}->{accepts_hold_requets} eq 'true' )
+                                                if ( exists $configuration->{lending}->{accepts_hold_requests}
+                                                    && $configuration->{lending}->{accepts_hold_requests} eq 'true' )
                                                 {
                                                     my $reservable_item;
                                                     foreach my $item (@loanable_items) {
