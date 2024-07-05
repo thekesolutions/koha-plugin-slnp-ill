@@ -64,7 +64,7 @@
 
         <li>
           <label for="request_charges">[% whole.strings.cost | html %]:</label>
-          <input type="text" size="10" name="request_charges" id="request_charges" value="[% whole.value.request_charges | $Price on_editing => 1 %]" />
+          <input type="text" inputmode="decimal" pattern="^\d+(\.\d{2})?$" size="10" name="request_charges" id="request_charges" value="[% whole.value.request_charges | $Price on_editing => 1 %]" />
         [% IF whole.value.charge_extra_fee_by_default %]
           <input type="checkbox" id="charge_extra_fee" name="charge_extra_fee" checked />
         [% ELSE %]
