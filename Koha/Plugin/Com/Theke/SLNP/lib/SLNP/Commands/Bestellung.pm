@@ -31,7 +31,7 @@ use Koha::Database;
 
 use Koha::Biblios;
 use Koha::DateUtils qw(dt_from_string);
-use Koha::Illrequests;
+use Koha::ILL::Requests;
 use Koha::Plugin::Com::Theke::SLNP;
 use Koha::SearchEngine::Search;
 
@@ -253,7 +253,7 @@ sub SLNPFLBestellung {
             }
         } else {
 
-            my $illrequest      = Koha::Illrequest->new();
+            my $illrequest      = Koha::ILL::Request->new();
             my $slnp_illbackend = $illrequest->load_backend("SLNP");    # this is still $illrequest
 
             my $args = { stage => 'commit' };

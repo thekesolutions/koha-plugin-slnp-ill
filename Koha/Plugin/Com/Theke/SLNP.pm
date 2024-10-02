@@ -33,7 +33,7 @@ use C4::Circulation qw(AddReturn);
 use C4::Languages;
 
 use Koha::Account::DebitTypes;
-use Koha::Illrequests;
+use Koha::ILL::Requests;
 use Koha::Items;
 use Koha::Notice::Templates;
 
@@ -250,7 +250,7 @@ sub after_item_action {
 
         my $item_id = $params->{item_id};
 
-        my $attrs = Koha::Illrequestattributes->search(
+        my $attrs = Koha::ILL::Request::Attributes->search(
             {   type  => 'item_id',
                 value => $item_id,
             }
@@ -264,7 +264,7 @@ sub after_item_action {
               if $attrs_count > 1;
 
             my $attr = $attrs->next;
-            my $request = Koha::Illrequests->find( $attr->illrequest_id );
+            my $request = Koha::ILL::Requests->find( $attr->illrequest_id );
 
             if (    $request
                 and (
@@ -291,7 +291,7 @@ sub cronjob_nightly {
     my ($self) = @_;
 
     # find the SLNP_COMPLETE ILL requests
-    my $requests = Koha::Illrequests->search(
+    my $requests = Koha::ILL::Requests->search(
         {
             status => [ 'SENT_BACK', 'SLNP_COMP' ]
         }
@@ -320,7 +320,7 @@ sub cronjob_nightly {
 
     my $req = $self->get_recvd_ill_req({ biblio_id => $biblio_id, patron_id => $patron_id });
 
-Returns the related I<Koha::Illrequest> object if found.
+Returns the related I<Koha::ILL::Request> object if found.
 
 =cut
 
@@ -330,7 +330,7 @@ sub get_recvd_ill_req {
     my $biblio_id = $params->{biblio_id};
     my $patron_id = $params->{patron_id};
 
-    my $reqs = Koha::Illrequests->search(
+    my $reqs = Koha::ILL::Requests->search(
         {   biblio_id      => $biblio_id,
             borrowernumber => $patron_id,
             status         => 'RECVD'

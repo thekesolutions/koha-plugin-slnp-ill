@@ -38,7 +38,7 @@ use C4::Reserves qw(AddReserve);
 use Koha::Biblios;
 use Koha::Database;
 use Koha::DateUtils qw(dt_from_string output_pref);
-use Koha::Illrequest::Config;
+use Koha::ILL::Request::Config;
 use Koha::Items;
 use Koha::Libraries;
 use Koha::Logger;
@@ -442,7 +442,7 @@ sub create {
         while ( my ( $type, $value ) = each %{ $params->{other}->{attributes} } ) {
 
             try {
-                Koha::Illrequestattribute->new(
+                Koha::ILL::Request::Attribute->new(
                     {   illrequest_id => $params->{request}->illrequest_id,
                         type          => $type,
                         value         => $value,
@@ -1153,7 +1153,7 @@ sub cancel {
     $request->slnp_mark_completed;
 
 FIXME: I didn't find a way for I<mark_completed> to override the one from
-Koha::Illrequest. So...
+Koha::ILL::Request. So...
 
 =cut
 
@@ -1568,7 +1568,7 @@ sub charge_ill_fee {
 
     $self->get_item_from_request({ request => $request });
 
-Given a I<Koha::Illrequest> object, retrieve the linked I<Koha::Item> object.
+Given a I<Koha::ILL::Request> object, retrieve the linked I<Koha::Item> object.
 
 =cut
 
@@ -1577,7 +1577,7 @@ sub get_item_from_request {
 
     my $request = $args->{request};
     SLNP::Exception::BadParameter->throw( param => 'patron', value => $request )
-      unless $request and ref($request) eq 'Koha::Illrequest';
+      unless $request and ref($request) eq 'Koha::ILL::Request';
 
     my $item_id_attributes = $request->illrequestattributes->search({ type => 'item_id' });
 
@@ -1675,7 +1675,7 @@ sub add_or_update_attributes {
                         }
                     }
                     else {          # new
-                        $attr = Koha::Illrequestattribute->new(
+                        $attr = Koha::ILL::Request::Attribute->new(
                             {
                                 illrequest_id => $request->id,
                                 type          => $type,

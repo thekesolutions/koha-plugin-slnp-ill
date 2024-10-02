@@ -122,8 +122,8 @@ The plugin introduces an API endpoint for generating the print notices.
 
 Notice templates are handed the following attributes, depending on the context:
 
-* illrequestattributes: a `Koha::Illrequestattributes` iterator for `Koha::Illrequest` objects.
-* illrequest: The `Koha::Illrequest` object.
+* illrequestattributes: a `Koha::ILL::Request::Attributes` iterator for `Koha::ILL::Request` objects.
+* illrequest: The `Koha::ILL::Request` object.
 * ill_bib_title: The generated record title field.
 * ill_bib_author: The generated record author field.
 * item: The linked `Koha::Item` object.

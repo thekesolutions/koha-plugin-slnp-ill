@@ -57,7 +57,7 @@ sub get_print_slip {
         $plugin->{cgi} = CGI->new; # required by C4::Auth::gettemplate and friends
         my $template = $plugin->get_template({ file => 'print_slip.tt' });
 
-        my $req = Koha::Illrequests->find( $illrequest_id );
+        my $req = Koha::ILL::Requests->find( $illrequest_id );
 
         unless ($req) {
             return $c->render(
@@ -72,7 +72,7 @@ sub get_print_slip {
             $illrequestattributes->{$attribute->type} = $attribute->value;
         }
 
-        # Koha::Illrequest->get_notice with hardcoded letter_code
+        # Koha::ILL::Request->get_notice with hardcoded letter_code
         my $title     = $req->illrequestattributes->find({ type => 'title' });
         my $author    = $req->illrequestattributes->find({ type => 'author' });
         my $metahash  = $req->metadata;
@@ -112,7 +112,7 @@ sub get_print_slip {
                 lending_library      => $lending_library,
             }
         );
-        # / Koha::Illrequest->get_notice
+        # / Koha::ILL::Request->get_notice
 
         $template->param(
             slip  => $slip->{content},
