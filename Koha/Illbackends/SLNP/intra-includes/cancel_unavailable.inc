@@ -24,6 +24,7 @@
     [% ELSE %]
 
         <form id="SLNP_cancel_unavailable" name="SLNP_cancel_unavailable" method="POST" action=[% here | url %]>
+            [% INCLUDE 'csrf-token.inc' %]
             <fieldset class="rows">
                 <legend>[% whole.strings.cancellation | html %]</legend>
                 <ol>
@@ -56,6 +57,7 @@
                 <input name="backend" id="backend" value="SLNP" type="hidden" />
                 <input name="method" id="method" value="cancel_unavailable" type="hidden" />
                 <input name="stage" id="stage" value="commit" type="hidden" />
+                <input type="hidden" name="op" value="cud-cancel_unavailable" />
             </fieldset>
 
             <fieldset class="action">

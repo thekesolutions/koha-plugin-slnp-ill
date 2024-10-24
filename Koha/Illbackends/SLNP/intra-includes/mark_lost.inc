@@ -31,7 +31,7 @@
   <p>[% whole.strings.message | html %]</p>
 
   <form id="SLNP_mark_lost" name="SLNP_mark_lost" method="POST" action=[% here %]>
-
+    [% INCLUDE 'csrf-token.inc' %]
     <fieldset class="rows">
     <legend>[% whole.strings.item | html %]</legend>
       <ol>
@@ -112,6 +112,7 @@
       <input type="hidden" name="method" id="method" value="mark_lost" />
       <input type="hidden" name="stage" id="stage" value="commit" />
       <input type="hidden" name="itemnumber" id="itemnumber" value="[% whole.value.other.itemnumber %]" />
+      <input type="hidden" name="op" value="cud-mark_lost" />
 
       <button type="submit" class="btn btn-default approve">
         <i class="fa fa-check"></i> [% whole.strings.mark_lost | html %]

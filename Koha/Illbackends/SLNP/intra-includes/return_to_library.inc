@@ -17,7 +17,7 @@
   <h2>[% whole.strings.return_to_library | html %] ([% request.orderid %])</h2>
 
   <form id="SLNP_return_to_library" name="SLNP_return_to_library" method="POST" action=[% here %]>
-
+    [% INCLUDE 'csrf-token.inc' %]
     <fieldset class="rows">
       <legend>[% whole.strings.delivery | html %]</legend>
       <ol id="general-slnp_delivery-fields">
@@ -70,6 +70,7 @@
       <input type="hidden" name="backend" id="backend" value="[% request.backend %]" />
       <input type="hidden" name="method" id="method" value="return_to_library" />
       <input type="hidden" name="stage" id="stage" value="commit" />
+      <input type="hidden" name="op" value="cud-return_to_library" />
 
       <button type="submit" class="btn btn-default approve">
         <i class="fa fa-check"></i> [% whole.strings.save | html %]

@@ -19,8 +19,9 @@
 [% IF whole.stage == 'init' %]
   <h2>[% whole.strings.title | html %] ([% request.orderid %])</h2>
 
-  <form id="SLNP_delivery" name="SLNP_delivery" method="POST" action=[% here %]>
+  <form id="SLNP_delivery" name="SLNP_delivery" method="POST" action="[% here %]">
 
+    [% INCLUDE 'csrf-token.inc' %]
     <fieldset class="rows">
       <legend>[% whole.strings.delivery | html %]</legend>
       <ol id="general-slnp_delivery-fields">
@@ -152,6 +153,7 @@
       <input type="hidden" name="method" id="method" value="receive" />
       <input type="hidden" name="stage" id="stage" value="commit" />
       <input type="hidden" name="itemnumber" id="itemnumber" value="[% whole.value.other.itemnumber %]" />
+      <input type="hidden" name="op" value="cud-receive" />
 
       <button type="submit" class="btn btn-default approve">
         <i class="fa fa-check"></i> [% whole.strings.receive | html %]

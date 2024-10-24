@@ -20,7 +20,7 @@
   <h2> [% whole.strings.update_request | html %] ([% request.orderid %])</h2>
 
   <form id="SLNP_delivery" name="SLNP_delivery" method="POST" action=[% here %]>
-
+    [% INCLUDE 'csrf-token.inc' %]
     <fieldset class="rows">
       <legend>[% whole.strings.title | html %]</legend>
       <ol id="general-slnp_delivery-fields">
@@ -158,6 +158,7 @@
       <input type="hidden" name="method" id="method" value="update" />
       <input type="hidden" name="stage" id="stage" value="commit" />
       <input type="hidden" name="itemnumber" id="itemnumber" value="[% whole.value.other.itemnumber %]" />
+      <input type="hidden" name="op" value="cud-update" />
 
       <button type="submit" class="btn btn-default approve">
         <i class="fa fa-check"></i> [% whole.strings.update | html %]
