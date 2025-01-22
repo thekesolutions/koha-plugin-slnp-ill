@@ -397,6 +397,7 @@ sub attribute_mapping {
         Verlag         => 'publisher',
         Auflage        => 'issue',                         # copy case
         Heft           => 'issue',                         # loan case
+        #ErledFrist     => '',
     };
 }
 
