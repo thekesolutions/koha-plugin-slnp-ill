@@ -44,7 +44,7 @@ BEGIN {
     unshift @INC, $path;
 }
 
-our $VERSION = "3.0.3";
+our $VERSION = "3.0.4";
 
 our $metadata = {
     name            => 'SLNP ILL connector plugin for Koha',

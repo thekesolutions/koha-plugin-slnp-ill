@@ -1,6 +1,6 @@
 {
   "name": "koha-plugin-slnp-ill",
-  "version": "3.0.3",
+  "version": "3.0.4",
   "description": "SLNP ILL connector plugin for Koha",
   "devDependencies": {
     "gulp": "^4.0.2",
@@ -12,7 +12,7 @@
     "test": "echo \"Error: no test specified\" && exit 1",
     "kpz": "echo -n ${npm_package_name}-v${npm_package_version}.kpz",
     "name": "echo -n ${npm_package_name}"
-},
+  },
   "repository": {
     "type": "git",
     "url": "git+https://gitlab.com/thekesolutions/plugins/koha-plugin-slnp-ill.git"
