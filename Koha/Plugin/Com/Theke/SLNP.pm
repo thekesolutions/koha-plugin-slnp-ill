@@ -44,14 +44,14 @@ BEGIN {
     unshift @INC, $path;
 }
 
-our $VERSION = "{VERSION}";
+our $VERSION = "3.0.3";
 
 our $metadata = {
     name            => 'SLNP ILL connector plugin for Koha',
     author          => 'Theke Solutions',
     date_authored   => '2018-09-10',
     date_updated    => "1980-06-18",
-    minimum_version => '22.1100000',
+    minimum_version => '24.1100000',
     maximum_version => undef,
     version         => $VERSION,
     description     => 'SLNP ILL connector plugin for Koha'
