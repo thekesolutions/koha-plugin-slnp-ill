@@ -1,0 +1,68 @@
+{
+  "/ill_requests/{illrequest_id}/print_slips/{print_slip_id}": {
+    "get": {
+      "operationId": "slnp_print_slip",
+      "description": "Endpoint used by the plugin to render the slip print page",
+      "tags": [
+        "circulation"
+      ],
+      "parameters": [
+        {
+          "name": "illrequest_id",
+          "in": "path",
+          "required": true,
+          "description": "The required ILL request identifier",
+          "schema": {
+            "type": "string"
+          }
+        },
+        {
+          "name": "print_slip_id",
+          "in": "path",
+          "required": true,
+          "description": "The required letter code",
+          "schema": {
+            "type": "string"
+          }
+        }
+      ],
+      "responses": {
+        "200": {
+          "description": "The print slip HTML",
+          "content": {
+            "text/html": {
+              "schema": {
+                "type": "string",
+                "format": "html"
+              }
+            }
+          }
+        },
+        "400": {
+          "description": "Bad request"
+        },
+        "403": {
+          "description": "Forbidden"
+        },
+        "404": {
+          "description": "Resource not found"
+        },
+        "409": {
+          "description": "Conflicting request"
+        },
+        "500": {
+          "description": "Internal server error"
+        },
+        "501": {
+          "description": "Internal server error"
+        }
+      },
+      "x-mojo-to": "Com::Theke::SLNP::Controller#get_print_slip",
+      "x-koha-authorization": {
+        "permissions": {
+          "circulate": "1"
+        }
+      }
+    }
+  }
+}
