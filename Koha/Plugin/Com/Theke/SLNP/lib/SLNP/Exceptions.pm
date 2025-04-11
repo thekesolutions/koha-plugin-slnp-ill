@@ -22,12 +22,12 @@ use Modern::Perl;
 use Exception::Class (
     'SLNP::Exception',
     'SLNP::Exception::InconsistentStatus' => { isa => 'SLNP::Exception', fields => ['expected_status'] },
-    'SLNP::Exception::BadParameter'       => { isa => 'SLNP::Exception', fields => ['param', 'value'] },
+    'SLNP::Exception::BadParameter'       => { isa => 'SLNP::Exception', fields => [ 'param', 'value' ] },
     'SLNP::Exception::MissingParameter'   => { isa => 'SLNP::Exception', fields => ['param'] },
     'SLNP::Exception::UnknownItemId'      => { isa => 'SLNP::Exception', fields => ['item_id'] },
     'SLNP::Exception::UnknownBiblioId'    => { isa => 'SLNP::Exception', fields => ['biblio_id'] },
     'SLNP::Exception::PatronNotFound'     => { isa => 'SLNP::Exception', fields => ['cardnumber'] },
-    'SLNP::Exception::BadConfig'          => { isa => 'SLNP::Exception', fields => ['param', 'value'] },
+    'SLNP::Exception::BadConfig'          => { isa => 'SLNP::Exception', fields => [ 'param', 'value' ] },
 );
 
 sub full_message {
@@ -37,12 +37,10 @@ sub full_message {
 
     unless ($msg) {
         if ( $self->isa('SLNP::Exception::MissingParameter') ) {
-            $msg = sprintf("missing_%s", $self->param );
-        }
-        elsif ( $self->isa('SLNP::Exception::BadParameter') ) {
-            $msg = sprintf("invalid_%s -- %s", $self->param, $self->value // 'undef' );
-        }
-        else {
+            $msg = sprintf( "missing_%s", $self->param );
+        } elsif ( $self->isa('SLNP::Exception::BadParameter') ) {
+            $msg = sprintf( "invalid_%s -- %s", $self->param, $self->value // 'undef' );
+        } else {
             $msg = ref($self) . "exception thrown.";
         }
     }

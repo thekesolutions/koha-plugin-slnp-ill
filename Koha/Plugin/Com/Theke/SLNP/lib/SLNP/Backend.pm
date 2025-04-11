@@ -1,21 +1,22 @@
-package Koha::Illbackends::SLNP::Base;
+package SLNP::Backend;
 
+# Copyright 2021 (C) Theke Solutions
 # Copyright 2018-2021 (C) LMSCLoud GmbH
 #
-# This file is part of Koha.
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
 #
-# Koha is free software; you can redistribute it and/or modify it under the
-# terms of the GNU General Public License as published by the Free Software
-# Foundation; either version 3 of the License, or (at your option) any later
-# version.
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
 #
-# Koha is distributed in the hope that it will be useful, but WITHOUT ANY
-# WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR
-# A PARTICULAR PURPOSE.  See the GNU General Public License for more details.
+# You should have received a copy of the GNU General Public License
+# along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
-# You should have received a copy of the GNU General Public License along
-# with Koha; if not, write to the Free Software Foundation, Inc.,
-# 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
+# This program comes with ABSOLUTELY NO WARRANTY;
 
 use Modern::Perl;
 
@@ -41,7 +42,6 @@ use Koha::DateUtils qw(dt_from_string output_pref);
 use Koha::ILL::Request::Config;
 use Koha::Items;
 use Koha::Libraries;
-use Koha::Logger;
 use Koha::Patron::Attributes;
 use Koha::Patron::Categories;
 use Koha::Patrons;
@@ -51,7 +51,7 @@ use SLNP::Exceptions;
 
 =head1 NAME
 
-Koha::Illbackends::SLNP::Base - Koha ILL Backend: SLNP
+SLNP::Backend - Koha ILL Backend: SLNP
 
 =head1 SYNOPSIS
 
@@ -83,29 +83,58 @@ The remaining features of this ILL backend are accessible via the standard ILL f
 
 =head3 new
 
+  my $plugin  = Koha::Plugin::Com::Theke::SLNP->new;
+  my $backend = SLNP::Backend->new( { plugin => $plugin } );
+
+Constructor for the SLNP ILL backend.
+
 =cut
 
 sub new {
+    my ( $class, $params ) = @_;
 
-    # -> instantiate the backend
-    my ($class) = @_;
+    SLNP::Exception::MissingParameter->throw( param => 'plugin' )
+        unless $params->{plugin} && ref( $params->{plugin} ) eq 'Koha::Plugin::Com::ByWaterSolutions::RapidoILL';
 
-    my $plugin = Koha::Plugin::Com::Theke::SLNP->new;
-    my $configuration = $plugin->configuration;
-
-    my $strings = $plugin->get_strings;
+    my $config  = $params->{plugin}->configuration;
+    my $strings = $params->{plugin}->get_strings;
 
     my $self = {
-        framework     => $configuration->{default_framework} // 'FA',
-        plugin        => $plugin,
-        configuration => $configuration,
-        logger        => Koha::Logger->get,
-        strings       => $strings,
+        configuration => $config,
+        framework     => $config->{default_framework} // 'FA',
+        logger        => $params->{logger},
+        plugin        => $params->{plugin},
         status_graph  => $strings->{status_graph},
+        strings       => $strings,
+        templates     => $params->{templates},
     };
 
     bless( $self, $class );
     return $self;
+}
+
+=head3 name
+
+Return the name of this backend.
+
+=cut
+
+sub name {
+    return "SLNP";
+}
+
+=head3 bundle_path
+
+    my $path = $backend->bundle_path();
+
+Returns the backend's defined template path.
+FIXME: Review when consensus is reached on https://bugs.koha-community.org/bugzilla3/show_bug.cgi?id=39031
+
+=cut
+
+sub bundle_path {
+    my ($self) = @_;
+    return $self->{plugin}->bundle_path . "/templates/";
 }
 
 =head3 _config
@@ -265,10 +294,6 @@ sub status_graph {
     };
 }
 
-sub name {
-    return "SLNP";
-}
-
 =head3 capabilities
 
     $capability = $backend->capabilities($name);
@@ -321,7 +346,7 @@ sub metadata {
 
     my %attr;
     for my $k ( keys %map ) {
-        my $v = $request->illrequestattributes->find( { type => $map{$k} } );
+        my $v = $request->extended_attributes->find( { type => $map{$k} } );
         $attr{$k} = $v->value if defined $v;
     }
     if ( $attr{Article_author} ) {

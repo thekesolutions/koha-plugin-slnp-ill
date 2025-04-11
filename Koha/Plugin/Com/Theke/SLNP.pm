@@ -35,6 +35,7 @@ use C4::Languages;
 use Koha::Account::DebitTypes;
 use Koha::ILL::Requests;
 use Koha::Items;
+use Koha::Logger;
 use Koha::Notice::Templates;
 
 BEGIN {
@@ -312,6 +313,39 @@ sub cronjob_nightly {
     }
 
     return $self;
+}
+
+=head3 ill_backend
+
+    print $plugin->ill_backend();
+
+Returns a string representing the backend name.
+
+=cut
+
+sub ill_backend {
+    my ( $class, $args ) = @_;
+    return 'SLNP';
+}
+
+=head3 new_ill_backend
+
+Required method utilized by I<Koha::ILL::Request> load_backend
+
+=cut
+
+sub new_ill_backend {
+    my ( $self, $params ) = @_;
+
+    require SLNP::Backend;
+
+    return SLNP::Backend->new(
+        {
+            config => $params->{config},
+            logger => $params->{logger} // Koha::Logger->get(),
+            plugin => $self,
+        }
+    );
 }
 
 =head2 Internal methods
