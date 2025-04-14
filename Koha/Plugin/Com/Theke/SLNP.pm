@@ -44,7 +44,7 @@ BEGIN {
     unshift @INC, $path;
 }
 
-our $VERSION = "3.0.5";
+our $VERSION = "3.0.6";
 
 our $metadata = {
     name            => 'SLNP',
