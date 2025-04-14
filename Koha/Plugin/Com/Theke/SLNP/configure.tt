@@ -4,6 +4,27 @@
 [% INCLUDE 'doc-head-open.inc' %]
  <title>Koha &rsaquo; [% strings.breadcrumb_name %] &rsaquo; [% strings.breadcrumb_config %]</title>
 [% INCLUDE 'doc-head-close.inc' %]
+</head>
+
+<body>
+[% WRAPPER 'header.inc' %]
+    [% INCLUDE 'cat-search.inc' %]
+[% END %]
+
+[% WRAPPER 'sub-header.inc' %]
+    [% WRAPPER breadcrumbs %]
+        [% WRAPPER breadcrumb_item %]
+            <a href="/cgi-bin/koha/plugins/plugins-home.pl">Plugins</a>
+        [% END %]
+        [% WRAPPER breadcrumb_item %]
+            <a href="/cgi-bin/koha/plugins/run.pl?class=[% CLASS | uri %]&method=configure">[% strings.breadcrumb_name | html %]</a>
+        [% END %]
+        [% WRAPPER breadcrumb_item %]
+            [% strings.breadcrumb_config | html %]
+        [% END %]
+    [% END #/ WRAPPER breadcrumbs %]
+[% END #/ WRAPPER sub-header.inc %]
+
   <style>
     .CodeMirror {
       border: 2px solid #eee;
@@ -15,25 +36,18 @@
 [% Asset.css("lib/codemirror/codemirror.min.css") | $raw %]
 [% Asset.css("lib/codemirror/lint.min.css") | $raw %]
 </head>
-<body>
-[% INCLUDE 'header.inc' %]
-[% INCLUDE 'cat-search.inc' %]
 
-<div id="breadcrumbs">
-    <a href="/cgi-bin/koha/mainpage.pl">[% strings.breadcrumb_home %]</a> &rsaquo;
-    <a href="?class=[% CLASS | uri %]&method=configure">[% strings.breadcrumb_name %]</a> &rsaquo;
-    [% strings.breadcrumb_config %]
-</div>
-
-<div id="doc3" class="yui-t2">
-  <div id="yui-main">
+<div class="main container-fluid">
+    <div class="row">
+        <div class="col-md-10 order-md-2 order-sm-1">
+            <h1>SLNP ILL configuration</h1>
 
     [% IF errors %]
         [% FOREACH error IN errors %]
             <div class="dialog error">
                 [% SWITCH error %]
-                [% CASE 'ILLModule_disabled' %]<span>[% strings.missing_syspref | html %] (ILLModule)</span>
-                [% CASE 'CirculateILL_disabled' %]<span>[% strings.missing_syspref | html %] (CirculateILL)</span>
+                [% CASE 'ILLModule_disabled' %]<span>[% strings.missing_syspref | html %] (<a href="/cgi-bin/koha/admin/preferences.pl?op=search&searchfield=ILLModule" target="_blank">ILLModule<a>)</span>
+                [% CASE 'CirculateILL_disabled' %]<span>[% strings.missing_syspref | html %] (<a href="/cgi-bin/koha/admin/preferences.pl?op=search&searchfield=CirculateILL" target="_blank">CirculateILL<a>)</span>
                 [% CASE 'no_ILL_PARTNER_RET' %]<span>[% strings.missing_letter | html %] (ILL_PARTNER_RET)</span>
                 [% CASE 'no_ILL_RECEIVE_SLIP' %]<span>[% strings.missing_letter | html %] (ILL_RECEIVE_SLIP)</span>
                 [% CASE 'no_ILL_PARTNER_LOST' %]<span>[% strings.missing_letter | html %] (ILL_PARTNER_LOST)</span>
@@ -55,7 +69,7 @@
         <input type="hidden" name="step"   value="configure"/>
         <input type="hidden" name="save"   value="1"/>
         <div class="input-group">
-          <span class="input-group-addon" id="configuration_label">[% strings.configuration_title %]</span>
+          <span class="input-group-addon" id="configuration_label">[% strings.configuration_title | html %]</span>
           <textarea rows="200"
                     columns="200"
                     class="form-control"
@@ -64,7 +78,7 @@
                     id="configuration">[%- configuration | $raw -%]</textarea>
         </div>
         <br/>
-        <button type="submit" value="Save" class="btn btn-default" type="button">[% strings.configuration_save %]</button>
+        <button type="submit" value="Save" class="btn btn-default" type="button">[% strings.configuration_save | html %]</button>
       </form>
   </div>
   <div class="yui-b">
@@ -86,6 +100,7 @@
                 gutters: ["CodeMirror-lint-markers"],
                 lint: true
             });
+            editor.setSize(1000, 300);
         });
     </script>
 
