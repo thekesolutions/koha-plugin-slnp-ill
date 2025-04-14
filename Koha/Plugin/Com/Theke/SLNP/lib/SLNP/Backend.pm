@@ -94,7 +94,7 @@ sub new {
     my ( $class, $params ) = @_;
 
     SLNP::Exception::MissingParameter->throw( param => 'plugin' )
-        unless $params->{plugin} && ref( $params->{plugin} ) eq 'Koha::Plugin::Com::ByWaterSolutions::RapidoILL';
+        unless $params->{plugin} && ref( $params->{plugin} ) eq 'Koha::Plugin::Com::Theke::SLNP';
 
     my $config  = $params->{plugin}->configuration;
     my $strings = $params->{plugin}->get_strings;
