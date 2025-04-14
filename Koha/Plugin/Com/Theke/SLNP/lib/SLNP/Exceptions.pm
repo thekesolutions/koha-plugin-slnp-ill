@@ -19,8 +19,10 @@ package SLNP::Exceptions;
 
 use Modern::Perl;
 
+use Koha::Exceptions;
+
 use Exception::Class (
-    'SLNP::Exception',
+    'SLNP::Exception'                     => { isa => 'Koha::Exception', },
     'SLNP::Exception::InconsistentStatus' => { isa => 'SLNP::Exception', fields => ['expected_status'] },
     'SLNP::Exception::BadParameter'       => { isa => 'SLNP::Exception', fields => [ 'param', 'value' ] },
     'SLNP::Exception::MissingParameter'   => { isa => 'SLNP::Exception', fields => ['param'] },
@@ -29,23 +31,5 @@ use Exception::Class (
     'SLNP::Exception::PatronNotFound'     => { isa => 'SLNP::Exception', fields => ['cardnumber'] },
     'SLNP::Exception::BadConfig'          => { isa => 'SLNP::Exception', fields => [ 'param', 'value' ] },
 );
-
-sub full_message {
-    my $self = shift;
-
-    my $msg = $self->message;
-
-    unless ($msg) {
-        if ( $self->isa('SLNP::Exception::MissingParameter') ) {
-            $msg = sprintf( "missing_%s", $self->param );
-        } elsif ( $self->isa('SLNP::Exception::BadParameter') ) {
-            $msg = sprintf( "invalid_%s -- %s", $self->param, $self->value // 'undef' );
-        } else {
-            $msg = ref($self) . "exception thrown.";
-        }
-    }
-
-    return $msg;
-}
 
 1;
