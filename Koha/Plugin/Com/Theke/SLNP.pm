@@ -47,7 +47,7 @@ BEGIN {
 our $VERSION = "3.0.5";
 
 our $metadata = {
-    name            => 'SLNP ILL connector plugin for Koha',
+    name            => 'SLNP',
     author          => 'Theke Solutions',
     date_authored   => '2018-09-10',
     date_updated    => "1980-06-18",
