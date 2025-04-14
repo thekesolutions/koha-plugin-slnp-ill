@@ -21,14 +21,14 @@ use Modern::Perl;
 
 use base qw(Koha::Plugins::Base);
 
-use Encode qw(encode_utf8 decode_utf8);
+use Encode          qw(encode_utf8 decode_utf8);
 use List::MoreUtils qw(any);
 use Module::Metadata;
 use Mojo::JSON qw(decode_json encode_json);
 use Try::Tiny;
 use YAML::XS;
 
-use C4::Biblio qw(DelBiblio);
+use C4::Biblio      qw(DelBiblio);
 use C4::Circulation qw(AddReturn);
 use C4::Languages;
 
@@ -91,8 +91,8 @@ Plugin configuration method
 sub configure {
     my ( $self, $args ) = @_;
 
-    my $template = $self->get_template({ file => 'configure.tt' });
-    my $cgi = $self->{cgi};
+    my $template = $self->get_template( { file => 'configure.tt' } );
+    my $cgi      = $self->{cgi};
 
     if ( scalar $cgi->param('save') ) {
 
@@ -121,13 +121,10 @@ sub configuration {
 
     my $configuration;
 
-    eval {
-        $configuration = YAML::XS::Load(
-            Encode::encode_utf8( $self->retrieve_data('configuration') ) );
-    };
+    eval { $configuration = YAML::XS::Load( Encode::encode_utf8( $self->retrieve_data('configuration') ) ); };
 
     warn "[SLNP]" . $@
-      if $@;
+        if $@;
 
     return $configuration;
 }
@@ -169,7 +166,7 @@ Method that returns the namespace for the plugin API to be put on
 =cut
 
 sub api_namespace {
-    my ( $self ) = @_;
+    my ($self) = @_;
 
     return 'slnp';
 }
@@ -181,11 +178,11 @@ Method that returns JS to be injected to the staff interface.
 =cut
 
 sub intranet_js {
-    my ( $self ) = @_;
+    my ($self) = @_;
 
     unless ( $self->{_intranet_js} ) {
-        my $js = decode_utf8($self->mbf_read('intranet.js'));
-        $self->{_intranet_js} =  '<script>' . $js . '</script>';
+        my $js = decode_utf8( $self->mbf_read('intranet.js') );
+        $self->{_intranet_js} = '<script>' . $js . '</script>';
     }
 
     return $self->{_intranet_js};
@@ -198,13 +195,13 @@ Method that returns JS to be injected to the OPAC interface.
 =cut
 
 sub opac_js {
-    my ( $self ) = @_;
+    my ($self) = @_;
 
     unless ( $self->{_opac_js} ) {
-        my $js = decode_utf8($self->mbf_read('opac.js'));
+        my $js         = decode_utf8( $self->mbf_read('opac.js') );
         my $portal_url = $self->configuration->{portal_url} // 'https://your.portal.url';
         $js =~ s/\{\{portal_url\}\}/$portal_url/eg;
-        $self->{_opac_js} =  '<script>' . $js . '</script>';
+        $self->{_opac_js} = '<script>' . $js . '</script>';
     }
 
     return $self->{_opac_js};
@@ -217,34 +214,35 @@ After circulation hook.
 =cut
 
 sub after_circ_action {
-    my ($self, $params) = @_;
+    my ( $self, $params ) = @_;
 
     if ( $params->{action} eq 'checkout' ) {
-        my $checkout  = $params->{payload}->{checkout};
+        my $checkout = $params->{payload}->{checkout};
 
         my $biblio_id = $checkout->item->biblionumber;
         my $patron_id = $checkout->borrowernumber;
 
-        my $req = $self->get_recvd_ill_req({ biblio_id => $biblio_id, patron_id => $patron_id });
+        my $req = $self->get_recvd_ill_req( { biblio_id => $biblio_id, patron_id => $patron_id } );
 
-        if ( $req ) { # Yay
+        if ($req) {    # Yay
 
             $req->status('CHK');
-            my $type = $req->illrequestattributes->search({ type => 'type' })->next;
+            my $type     = $req->extended_attributes->search( { type => 'type' } )->next;
             my $THE_type = ($type) ? $type->value : 'Leihe';
 
             unless ( $THE_type eq 'Leihe' ) {
+
                 # This is Kopie
                 try {
                     my $item = $checkout->item;
                     AddReturn( $item->barcode );
                     $req->status('SLNP_COMP');
+
                     # refetch item
                     $item->discard_changes;
                     my $not_for_loan_status = $self->configuration->{not_for_loan_after_auto_checkin} // 1;
                     $item->notforloan($not_for_loan_status)->store;
-                }
-                catch {
+                } catch {
                     warn "Error attempting to return: $_";
                 }
             }
@@ -259,15 +257,19 @@ After item actions
 =cut
 
 sub after_item_action {
-    my ($self, $params) = @_;
+    my ( $self, $params ) = @_;
 
-    if (    $params->{action} eq 'modify' # we only care if the item has been updated
-        and $params->{item}->itemlost ) { # and the item is lost
+    if (
+        $params->{action} eq 'modify'    # we only care if the item has been updated
+        and $params->{item}->itemlost
+        )
+    {                                    # and the item is lost
 
         my $item_id = $params->{item_id};
 
         my $attrs = Koha::ILL::Request::Attributes->search(
-            {   type  => 'item_id',
+            {
+                type  => 'item_id',
                 value => $item_id,
             }
         );
@@ -277,19 +279,20 @@ sub after_item_action {
         if ( $attrs_count > 0 ) {
 
             warn "SLNP warning: More than one request for the item ($item_id)."
-              if $attrs_count > 1;
+                if $attrs_count > 1;
 
-            my $attr = $attrs->next;
+            my $attr    = $attrs->next;
             my $request = Koha::ILL::Requests->find( $attr->illrequest_id );
 
-            if (    $request
-                and (
-                    $request->status eq 'RECVD'
-                or $request->status eq 'CHK'
-                or $request->status eq 'RET'
-                ) ) {
-                    $request->status( 'SLNP_LOST' );
-                }
+            if (
+                $request
+                and (  $request->status eq 'RECVD'
+                    or $request->status eq 'CHK'
+                    or $request->status eq 'RET' )
+                )
+            {
+                $request->status('SLNP_LOST');
+            }
         }
     }
 
@@ -307,11 +310,7 @@ sub cronjob_nightly {
     my ($self) = @_;
 
     # find the SLNP_COMPLETE ILL requests
-    my $requests = Koha::ILL::Requests->search(
-        {
-            status => [ 'SENT_BACK', 'SLNP_COMP' ]
-        }
-    );
+    my $requests = Koha::ILL::Requests->search( { status => [ 'SENT_BACK', 'SLNP_COMP' ] } );
 
     while ( my $request = $requests->next ) {
 
@@ -380,14 +379,16 @@ sub get_recvd_ill_req {
     my $patron_id = $params->{patron_id};
 
     my $reqs = Koha::ILL::Requests->search(
-        {   biblio_id      => $biblio_id,
+        {
+            biblio_id      => $biblio_id,
             borrowernumber => $patron_id,
             status         => 'RECVD'
         }
     );
 
     if ( $reqs->count > 1 ) {
-        warn "slnp_plugin_warn: more than one RECVD ILL request for biblio_id ($biblio_id) and patron_id ($patron_id) <.<";
+        warn
+            "slnp_plugin_warn: more than one RECVD ILL request for biblio_id ($biblio_id) and patron_id ($patron_id) <.<";
     }
 
     return unless $reqs->count > 0;
@@ -408,28 +409,26 @@ Returns the translated strings.
 sub get_strings {
     my ($self) = @_;
 
-    my $lang = C4::Languages::getlanguage(CGI->new);
+    my $lang       = C4::Languages::getlanguage( CGI->new );
     my @lang_split = split /_|-/, $lang;
     my $plugin_dir = $self->bundle_path;
 
     my $strings;
-    
+
     unless ( $lang eq 'en' ) {
         try {
             $strings = YAML::XS::LoadFile( "$plugin_dir/i18n/$lang" . ".yaml" );
-        }
-        catch {
+        } catch {
             warn "Couldn't load '$lang' translation file.";
         };
     }
 
     unless ($strings) {
-        $strings = YAML::XS::LoadFile( "$plugin_dir/i18n/en.yaml" );
+        $strings = YAML::XS::LoadFile("$plugin_dir/i18n/en.yaml");
     }
 
     return $strings;
 }
-
 
 =head3 check_configuration
 
@@ -450,42 +449,39 @@ sub check_configuration {
 
         if ( $configuration->{fee_debit_type} ) {
             push @errors, 'no_fee_debit_type'
-              unless Koha::Account::DebitTypes->find( $configuration->{fee_debit_type} );
+                unless Koha::Account::DebitTypes->find( $configuration->{fee_debit_type} );
         } else {
             push @errors, 'fee_debit_type_not_set';
         }
 
         if ( $configuration->{extra_fee_debit_type} ) {
             push @errors, 'no_extra_fee_debit_type'
-              unless Koha::Account::DebitTypes->find( $configuration->{extra_fee_debit_type} );
+                unless Koha::Account::DebitTypes->find( $configuration->{extra_fee_debit_type} );
         } else {
             push @errors, 'extra_fee_debit_type_not_set';
         }
 
-        eval {
-            $configuration = YAML::XS::Load(
-                Encode::encode_utf8( $self->retrieve_data('configuration') ) );
-        };
+        eval { $configuration = YAML::XS::Load( Encode::encode_utf8( $self->retrieve_data('configuration') ) ); };
         push @errors, "Error parsing YAML configuration ($@)"
-          if $@;
+            if $@;
     } catch {
         push @errors, "Error parsing YAML configuration ($_)";
     };
 
     push @errors, 'no_ILL_PARTNER_RET'
-      unless Koha::Notice::Templates->search( { code => 'ILL_PARTNER_RET' } )->count;
+        unless Koha::Notice::Templates->search( { code => 'ILL_PARTNER_RET' } )->count;
 
     push @errors, 'no_ILL_RECEIVE_SLIP'
-      unless Koha::Notice::Templates->search( { code => 'ILL_RECEIVE_SLIP' } )->count;
+        unless Koha::Notice::Templates->search( { code => 'ILL_RECEIVE_SLIP' } )->count;
 
     push @errors, 'no_ILL_PARTNER_LOST'
-      unless Koha::Notice::Templates->search( { code => 'ILL_PARTNER_LOST' } )->count;
+        unless Koha::Notice::Templates->search( { code => 'ILL_PARTNER_LOST' } )->count;
 
     push @errors, 'ILLModule_disabled'
-      unless C4::Context->preference('ILLModule');
+        unless C4::Context->preference('ILLModule');
 
     push @errors, 'CirculateILL_disabled'
-      unless C4::Context->preference('CirculateILL');
+        unless C4::Context->preference('CirculateILL');
 
     return \@errors;
 }

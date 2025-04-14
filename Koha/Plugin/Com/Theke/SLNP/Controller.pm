@@ -45,8 +45,8 @@ generate a print slip for an ILL request.
 sub get_print_slip {
     my $c = shift->openapi->valid_input or return;
 
-    my $illrequest_id = $c->validation->param('illrequest_id');
-    my $print_slip_id = $c->validation->param('print_slip_id');
+    my $illrequest_id = $c->param('illrequest_id');
+    my $print_slip_id = $c->param('print_slip_id');
 
     sleep 1;
 
@@ -67,14 +67,14 @@ sub get_print_slip {
         }
 
         my $illrequestattributes = {};
-        my $attributes = $req->illrequestattributes;
+        my $attributes = $req->extended_attributes;
         while ( my $attribute = $attributes->next ) {
             $illrequestattributes->{$attribute->type} = $attribute->value;
         }
 
         # Koha::ILL::Request->get_notice with hardcoded letter_code
-        my $title     = $req->illrequestattributes->find({ type => 'title' });
-        my $author    = $req->illrequestattributes->find({ type => 'author' });
+        my $title     = $req->extended_attributes->find({ type => 'title' });
+        my $author    = $req->extended_attributes->find({ type => 'author' });
         my $metahash  = $req->metadata;
         my @metaarray = ();
 
@@ -84,10 +84,10 @@ sub get_print_slip {
 
         my $metastring = join("\n", @metaarray);
 
-        my $lending_library_id = $req->illrequestattributes->find({ type => 'lending_library' });
+        my $lending_library_id = $req->extended_attributes->find({ type => 'lending_library' });
         my $lending_library = ($lending_library_id) ? Koha::Patrons->find($lending_library_id->value) : undef;
 
-        my $item_id_attr = $req->illrequestattributes->find({ type => 'item_id' });
+        my $item_id_attr = $req->extended_attributes->find({ type => 'item_id' });
         my $item_id = ($item_id_attr) ? $item_id_attr->value : '';
 
         my $slip = C4::Letters::GetPreparedLetter(

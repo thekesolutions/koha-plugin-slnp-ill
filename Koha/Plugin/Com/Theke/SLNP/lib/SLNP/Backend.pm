@@ -22,7 +22,7 @@ use Modern::Perl;
 
 use Carp;
 use Clone qw( clone );
-use JSON qw( to_json );
+use JSON  qw( to_json );
 use MARC::Record;
 use Scalar::Util qw(blessed);
 use Try::Tiny;
@@ -164,7 +164,7 @@ sub status_graph {
         REQ => {
             prev_actions   => [],
             id             => 'REQ',
-            name           => $self->{status_graph}->{REQ}->{name},#'Bestellt',
+            name           => $self->{status_graph}->{REQ}->{name},    #'Bestellt',
             ui_method_name => undef,
             method         => undef,
             next_actions   => [ 'RECVD', 'NEGFLAG', 'CANC' ],
@@ -172,17 +172,17 @@ sub status_graph {
         },
 
         CANC => {
-            prev_actions   => [ 'REQ' ],
+            prev_actions   => ['REQ'],
             id             => 'CANC',
             name           => $self->{status_graph}->{CANC}->{name},
             ui_method_name => $self->{status_graph}->{CANC}->{ui_method_name},
             method         => 'cancel',
-            next_actions   => [ 'SLNP_COMP' ],
+            next_actions   => ['SLNP_COMP'],
             ui_method_icon => 'fa-times',
         },
 
         RECVD => {
-            prev_actions   => [ 'REQ' ],
+            prev_actions   => ['REQ'],
             id             => 'RECVD',
             name           => $self->{status_graph}->{RECVD}->{name},
             ui_method_name => $self->{status_graph}->{RECVD}->{ui_method_name},
@@ -191,13 +191,13 @@ sub status_graph {
             ui_method_icon => 'fa-download',
         },
 
-        RECVDUPD => { # Pseudo status
-            prev_actions   => [ 'RECVD' ],
+        RECVDUPD => {    # Pseudo status
+            prev_actions   => ['RECVD'],
             id             => 'RECVDUPD',
             name           => $self->{status_graph}->{RECVDUPD}->{name},
             ui_method_name => $self->{status_graph}->{RECVDUPD}->{ui_method_name},
             method         => 'update',
-            next_actions   => [], # really RECVD
+            next_actions   => [],                                                    # really RECVD
             ui_method_icon => 'fa-pencil',
         },
 
@@ -217,7 +217,7 @@ sub status_graph {
             name           => $self->{status_graph}->{RET}->{name},
             ui_method_name => '',
             method         => '',
-            next_actions   => ['SLNP_COMP','SENT_BACK', 'SLNP_LOST_COMP'],
+            next_actions   => [ 'SLNP_COMP', 'SENT_BACK', 'SLNP_LOST_COMP' ],
             ui_method_icon => 'fa-check',
         },
 
@@ -229,7 +229,7 @@ sub status_graph {
             method         => 'cancel_unavailable',
             next_actions   => [],
             ui_method_icon => 'fa-times',
-          },
+        },
 
         SENT_BACK => {
             prev_actions   => [ 'RET', 'RECVD' ],
@@ -237,17 +237,17 @@ sub status_graph {
             name           => $self->{status_graph}->{SENT_BACK}->{name},
             ui_method_name => $self->{status_graph}->{SENT_BACK}->{ui_method_name},
             method         => 'return_to_library',
-            next_actions   => [ 'SLNP_COMP' ],
+            next_actions   => ['SLNP_COMP'],
             ui_method_icon => 'fa-truck',
         },
 
-        SLNP_COMP => { # Intermediate status for handling cleanup
-            prev_actions   => [ 'RET' ],
+        SLNP_COMP => {    # Intermediate status for handling cleanup
+            prev_actions   => ['RET'],
             id             => 'SLNP_COMP',
             name           => $self->{status_graph}->{SLNP_COMP}->{name},
             ui_method_name => $self->{status_graph}->{SLNP_COMP}->{ui_method_name},
             method         => 'slnp_mark_completed',
-            next_actions   => [  ],
+            next_actions   => [],
             ui_method_icon => 'fa-check',
         },
 
@@ -257,7 +257,7 @@ sub status_graph {
             name           => $self->{status_graph}->{SLNP_LOST}->{name},
             ui_method_name => '',
             method         => '',
-            next_actions   => [ 'SLNP_LOST_COMP' ],
+            next_actions   => ['SLNP_LOST_COMP'],
             ui_method_icon => '',
         },
 
@@ -267,12 +267,12 @@ sub status_graph {
             name           => $self->{status_graph}->{SLNP_LOST_COMP}->{name},
             ui_method_name => $self->{status_graph}->{SLNP_LOST_COMP}->{ui_method_name},
             method         => 'mark_lost',
-            next_actions   => [ 'SLNP_COMP' ],
+            next_actions   => ['SLNP_COMP'],
             ui_method_icon => 'fa-exclamation-circle',
         },
 
         COMP => {
-            prev_actions   => [ 'SLNP_COMP' ],
+            prev_actions   => ['SLNP_COMP'],
             id             => 'COMP',
             name           => $self->{status_graph}->{COMP}->{name},
             ui_method_name => $self->{status_graph}->{COMP}->{ui_method_name},
@@ -288,7 +288,7 @@ sub status_graph {
             name           => $self->{status_graph}->{L_REQ}->{name},
             ui_method_name => undef,
             method         => undef,
-            next_actions   => [ 'COMP' ],
+            next_actions   => ['COMP'],
             ui_method_icon => '',
         },
     };
@@ -404,42 +404,41 @@ sub create {
     elsif ( $stage eq 'commit' ) {
 
         # Search for the patron using the passed cardnumber
-        my $patron = Koha::Patrons->find({ cardnumber => $params->{other}->{attributes}->{cardnumber} });
+        my $patron = Koha::Patrons->find( { cardnumber => $params->{other}->{attributes}->{cardnumber} } );
         unless ($patron) {
-            $patron = Koha::Patrons->find({ userid => $params->{other}->{attributes}->{cardnumber} });
+            $patron = Koha::Patrons->find( { userid => $params->{other}->{attributes}->{cardnumber} } );
         }
 
         SLNP::Exception::PatronNotFound->throw(
-            "Patron not found with cardnumber (or userid): "
-              . $params->{other}->{attributes}->{cardnumber} )
-          unless $patron;
+            "Patron not found with cardnumber (or userid): " . $params->{other}->{attributes}->{cardnumber} )
+            unless $patron;
 
         $params->{other}->{borrowernumber} = $patron->borrowernumber;
         $backend_result->{borrowernumber} = $params->{other}->{borrowernumber};
 
-        SLNP::Exception::MissingParameter->throw( param => 'title')
-          unless $params->{other}->{attributes}->{title};
+        SLNP::Exception::MissingParameter->throw( param => 'title' )
+            unless $params->{other}->{attributes}->{title};
 
-        SLNP::Exception::MissingParameter->throw( param => 'medium')
-          unless $params->{other}->{medium};
+        SLNP::Exception::MissingParameter->throw( param => 'medium' )
+            unless $params->{other}->{medium};
 
         my $library_id = $params->{other}->{branchcode};
 
-        SLNP::Exception::MissingParameter->throw( param => 'branchcode')
-          unless $library_id;
+        SLNP::Exception::MissingParameter->throw( param => 'branchcode' )
+            unless $library_id;
 
         SLNP::Exception::BadConfig->throw( param => 'default_ill_branch', value => $library_id )
-          unless Koha::Libraries->find($library_id);
+            unless Koha::Libraries->find($library_id);
 
         my $biblio_id = $self->add_biblio( $params->{other} );
         my $item_id   = $self->add_item(
             {
-                biblio_id       => $biblio_id,
-                medium          => $params->{other}->{medium},
-                library_id      => $library_id,
-                callnumber      => $params->{other}->{attributes}->{shelfmark},
-                notes           => undef,
-                orderid         => $params->{other}->{orderid},                   # zflorderid
+                biblio_id  => $biblio_id,
+                medium     => $params->{other}->{medium},
+                library_id => $library_id,
+                callnumber => $params->{other}->{attributes}->{shelfmark},
+                notes      => undef,
+                orderid    => $params->{other}->{orderid},                   # zflorderid
             }
         )->id;
 
@@ -457,7 +456,7 @@ sub create {
                 medium         => $params->{other}->{medium},
                 orderid        => $params->{other}->{orderid},
                 backend        => $self->name,
-                price_paid     => "$fee", # FIXME: varchar => formatting?
+                price_paid     => "$fee",                                    # FIXME: varchar => formatting?
                 notesstaff     => $params->{other}->{attributes}->{notes},
             }
         )->store;
@@ -468,7 +467,8 @@ sub create {
 
             try {
                 Koha::ILL::Request::Attribute->new(
-                    {   illrequest_id => $params->{request}->illrequest_id,
+                    {
+                        illrequest_id => $params->{request}->illrequest_id,
                         type          => $type,
                         value         => $value,
                     }
@@ -513,31 +513,31 @@ sub receive {
     my $method  = $params->{other}->{method};
     my $stage   = $params->{other}->{stage};
 
-    my $item = $self->get_item_from_request({ request => $request });
+    my $item = $self->get_item_from_request( { request => $request } );
 
     my $template_params = {};
 
     my $backend_result = {
-        backend => $self->name,
-        method  => "receive",
-        stage   => $stage, # default for testing the template
-        error   => 0,
-        status  => "",
-        message => "",
-        value   => $template_params,
-        next    => "illview",
+        backend       => $self->name,
+        method        => "receive",
+        stage         => $stage,             # default for testing the template
+        error         => 0,
+        status        => "",
+        message       => "",
+        value         => $template_params,
+        next          => "illview",
         illrequest_id => $request->id,
     };
 
     $backend_result->{strings} = $params->{request}->_backend->{strings}->{staff_receive};
 
-    if ( !defined $stage ) { # init
+    if ( !defined $stage ) {    # init
         $template_params->{medium} = $request->medium;
 
         my $partner_category_code = $self->{configuration}->{partner_category_code} // 'IL';
         $template_params->{mandatory_lending_library} = !defined $self->{configuration}->{mandatory_lending_library}
-          ? 1    # defaults to true
-          : ( $self->{configuration}->{mandatory_lending_library} eq 'false' ) ? 0 : 1;
+            ? 1                 # defaults to true
+            : ( $self->{configuration}->{mandatory_lending_library} eq 'false' ) ? 0 : 1;
 
         my $lending_libraries = Koha::Patrons->search(
             { categorycode => $partner_category_code },
@@ -545,7 +545,7 @@ sub receive {
         );
 
         $self->{logger}->error("No patrons defined as lending libraries (categorycode=$partner_category_code)")
-          unless $lending_libraries->count > 0;
+            unless $lending_libraries->count > 0;
 
         $template_params->{received_on_date}  = dt_from_string;
         $template_params->{lending_libraries} = $lending_libraries;
@@ -555,10 +555,12 @@ sub receive {
         # FIXME: Check in newer Koha how booleans are dealth with in YAML
         $template_params->{charge_extra_fee_by_default} = $self->{configuration}->{charge_extra_fee_by_default};
 
-        my $patron_preferences = C4::Members::Messaging::GetMessagingPreferences({
-            borrowernumber => $template_params->{patron}->borrowernumber,
-            message_name   => 'Ill_ready',
-        });
+        my $patron_preferences = C4::Members::Messaging::GetMessagingPreferences(
+            {
+                borrowernumber => $template_params->{patron}->borrowernumber,
+                message_name   => 'Ill_ready',
+            }
+        );
 
         if ( exists $patron_preferences->{transports}->{email} ) {
             $template_params->{notify} = 1;
@@ -568,125 +570,125 @@ sub receive {
         $template_params->{staff_note} = $request->notesstaff;
 
         $template_params->{item_types} = [
-            { value => $self->get_item_type( 'copy' ), selected => ( $request->medium eq 'copy' ) ? 1 : 0 },
-            { value => $self->get_item_type( 'loan' ), selected => ( $request->medium eq 'loan' ) ? 1 : 0 },
+            { value => $self->get_item_type('copy'), selected => ( $request->medium eq 'copy' ) ? 1 : 0 },
+            { value => $self->get_item_type('loan'), selected => ( $request->medium eq 'loan' ) ? 1 : 0 },
         ];
 
         $backend_result->{stage} = 'init';
-    }
-    elsif ( $stage eq 'commit' ) {
+    } elsif ( $stage eq 'commit' ) {
+
         # process the receiving parameters
 
         try {
             Koha::Database->new->schema->txn_do(
                 sub {
 
-                my $request_type = $params->{other}->{type} // 'loan';
+                    my $request_type = $params->{other}->{type} // 'loan';
 
-                my $new_attributes = {};
+                    my $new_attributes = {};
 
-                $new_attributes->{type} = $request_type eq 'loan' ? 'Leihe' : 'Kopie';
+                    $new_attributes->{type} = $request_type eq 'loan' ? 'Leihe' : 'Kopie';
 
-                $new_attributes->{received_on_date} = $params->{other}->{received_on_date}
-                  if $params->{other}->{received_on_date};
+                    $new_attributes->{received_on_date} = $params->{other}->{received_on_date}
+                        if $params->{other}->{received_on_date};
 
-                $new_attributes->{due_date} = $params->{other}->{due_date}
-                  if $params->{other}->{due_date};
+                    $new_attributes->{due_date} = $params->{other}->{due_date}
+                        if $params->{other}->{due_date};
 
-                $new_attributes->{lending_library} = $params->{other}->{lending_library}
-                  if $params->{other}->{lending_library};
+                    $new_attributes->{lending_library} = $params->{other}->{lending_library}
+                        if $params->{other}->{lending_library};
 
-                $request->cost($params->{other}->{request_charges});
+                    $request->cost( $params->{other}->{request_charges} );
 
-                $new_attributes->{request_charges} = $params->{other}->{request_charges}
-                  if $params->{other}->{request_charges};
+                    $new_attributes->{request_charges} = $params->{other}->{request_charges}
+                        if $params->{other}->{request_charges};
 
-                if ( $params->{other}->{charge_extra_fee} and
-                    $params->{other}->{request_charges} and
-                    $params->{other}->{request_charges} > 0 ) {
-                    my $debit = $request->patron->account->add_debit(
+                    if (    $params->{other}->{charge_extra_fee}
+                        and $params->{other}->{request_charges}
+                        and $params->{other}->{request_charges} > 0 )
+                    {
+                        my $debit = $request->patron->account->add_debit(
+                            {
+                                amount    => $params->{other}->{request_charges},
+                                item_id   => $item->id,
+                                interface => 'intranet',
+                                type      => $self->{configuration}->{extra_fee_debit_type} // 'ILL',
+                            }
+                        );
+
+                        $new_attributes->{extra_fee_debit_id} = $debit->id;
+                    }
+
+                    $new_attributes->{circulation_notes} = $params->{other}->{circulation_notes}
+                        if $params->{other}->{circulation_notes};
+
+                    # place a hold on behalf of the patron
+                    # FIXME: Should call CanItemBeReserved first?
+                    my $biblio  = $request->biblio;
+                    my $hold_id = C4::Reserves::AddReserve(
                         {
-                            amount    => $params->{other}->{request_charges},
-                            item_id   => $item->id,
-                            interface => 'intranet',
-                            type      => $self->{configuration}->{extra_fee_debit_type} // 'ILL',
+                            branchcode       => $request->branchcode,
+                            borrowernumber   => $request->borrowernumber,
+                            biblionumber     => $request->biblio_id,
+                            priority         => 1,
+                            reservation_date => undef,
+                            expiration_date  => undef,
+                            notes            => $self->{configuration}->{default_hold_note} // 'Placed by ILL',
+                            title            => $biblio->title,
+                            itemnumber       => $item->id,
+                            found            => undef,
+                            itemtype         => undef
                         }
                     );
 
-                    $new_attributes->{extra_fee_debit_id} = $debit->id;
+                    $new_attributes->{hold_id} = $hold_id;
+
+                    $self->add_or_update_attributes(
+                        {
+                            request    => $request,
+                            attributes => $new_attributes,
+                        }
+                    );
+
+                    # item information
+                    my $item_type = $self->{configuration}->{item_types}->{$request_type};
+                    $item->set(
+                        {
+                            itype               => $item_type,
+                            restricted          => $params->{other}->{item_usage_restrictions},
+                            itemcallnumber      => $params->{other}->{item_callnumber},
+                            damaged             => $params->{other}->{item_damaged},
+                            itemnotes_nonpublic => $params->{other}->{item_internal_note},
+                            materials           => $params->{other}->{item_number_of_parts},
+                        }
+                    )->store;
+
+                    $request->set(
+                        {
+                            due_date   => $params->{other}->{due_date},
+                            medium     => $request_type,
+                            notesopac  => $params->{other}->{opac_note},
+                            notesstaff => $params->{other}->{staff_note},
+                        }
+                    )->store;
+
+                    $request->status('RECVD');
+
+                    $backend_result->{stage} = 'commit';
                 }
-
-                $new_attributes->{circulation_notes} =
-                $params->{other}->{circulation_notes}
-                if $params->{other}->{circulation_notes};
-
-                # place a hold on behalf of the patron
-                # FIXME: Should call CanItemBeReserved first?
-                my $biblio  = $request->biblio;
-                my $hold_id = C4::Reserves::AddReserve(
-                    {
-                        branchcode       => $request->branchcode,
-                        borrowernumber   => $request->borrowernumber,
-                        biblionumber     => $request->biblio_id,
-                        priority         => 1,
-                        reservation_date => undef,
-                        expiration_date  => undef,
-                        notes            => $self->{configuration}->{default_hold_note} // 'Placed by ILL',
-                        title            => $biblio->title,
-                        itemnumber       => $item->id,
-                        found            => undef,
-                        itemtype         => undef
-                    }
-                );
-
-                $new_attributes->{hold_id} = $hold_id;
-
-                $self->add_or_update_attributes(
-                    {
-                        request    => $request,
-                        attributes => $new_attributes,
-                    }
-                );
-
-                # item information
-                my $item_type = $self->{configuration}->{item_types}->{$request_type};
-                $item->set(
-                    {   itype               => $item_type,
-                        restricted          => $params->{other}->{item_usage_restrictions},
-                        itemcallnumber      => $params->{other}->{item_callnumber},
-                        damaged             => $params->{other}->{item_damaged},
-                        itemnotes_nonpublic => $params->{other}->{item_internal_note},
-                        materials           => $params->{other}->{item_number_of_parts},
-                    }
-                )->store;
-
-                $request->set(
-                    {   due_date   => $params->{other}->{due_date},
-                        medium     => $request_type,
-                        notesopac  => $params->{other}->{opac_note},
-                        notesstaff => $params->{other}->{staff_note},
-                    }
-                )->store;
-                
-                $request->status('RECVD');
-
-                $backend_result->{stage} = 'commit';
-            });
-        }
-        catch {
+            );
+        } catch {
             warn "$_";
             if ( blessed($_) and $_->isa('Koha::Exceptions::Account::UnrecognisedType') ) {
                 $backend_result->{status} = 'invalid_debit_type';
-            }
-            else {
+            } else {
                 $backend_result->{status} = 'unknown';
             }
 
-            $backend_result->{error}  = 1;
+            $backend_result->{error} = 1;
             $backend_result->{stage} = 'commit';
         };
-    }
-    else {
+    } else {
         $backend_result->{stage} = $stage;
     }
 
@@ -708,25 +710,26 @@ sub update {
     my $method  = $params->{other}->{method};
     my $stage   = $params->{other}->{stage};
 
-    my $item = $self->get_item_from_request({ request => $request });
+    my $item = $self->get_item_from_request( { request => $request } );
 
     my $template_params = {};
 
     my $backend_result = {
-        backend => $self->name,
-        method  => "update",
-        stage   => $stage, # default for testing the template
-        error   => 0,
-        status  => "",
-        message => "",
-        value   => $template_params,
-        next    => "illview",
+        backend       => $self->name,
+        method        => "update",
+        stage         => $stage,             # default for testing the template
+        error         => 0,
+        status        => "",
+        message       => "",
+        value         => $template_params,
+        next          => "illview",
         illrequest_id => $request->id,
     };
 
     $backend_result->{strings} = $params->{request}->_backend->{strings}->{staff_update};
 
     if ( $stage and $stage eq 'commit' ) {
+
         # process the receiving parameters
 
         try {
@@ -740,21 +743,22 @@ sub update {
                     $new_attributes->{type} = $request_type eq 'loan' ? 'Leihe' : 'Kopie';
 
                     $new_attributes->{received_on_date} = $params->{other}->{received_on_date}
-                      if $params->{other}->{received_on_date};
+                        if $params->{other}->{received_on_date};
 
                     $new_attributes->{due_date} = $params->{other}->{due_date}
-                      if $params->{other}->{due_date};
+                        if $params->{other}->{due_date};
 
                     if ( $params->{other}->{set_extra_fee} ) {
 
-                        $request->cost($params->{other}->{request_charges});
+                        $request->cost( $params->{other}->{request_charges} );
 
                         $new_attributes->{request_charges} = $params->{other}->{request_charges}
-                          if $params->{other}->{request_charges};
+                            if $params->{other}->{request_charges};
 
-                        if ( $params->{other}->{charge_extra_fee} and
-                            $params->{other}->{request_charges} and
-                            $params->{other}->{request_charges} > 0 ) {
+                        if (    $params->{other}->{charge_extra_fee}
+                            and $params->{other}->{request_charges}
+                            and $params->{other}->{request_charges} > 0 )
+                        {
                             my $debit = $request->patron->account->add_debit(
                                 {
                                     amount    => $params->{other}->{request_charges},
@@ -771,7 +775,7 @@ sub update {
                     $new_attributes->{lending_library} = $params->{other}->{lending_library};
 
                     $new_attributes->{circulation_notes} = $params->{other}->{circulation_notes}
-                      if $params->{other}->{circulation_notes};
+                        if $params->{other}->{circulation_notes};
 
                     $self->add_or_update_attributes(
                         {
@@ -782,29 +786,28 @@ sub update {
 
                     # item information
                     $item->itype( $params->{other}->{item_type} )
-                      if $params->{other}->{item_type};
+                        if $params->{other}->{item_type};
 
                     $item->restricted( $params->{other}->{item_usage_restrictions} )
-                      if defined $params->{other}->{item_usage_restrictions};
+                        if defined $params->{other}->{item_usage_restrictions};
 
                     $item->itemcallnumber( $params->{other}->{item_callnumber} )
-                      if $params->{other}->{item_callnumber};
+                        if $params->{other}->{item_callnumber};
 
                     $item->damaged( $params->{other}->{item_damaged} )
-                      if $params->{other}->{item_damaged};
+                        if $params->{other}->{item_damaged};
 
                     $item->itemnotes_nonpublic( $params->{other}->{item_internal_note} )
-                      if $params->{other}->{item_internal_note};
+                        if $params->{other}->{item_internal_note};
 
                     $item->materials( $params->{other}->{item_number_of_parts} )
-                      if $params->{other}->{item_number_of_parts};
+                        if $params->{other}->{item_number_of_parts};
 
                     $item->store;
 
                     if ( $params->{other}->{notify_patron} eq 'on' ) {
-                        my $letter = $request->get_notice(
-                            { notice_code => 'ILL_PICKUP_READY', transport => 'email' }
-                        );
+                        my $letter =
+                            $request->get_notice( { notice_code => 'ILL_PICKUP_READY', transport => 'email' } );
 
                         my $result = C4::Letters::EnqueueLetter(
                             {
@@ -818,7 +821,8 @@ sub update {
                     # item information
                     my $item_type = $self->{configuration}->{item_types}->{$request_type};
                     $item->set(
-                        {   itype               => $item_type,
+                        {
+                            itype               => $item_type,
                             restricted          => $params->{other}->{item_usage_restrictions},
                             itemcallnumber      => $params->{other}->{item_callnumber},
                             damaged             => $params->{other}->{item_damaged},
@@ -828,7 +832,8 @@ sub update {
                     )->store;
 
                     $request->set(
-                        {   due_date   => $params->{other}->{due_date},
+                        {
+                            due_date   => $params->{other}->{due_date},
                             medium     => $request_type,
                             notesopac  => $params->{other}->{opac_note},
                             notesstaff => $params->{other}->{staff_note},
@@ -838,22 +843,20 @@ sub update {
                     $backend_result->{stage} = 'commit';
                 }
             );
-        }
-        catch {
+        } catch {
             warn "$_";
             $backend_result->{error}   = 1;
             $backend_result->{message} = "$_";
             $backend_result->{stage}   = undef;
         };
-    }
-    else { # init or error
+    } else {    # init or error
 
         $template_params->{medium} = $request->medium;
 
         my $partner_category_code = $self->{configuration}->{partner_category_code} // 'IL';
         $template_params->{mandatory_lending_library} = !defined $self->{configuration}->{mandatory_lending_library}
-          ? 1    # defaults to true
-          : ( $self->{configuration}->{mandatory_lending_library} eq 'false' ) ? 0 : 1;
+            ? 1    # defaults to true
+            : ( $self->{configuration}->{mandatory_lending_library} eq 'false' ) ? 0 : 1;
 
         my $lending_libraries = Koha::Patrons->search(
             { categorycode => $partner_category_code },
@@ -861,31 +864,31 @@ sub update {
         );
 
         $template_params->{lending_libraries} = $lending_libraries;
-        my $selected_lending_library = $request->illrequestattributes->search({ type => 'lending_library' })->next;
+        my $selected_lending_library = $request->extended_attributes->search( { type => 'lending_library' } )->next;
         $template_params->{selected_lending_library_id} = $selected_lending_library->value
-          if $selected_lending_library;
+            if $selected_lending_library;
 
-        my $request_charges = $request->illrequestattributes->search({ type => 'request_charges' })->next;
+        my $request_charges = $request->extended_attributes->search( { type => 'request_charges' } )->next;
         $template_params->{request_charges} = $request_charges->value
-          if $request_charges;
+            if $request_charges;
 
-        my $extra_fee_debit_id = $request->illrequestattributes->search({ type => 'extra_fee_debit_id' })->next;
+        my $extra_fee_debit_id = $request->extended_attributes->search( { type => 'extra_fee_debit_id' } )->next;
 
         if ( $request_charges and $extra_fee_debit_id ) {
             $template_params->{disable_extra_fee} = 1;
         }
 
-        my $circulation_notes = $request->illrequestattributes->search({ type => 'circulation_notes' })->next;
+        my $circulation_notes = $request->extended_attributes->search( { type => 'circulation_notes' } )->next;
         $template_params->{circulation_notes} = $circulation_notes->value
-          if $circulation_notes;
+            if $circulation_notes;
 
-        my $received_on_date = $request->illrequestattributes->search({ type => 'received_on_date' })->next;
+        my $received_on_date = $request->extended_attributes->search( { type => 'received_on_date' } )->next;
         $template_params->{received_on_date} = $received_on_date->value
-          if $received_on_date;
+            if $received_on_date;
 
-        my $due_date = $request->illrequestattributes->search({ type => 'due_date' })->next;
+        my $due_date = $request->extended_attributes->search( { type => 'due_date' } )->next;
         $template_params->{due_date} = $due_date->value
-          if $due_date;
+            if $due_date;
 
         $template_params->{item}   = $item;
         $template_params->{patron} = $request->patron;
@@ -894,8 +897,8 @@ sub update {
         $template_params->{staff_note} = $request->notesstaff;
 
         $template_params->{item_types} = [
-            { value => $self->get_item_type( 'copy' ), selected => ( $request->medium eq 'copy' ) ? 1 : 0 },
-            { value => $self->get_item_type( 'loan' ), selected => ( $request->medium eq 'loan' ) ? 1 : 0 },
+            { value => $self->get_item_type('copy'), selected => ( $request->medium eq 'copy' ) ? 1 : 0 },
+            { value => $self->get_item_type('loan'), selected => ( $request->medium eq 'loan' ) ? 1 : 0 },
         ];
 
         $backend_result->{stage} = 'init';
@@ -913,7 +916,7 @@ sub update {
 sub cancel_unavailable {
     my ( $self, $params ) = @_;
 
-    my $stage = $params->{other}->{stage};
+    my $stage           = $params->{other}->{stage};
     my $template_params = {};
 
     my $backend_result = {
@@ -938,10 +941,12 @@ sub cancel_unavailable {
 
     if ( !$stage ) {
 
-        my $patron_preferences = C4::Members::Messaging::GetMessagingPreferences({
-            borrowernumber => $request->borrowernumber,
-            message_name   => 'Ill_unavailable',
-        });
+        my $patron_preferences = C4::Members::Messaging::GetMessagingPreferences(
+            {
+                borrowernumber => $request->borrowernumber,
+                message_name   => 'Ill_unavailable',
+            }
+        );
 
         if ( exists $patron_preferences->{transports}->{email} ) {
             $template_params->{notify} = 1;
@@ -954,17 +959,17 @@ sub cancel_unavailable {
         try {
             Koha::Database->new->schema->txn_do(
                 sub {
-                    $self->biblio_cleanup( $request );
+                    $self->biblio_cleanup($request);
 
                     $self->add_or_update_attributes(
-                    {
-                        request => $request,
-                        attributes => {
-                            cancellation_reason => 'unavailable',
-                            cancellation_patron_message => $params->{other}->{cancellation_patron_message},
-                            cancellation_patron_reason => $params->{other}->{cancellation_patron_reason},
+                        {
+                            request    => $request,
+                            attributes => {
+                                cancellation_reason         => 'unavailable',
+                                cancellation_patron_message => $params->{other}->{cancellation_patron_message},
+                                cancellation_patron_reason  => $params->{other}->{cancellation_patron_reason},
+                            }
                         }
-                    }
                     );
 
                     # mark as complete
@@ -978,9 +983,8 @@ sub cancel_unavailable {
 
                     # send message
                     if ( $params->{other}->{notify_patron} eq 'on' ) {
-                        my $letter = $request->get_notice(
-                            { notice_code => 'ILL_REQUEST_UNAVAIL', transport => 'email' }
-                        );
+                        my $letter =
+                            $request->get_notice( { notice_code => 'ILL_REQUEST_UNAVAIL', transport => 'email' } );
                         my $result = C4::Letters::EnqueueLetter(
                             {
                                 letter                 => $letter,
@@ -991,8 +995,7 @@ sub cancel_unavailable {
                     }
                 }
             )
-        }
-        catch {
+        } catch {
             warn "$_";
             $backend_result->{error}   = 1;
             $backend_result->{message} = "$_";
@@ -1041,11 +1044,11 @@ sub mark_lost {
     $template_params->{patron}       = $request->patron;
     $template_params->{item}         = $item;
 
-    my $selected_lending_library = $request->illrequestattributes->search( { type => 'lending_library' } )->next;
+    my $selected_lending_library = $request->extended_attributes->search( { type => 'lending_library' } )->next;
 
-    my $due_date = $request->illrequestattributes->search( { type => 'due_date' } )->next;
+    my $due_date = $request->extended_attributes->search( { type => 'due_date' } )->next;
     $template_params->{due_date} = dt_from_string( $due_date->value )
-      if $due_date;
+        if $due_date;
 
     if ( !$stage ) {
 
@@ -1055,18 +1058,21 @@ sub mark_lost {
 
         my $partner_category_code = $self->{configuration}->{partner_category_code} // 'IL';
         $template_params->{mandatory_lending_library} = !defined $self->{configuration}->{mandatory_lending_library}
-          ? 1                   # defaults to true
-          : ( $self->{configuration}->{mandatory_lending_library} eq 'false' ) ? 0 : 1;
+            ? 1    # defaults to true
+            : ( $self->{configuration}->{mandatory_lending_library} eq 'false' ) ? 0 : 1;
 
-        my $lending_libraries = Koha::Patrons->search( { categorycode => $partner_category_code }, { order_by => [ 'surname', 'othernames' ] } );
+        my $lending_libraries = Koha::Patrons->search(
+            { categorycode => $partner_category_code },
+            { order_by     => [ 'surname', 'othernames' ] }
+        );
 
         $template_params->{lending_libraries} = $lending_libraries;
-        my $selected_lending_library = $request->illrequestattributes->search( { type => 'lending_library' } )->next;
+        my $selected_lending_library = $request->extended_attributes->search( { type => 'lending_library' } )->next;
 
         if ($selected_lending_library) {
 
             $template_params->{selected_lending_library_id} = $selected_lending_library->value
-              if $selected_lending_library;
+                if $selected_lending_library;
         }
 
         $backend_result->{stage} = "init";
@@ -1091,11 +1097,14 @@ sub mark_lost {
                     $request->status('SLNP_LOST_COMP');
 
                     # send message
-                    if ( $params->{other}->{notify_lending_library} eq 'on'
-                         and $params->{other}->{lending_library} ) {
-                        my $letter = $request->get_notice( { notice_code => 'ILL_PARTNER_LOST', transport => 'email' } );
+                    if (    $params->{other}->{notify_lending_library} eq 'on'
+                        and $params->{other}->{lending_library} )
+                    {
+                        my $letter =
+                            $request->get_notice( { notice_code => 'ILL_PARTNER_LOST', transport => 'email' } );
                         my $result = C4::Letters::EnqueueLetter(
-                            {   letter                 => $letter,
+                            {
+                                letter                 => $letter,
                                 borrowernumber         => $params->{other}->{lending_library},
                                 message_transport_type => 'email',
                             }
@@ -1145,7 +1154,7 @@ sub cancel {
     try {
         Koha::Database->new->schema->txn_do(
             sub {
-                $self->biblio_cleanup( $request );
+                $self->biblio_cleanup($request);
 
                 $self->add_or_update_attributes(
                     {
@@ -1153,6 +1162,7 @@ sub cancel {
                         request    => $request,
                     }
                 );
+
                 # mark as complete
                 $request->set(
                     {
@@ -1163,8 +1173,7 @@ sub cancel {
                 $request->status('COMP');
             }
         )
-    }
-    catch {
+    } catch {
         warn "$_";
         $backend_result->{stage}   = 'init';
         $backend_result->{message} = "$_";
@@ -1200,7 +1209,7 @@ sub slnp_mark_completed {
     try {
         Koha::Database->new->schema->txn_do(
             sub {
-                $self->biblio_cleanup( $request );
+                $self->biblio_cleanup($request);
 
                 # mark as complete
                 $request->set(
@@ -1212,8 +1221,7 @@ sub slnp_mark_completed {
                 $request->status('COMP');
             }
         )
-    }
-    catch {
+    } catch {
         warn "$_";
         $backend_result->{stage}   = 'init';
         $backend_result->{message} = "$_";
@@ -1280,19 +1288,23 @@ sub return_to_library {
             $backend_result->{message} = "$_";
         };
     } else {
+
         # init, show information
 
         my $partner_category_code = $self->{configuration}->{partner_category_code} // 'IL';
         $template_params->{mandatory_lending_library} = !defined $self->{configuration}->{mandatory_lending_library}
-          ? 1                   # defaults to true
-          : ( $self->{configuration}->{mandatory_lending_library} eq 'false' ) ? 0 : 1;
+            ? 1    # defaults to true
+            : ( $self->{configuration}->{mandatory_lending_library} eq 'false' ) ? 0 : 1;
 
-        my $lending_libraries = Koha::Patrons->search( { categorycode => $partner_category_code }, { order_by => [ 'surname', 'othernames' ] } );
+        my $lending_libraries = Koha::Patrons->search(
+            { categorycode => $partner_category_code },
+            { order_by     => [ 'surname', 'othernames' ] }
+        );
 
         $template_params->{lending_libraries} = $lending_libraries;
-        my $selected_lending_library = $request->illrequestattributes->search( { type => 'lending_library' } )->next;
+        my $selected_lending_library = $request->extended_attributes->search( { type => 'lending_library' } )->next;
         $template_params->{selected_lending_library_id} = $selected_lending_library->value
-          if $selected_lending_library;
+            if $selected_lending_library;
 
         $template_params->{patron}     = $request->patron;
         $template_params->{staff_note} = $request->notesstaff;
@@ -1315,11 +1327,13 @@ sub add_biblio {
     my ( $self, $other ) = @_;
 
     return try {
+
         # We're going to try and populate author, title, etc.
         my $author = $other->{attributes}->{author};
         my $title  = $other->{attributes}->{title};
         my $isbn   = $other->{attributes}->{isbn};
         my $issn   = $other->{attributes}->{issn};
+
         # article fields
         my $article_author = $other->{attributes}->{article_author};
         my $article_title  = $other->{attributes}->{article_title};
@@ -1352,33 +1366,33 @@ sub add_biblio {
             }
 
             $record->insert_fields_ordered( MARC::Field->new( '245', '0', ' ', @subfields ) )
-              if scalar @subfields;
+                if scalar @subfields;
 
             # build 773
             my $field_773_g;
 
             $field_773_g = $volume
-              if defined $volume and $volume != 0;
+                if defined $volume and $volume != 0;
 
             $field_773_g = join( ' ', $field_773_g, "($year)" )
-              if defined $year;
+                if defined $year;
 
             $field_773_g = join( ' ', $field_773_g, $issue )
-              if defined $issue and $issue != 0;
+                if defined $issue and $issue != 0;
 
             $field_773_g = join( ' ', $field_773_g, $pages )
-              if defined $pages and $pages != 0;
+                if defined $pages and $pages != 0;
 
             @subfields = ();
 
             push @subfields, 'g' => $field_773_g
-              if $field_773_g;
+                if $field_773_g;
 
             push @subfields, 't' => $title
-              if $title;
+                if $title;
 
             $record->insert_fields_ordered( MARC::Field->new( '773', '0', '0', @subfields ) )
-              if scalar @subfields;
+                if scalar @subfields;
 
         } else {
 
@@ -1397,17 +1411,17 @@ sub add_biblio {
             }
 
             $record->insert_fields_ordered( MARC::Field->new( '245', '0', '0', @subfields ) )
-              if scalar @subfields;
+                if scalar @subfields;
         }
 
         $record->insert_fields_ordered( MARC::Field->new( '020', ' ', ' ', 'a' => $isbn ) )
-          if defined $isbn && length $isbn > 0;
+            if defined $isbn && length $isbn > 0;
 
         $record->insert_fields_ordered( MARC::Field->new( '022', ' ', ' ', 'a' => $issn ) )
-          if defined $issn && length $issn > 0;
+            if defined $issn && length $issn > 0;
 
         $record->insert_fields_ordered( MARC::Field->new( '100', '1', ' ', 'a' => $author ) )
-          if $author;
+            if $author;
 
         # set opac display suppression flag of the record
         $record->insert_fields_ordered( MARC::Field->new( '942', '', '', n => '1' ) );
@@ -1415,9 +1429,8 @@ sub add_biblio {
         my $biblionumber = C4::Biblio::AddBiblio( $record, $self->{framework} );
 
         return $biblionumber;
-    }
-    catch {
-        SLNP::Exception->throw( "error_creating_biblio" );
+    } catch {
+        SLNP::Exception->throw("error_creating_biblio");
     };
 }
 
@@ -1441,9 +1454,7 @@ Create a I<Koha::Item> object from the ill request data.
 sub add_item {
     my ( $self, $params ) = @_;
 
-    my @mandatory = (
-        'biblio_id', 'medium', 'library_id', 'orderid'
-    );
+    my @mandatory = ( 'biblio_id', 'medium', 'library_id', 'orderid' );
     for my $param (@mandatory) {
         unless ( defined( $params->{$param} ) ) {
             SLNP::Exception::MissingParameter->throw( param => $param );
@@ -1454,11 +1465,11 @@ sub add_item {
     my $request = $params->{request};
 
     unless ($biblio) {
-        SLNP::Exception::UnknownBiblioId->throw(
-            biblio_id => $params->{biblio_id} );
+        SLNP::Exception::UnknownBiblioId->throw( biblio_id => $params->{biblio_id} );
     }
 
     my $item_type = $self->get_item_type( $params->{medium} );
+
     # Barcode needs to be prefixed
     my $barcode = $self->{configuration}->{barcode_prefix} . $params->{orderid};
 
@@ -1492,17 +1503,18 @@ sub get_fee {
 
     my $patron = $args->{patron};
     SLNP::Exception::BadParameter->throw( param => 'patron', value => $patron )
-      unless $patron and ref($patron) eq 'Koha::Patron';
+        unless $patron and ref($patron) eq 'Koha::Patron';
 
     my $configuration = $self->{configuration};
 
     my $default_fee = ( exists $configuration->{default_fee} )
-      ? $configuration->{default_fee} // 0    # explicit undef means 'no charge'
-      : 0;
+        ? $configuration->{default_fee} // 0    # explicit undef means 'no charge'
+        : 0;
 
-    my $fee = ( exists $configuration->{category_fee} and exists $configuration->{category_fee}->{ $patron->categorycode } )
-      ? $configuration->{category_fee}->{ $patron->categorycode } // 0    # explicit undef means 'no charge'
-      : $default_fee;
+    my $fee =
+        ( exists $configuration->{category_fee} and exists $configuration->{category_fee}->{ $patron->categorycode } )
+        ? $configuration->{category_fee}->{ $patron->categorycode } // 0    # explicit undef means 'no charge'
+        : $default_fee;
 
     return $fee;
 }
@@ -1521,7 +1533,7 @@ sub get_item_type {
     my ( $self, $medium ) = @_;
 
     SLNP::Exception::BadParameter->throw( param => 'medium', value => $medium )
-      unless $medium eq 'copy' or $medium eq 'loan';
+        unless $medium eq 'copy' or $medium eq 'loan';
 
     my $item_type;
     my $item_types = $self->{configuration}->{item_types};
@@ -1530,17 +1542,17 @@ sub get_item_type {
 
         # Use the configuration if possible
         $item_type =
-          ( $medium eq 'copy' )
-          ? $self->{configuration}->{item_types}->{copy} // 'CR'
-          : $self->{configuration}->{item_types}->{loan} // 'BK';
-    }
-    else {
+            ( $medium eq 'copy' )
+            ? $self->{configuration}->{item_types}->{copy} // 'CR'
+            : $self->{configuration}->{item_types}->{loan} // 'BK';
+    } else {
+
         # No configuration, default values
         $item_type = ( $medium eq 'copy' ) ? 'CR' : 'BK';
     }
 
     $self->{logger}->error("Configured item type for '$medium' is not valid: $item_type")
-      unless Koha::ItemTypes->find($item_type);
+        unless Koha::ItemTypes->find($item_type);
 
     return $item_type;
 }
@@ -1558,7 +1570,7 @@ sub charge_ill_fee {
 
     my $patron = $args->{patron};
     SLNP::Exception::BadParameter->throw( param => 'patron', value => $patron )
-      unless $patron and ref($patron) eq 'Koha::Patron';
+        unless $patron and ref($patron) eq 'Koha::Patron';
 
     my $fee        = $self->get_fee( { patron => $patron } );
     my $debit_type = $self->{configuration}->{fee_debit_type} // 'ILL';
@@ -1566,14 +1578,14 @@ sub charge_ill_fee {
     if ( $fee > 0 ) {
         try {
             $patron->account->add_debit(
-                {   amount    => $fee,
+                {
+                    amount    => $fee,
                     interface => 'intranet',
                     type      => $debit_type,
-                  ( $args->{item_id} ? ( item_id => $args->{item_id} ) : () )
+                    ( $args->{item_id} ? ( item_id => $args->{item_id} ) : () )
                 }
             );
-        }
-        catch {
+        } catch {
             if ( $_->isa('Koha::Exceptions::Account::UnrecognisedType') ) {
                 SLNP::Exception::BadConfig->throw(
                     param => 'fee_debit_type',
@@ -1602,18 +1614,18 @@ sub get_item_from_request {
 
     my $request = $args->{request};
     SLNP::Exception::BadParameter->throw( param => 'patron', value => $request )
-      unless $request and ref($request) eq 'Koha::ILL::Request';
+        unless $request and ref($request) eq 'Koha::ILL::Request';
 
-    my $item_id_attributes = $request->illrequestattributes->search({ type => 'item_id' });
+    my $item_id_attributes = $request->extended_attributes->search( { type => 'item_id' } );
 
     SLNP::Exception::UnknownItemId->throw("Request not linked to an item when it should")
-      unless $item_id_attributes->count > 0;
+        unless $item_id_attributes->count > 0;
 
     my $item_id = $item_id_attributes->next->value;
-    my $item = Koha::Items->find( $item_id );
+    my $item    = Koha::Items->find($item_id);
 
     SLNP::Exception::UnknownItemId->throw("Request not linked to an item when it should")
-      unless $item;
+        unless $item;
 
     return $item;
 }
@@ -1633,18 +1645,18 @@ sub biblio_cleanup {
         Koha::Database->new->schema->txn_do(
             sub {
                 SLNP::Exception::MissingParameter->throw( param => 'biblio_id' )
-                  unless $request->biblio_id;
+                    unless $request->biblio_id;
 
                 my $biblio = Koha::Biblios->find( $request->biblio_id );
                 SLNP::Exception::UnknownBiblioId->throw( biblio_id => $request->biblio_id )
-                  unless $biblio;
+                    unless $biblio;
 
-                my $holds  = $biblio->holds;
+                my $holds = $biblio->holds;
                 while ( my $hold = $holds->next ) {
-                    $hold->cancel( { skip_holds_queue => 1 } ); # skip_holds_queue used in 22.05+
+                    $hold->cancel( { skip_holds_queue => 1 } );    # skip_holds_queue used in 22.05+
                 }
 
-                my $items  = $biblio->items;
+                my $items = $biblio->items;
                 while ( my $item = $items->next ) {
                     $item->safe_delete;
                 }
@@ -1688,18 +1700,13 @@ sub add_or_update_attributes {
 
                 while ( my ( $type, $value ) = each %{$attributes} ) {
 
-                    my $attr = $request->illrequestattributes->find(
-                        {
-                            type => $type
-                        }
-                    );
+                    my $attr = $request->extended_attributes->find( { type => $type } );
 
                     if ($attr) {    # update
                         if ( $attr->value ne $value ) {
                             $attr->update( { value => $value, } );
                         }
-                    }
-                    else {          # new
+                    } else {        # new
                         $attr = Koha::ILL::Request::Attribute->new(
                             {
                                 illrequest_id => $request->id,
@@ -1711,8 +1718,7 @@ sub add_or_update_attributes {
                 }
             }
         );
-    }
-    catch {
+    } catch {
         $_->rethrow;
     };
 
